@@ -1,9 +1,8 @@
 julia 0.5
 Reexport 0.0.3
-DifferentialEquations 2.2.1
+OrdinaryDiffEq 2.2.0
 DiffEqBase
 DiffEqPDEBase
-OrdinaryDiffEq
 Parameters 0.5.0
 Juno 0.2.4
 IterativeSolvers 0.2.2
@@ -11,4 +10,3 @@ ForwardDiff 0.2.4
 Compat 0.19.0
 RecipesBase 0.1.0
 Interpolations 0.6.1
-
