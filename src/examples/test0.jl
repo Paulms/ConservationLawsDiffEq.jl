@@ -31,7 +31,7 @@ prob = ConservationLawsProblem(u0,f,CFL,Tend,mesh;Jf=Jf)
 
 #Plot
 using Plots
-plot(sol,1,lab="uo",line=(:dot,2))
+plot(sol,tidx=1,lab="uo",line=(:dot,2))
 plot!(sol,lab="KT u")
 plot!(sol2,lab="L-F h")
 plot!(sol3,lab="2S L-W h")
