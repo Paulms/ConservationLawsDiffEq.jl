@@ -1,5 +1,5 @@
 using ConservationLawsDiffEq
 using Base.Test
 
-# write your own tests here
-@test 1 == 2
+@time @testset "1D Scalar Algorithms" begin include("test0.jl") end
+@time @testset "1D Diffusion System Algorithms" begin include("test4.jl") end
