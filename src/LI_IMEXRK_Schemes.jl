@@ -37,7 +37,7 @@ immutable LI_IMEX_RK_Algorithm{F} <: AbstractFVAlgorithm
   RKTab :: RKTable
   linsolve :: F
 end
-function LI_IMEX_RK_Algorithm(;scheme = :H_CN_222, linsolve = DEFAULT_LINSOLVE)
+function LI_IMEX_RK_Algorithm(;scheme = :H_CN_222, linsolve = LinSolveFactorize(lufact))
   LI_IMEX_RK_Algorithm(RKTable(scheme), linsolve)
 end
 
