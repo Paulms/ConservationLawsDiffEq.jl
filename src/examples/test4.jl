@@ -16,7 +16,7 @@ const CC = e/7
 const κ = 1e-6
 const L = 0.03
 
-function Jf(ϕ::Vector)
+function f(::Type{Val{:jac}}, ϕ::Vector)
   M = size(ϕ,1)
   F = zeros(M,M)
   Vϕ = VV(sum(ϕ))
@@ -53,22 +53,24 @@ function u0_func(xx)
   return uinit
 end
 
-N = 100
-mesh = Uniform1DFVMesh(N,0.0,10.0,:PERIODIC)
-u0 = u0_func(mesh.x)
-prob = ConservationLawsWithDiffusionProblem(u0,f,BB,CFL,Tend,mesh;Jf=Jf)
+function get_problem(N)
+  mesh = Uniform1DFVMesh(N,0.0,10.0,:PERIODIC)
+  u0 = u0_func(mesh.x)
+  ConservationLawsWithDiffusionProblem(u0,f,BB,CFL,Tend,mesh)
+end
+#Compile
+prob = get_problem(10)
+#Run
+prob = get_problem(100)
 @time sol = solve(prob, FVKTAlgorithm();progress=true,saveat=0.01)
 @time sol2 = solve(prob, LI_IMEX_RK_Algorithm();progress=true,saveat=0.01)
 
 #Plot
 using(Plots)
-#Plots.scalefontsizes(1.5)
-plot(sol.prob.mesh.x, sol.u[1], line=(:dot,2), ylab="u", xlab = "x")
+plot(sol, tidx=1, line=(:dot,2), ylab="u", xlab = "x")
 plot!(sol.prob.mesh.x, [sum(sol.u[1][i,:]) for i=1:sol.prob.mesh.N],lab="u")
-plot(sol.prob.mesh.x, sol.u[end], line=(:dot,2), ylab="u", xlab = "x")
+plot(sol, line=(:dot,2), ylab="u", xlab = "x")
 plot!(sol.prob.mesh.x, [sum(sol.u[end][i,:]) for i=1:sol.prob.mesh.N],line=(2),lab="u KT")
-#savefig("T4KTN500T02.png")
 
-plot(sol2.prob.mesh.x, sol2.u[1], line=(:dot,2), ylab="u", xlab = "x")
-plot(sol2.prob.mesh.x, sol2.u[end], line=(:dot,2), ylab="u", xlab = "x")
-plot!(sol2.prob.mesh.x, [sum(sol2.u[end][i,:]) for i=1:N],lab="u IMEX")
+plot(sol2, line=(:dot,2), ylab="u", xlab = "x")
+plot!(sol2.prob.mesh.x, [sum(sol2.u[end][i,:]) for i=1:sol.prob.mesh.N],lab="u IMEX")

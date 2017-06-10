@@ -28,7 +28,7 @@ end
   uplus[:,:] = uu[1:N+1,1:M]-0.5*∇u[1:N+1,1:M]
   aa = zeros(N+1)
   for j = 1:N+1
-    aa[j]=max(fluxρ(uminus[j,:],Jf),fluxρ(uplus[j,:],Jf))
+    aa[j]=max(fluxρ(uminus[j,:],Flux),fluxρ(uplus[j,:],Flux))
   end
   #Flux slopes
   u_l = zeros(N+1,M)
@@ -95,8 +95,8 @@ end
   end
 end
 
-function FV_solve{tType,uType,tAlgType,F,G}(integrator::FVIntegrator{FVKTAlgorithm,
-  Uniform1DFVMesh,tType,uType,tAlgType,F,G};kwargs...)
+function FV_solve{tType,uType,tAlgType,F}(integrator::FVIntegrator{FVKTAlgorithm,
+  Uniform1DFVMesh,tType,uType,tAlgType,F};kwargs...)
   @fv_deterministicpreamble
   @fv_uniform1Dmeshpreamble
   @fv_generalpreamble
@@ -114,8 +114,8 @@ function FV_solve{tType,uType,tAlgType,F,G}(integrator::FVIntegrator{FVKTAlgorit
   @fv_timeloop
 end
 
-function FV_solve{tType,uType,tAlgType,F,G,B}(integrator::FVDiffIntegrator{FVKTAlgorithm,
-  Uniform1DFVMesh,tType,uType,tAlgType,F,G,B};kwargs...)
+function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVKTAlgorithm,
+  Uniform1DFVMesh,tType,uType,tAlgType,F,B};kwargs...)
   @fv_diffdeterministicpreamble
   @fv_uniform1Dmeshpreamble
   @fv_generalpreamble
@@ -123,12 +123,12 @@ function FV_solve{tType,uType,tAlgType,F,G,B}(integrator::FVDiffIntegrator{FVKTA
 
   function rhs!(rhs, uold, N, M, dx, dt, bdtype)
     #SEt ghost Cells
-    ngc = 1
     @boundary_header
     @kt_rhs_header
     # Diffusion
     pp = zeros(N+1,M)
-    ∇u_ap = ∇u/dx#(uu[2:N,:]-uu[1:N-1,:])/dx
+    ∇u_ap = zeros(uu)
+    ∇u_ap[:,:] = ∇u/dx#(uu[2:N,:]-uu[1:N-1,:])/dx
     for j = 1:(N+1)
       pp[j,:] = 0.5*(DiffMat(uu[j,:])+DiffMat(uu[j-1,:]))*∇u_ap[j,1:M]
     end

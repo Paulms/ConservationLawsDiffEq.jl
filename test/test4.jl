@@ -16,7 +16,7 @@ const CC = e/7
 const κ = 1e-6
 const L = 0.03
 
-function Jf(ϕ::Vector)
+function f(::Type{Val{:jac}}, ϕ::Vector)
   M = size(ϕ,1)
   F = zeros(M,M)
   Vϕ = VV(sum(ϕ))
@@ -53,10 +53,12 @@ function u0_func(xx)
   return uinit
 end
 
-N = 50
-mesh = Uniform1DFVMesh(N,0.0,10.0,:PERIODIC)
-u0 = u0_func(mesh.x)
-prob = ConservationLawsWithDiffusionProblem(u0,f,BB,CFL,Tend,mesh;Jf=Jf)
+function get_problem(N)
+  mesh = Uniform1DFVMesh(N,0.0,10.0,:PERIODIC)
+  u0 = u0_func(mesh.x)
+  ConservationLawsWithDiffusionProblem(u0,f,BB,CFL,Tend,mesh)
+end
+prob = get_problem(10)
 @time sol = solve(prob, FVKTAlgorithm();progress=true,saveat=0.01)
 @time sol2 = solve(prob, LI_IMEX_RK_Algorithm();progress=true,saveat=0.01)
 true

@@ -10,8 +10,8 @@ immutable LaxFriedrichsAlgorithm <: AbstractFVAlgorithm end
 # |---|---|---|......|---|---|
 # 1   2   3   4 ... N-1  N  N+1
 
-function FV_solve{tType,uType,tAlgType,F,G}(integrator::FVIntegrator{LaxFriedrichsAlgorithm,
-  Uniform1DFVMesh,tType,uType,tAlgType,F,G};kwargs...)
+function FV_solve{tType,uType,tAlgType,F}(integrator::FVIntegrator{LaxFriedrichsAlgorithm,
+  Uniform1DFVMesh,tType,uType,tAlgType,F};kwargs...)
   @fv_deterministicpreamble
   @fv_uniform1Dmeshpreamble
   @fv_generalpreamble

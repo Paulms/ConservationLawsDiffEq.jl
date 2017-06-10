@@ -1,4 +1,4 @@
-@recipe function f(sol::AbstractFVSolution; tidx = size(sol.t,1), uvars=0)
+@recipe function f(sol::AbstractFVSolution; tidx = size(sol.t,1), vars=nothing)
     seriestype  :=  :path
     xguide --> "x"
     yguide --> "u"
@@ -7,9 +7,9 @@
       push!(labels,"u$i")
     end
     yvector = sol.u[tidx]
-    if uvars != 0
-      yvector = sol.u[tidx][:,uvars]
-      labels = labels[uvars]
+    if vars != nothing
+      yvector = sol.u[tidx][:,vars]
+      labels = labels[vars]
     end
     if typeof(labels) <: String
       label --> labels

@@ -1,6 +1,6 @@
 __precompile__()
 module ConservationLawsDiffEq
-  using DiffEqBase, DiffEqPDEBase
+  using DiffEqPDEBase,DiffEqBase
   using Reexport
   @reexport using OrdinaryDiffEq
 
@@ -9,7 +9,7 @@ module ConservationLawsDiffEq
   using RecipesBase
 
   # Interfaces
-  import DiffEqBase: solve, @def
+  import DiffEqBase: solve, @def, has_jac, DEFAULT_LINSOLVE, LinearInterpolation
 
   #Solutions
   @compat abstract type AbstractFVSolution{T,N} <: AbstractTimeseriesSolution{T,N} end
@@ -17,8 +17,8 @@ module ConservationLawsDiffEq
   @compat abstract type AbstractFVMesh end
   @compat abstract type AbstractUniformFVMesh <: AbstractFVMesh end
   # Problems
-  @compat abstract type PDEProblem <: DEProblem end
-  @compat abstract type AbstractConservationLawProblem{MeshType} <: PDEProblem end
+  #@compat abstract type PDEProblem <: DEProblem end
+  @compat abstract type AbstractConservationLawProblem{islinear,isstochastic,MeshType} <: PDEProblem end
   # algorithms
   @compat abstract type PDEAlgorithm <: DEAlgorithm end
   @compat abstract type AbstractFVAlgorithm <: PDEAlgorithm end
@@ -45,6 +45,7 @@ module ConservationLawsDiffEq
 
   export solve
   export Uniform1DFVMesh
+  export FVSolution
   export ConservationLawsProblem, ConservationLawsWithDiffusionProblem
   export FVKTAlgorithm, FVTecnoAlgorithm, FVESJPAlgorithm
   export FVCompWENOAlgorithm, FVCompMWENOAlgorithm, FVSpecMWENOAlgorithm

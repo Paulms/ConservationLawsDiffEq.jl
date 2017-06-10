@@ -6,12 +6,12 @@
 immutable FVESJPAlgorithm <: AbstractFVAlgorithm
   Nflux :: Function
   Ndiff :: Function #Entropy stable 2 point flux
-  ϵ     :: Float64 # Extra diffusion
+  ϵ     :: Number # Extra diffusion
 end
 immutable FVESJPeAlgorithm <: AbstractFVAlgorithm
   Nflux :: Function
   Ndiff :: Function #Entropy stable 2 point flux
-  ϵ     :: Float64
+  ϵ     :: Number
   ve    :: Function #Entropy variable
 end
 function FVESJPAlgorithm(Nflux, Ndiff;ϵ=0.0,ve=nothing)
@@ -27,8 +27,8 @@ end
 # |---|---|---|......|---|---|
 # 1   2   3   4 ... N-1  N  N+1
 
-function FV_solve{tType,uType,tAlgType,F,G,B}(integrator::FVDiffIntegrator{FVESJPAlgorithm,
-  Uniform1DFVMesh,tType,uType,tAlgType,F,G,B};kwargs...)
+function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVESJPAlgorithm,
+  Uniform1DFVMesh,tType,uType,tAlgType,F,B};kwargs...)
   @fv_diffdeterministicpreamble
   @fv_uniform1Dmeshpreamble
   @fv_generalpreamble
@@ -54,8 +54,8 @@ function FV_solve{tType,uType,tAlgType,F,G,B}(integrator::FVDiffIntegrator{FVESJ
   @fv_difftimeloop
 end
 
-function FV_solve{tType,uType,tAlgType,F,G,B}(integrator::FVDiffIntegrator{FVESJPeAlgorithm,
-  Uniform1DFVMesh,tType,uType,tAlgType,F,G,B};kwargs...)
+function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVESJPeAlgorithm,
+  Uniform1DFVMesh,tType,uType,tAlgType,F,B};kwargs...)
   @fv_diffdeterministicpreamble
   @fv_uniform1Dmeshpreamble
   @fv_generalpreamble

@@ -1,33 +1,32 @@
-function cdt(u::Matrix, CFL, dx,JacF)
+function cdt(u::Matrix, CFL, dx,f)
   maxρ = 0
   N = size(u,1)
   for i in 1:N
-    maxρ = max(maxρ, fluxρ(u[i,:],JacF))
+    maxρ = max(maxρ, fluxρ(u[i,:],f))
   end
   CFL/(1/dx*maxρ)
 end
 
-function cdt(u::AbstractArray, CFL, dx, JacF, BB)
+function cdt(u::AbstractArray, CFL, dx, f, BB)
   maxρ = 0
   maxρB = 0
   N = size(u,1)
   for i in 1:N
-    maxρ = max(maxρ, fluxρ(u[i,:],JacF))
-    maxρB = max(maxρB, maximum(abs(eigvals(BB(u[i,:])))))
+    maxρ = max(maxρ, fluxρ(u[i,:],f))
+    maxρB = max(maxρB, maximum(abs,eigvals(BB(u[i,:]))))
   end
   CFL/(1/dx*maxρ+1/(2*dx^2)*maxρB)
 end
 
-@inline function fluxρ(uj::Vector,JacF)
-  #maximum(abs(eigvals(Jf(uj))))
-  maximum(abs(eigvals(JacF(uj))))
+@inline function fluxρ(uj::Vector,f)
+  maximum(abs,eigvals(f(Val{:jac}, uj)))
 end
 
-@inline function maxfluxρ(u::AbstractArray,JacF)
+@inline function maxfluxρ(u::AbstractArray,f)
     maxρ = 0
     N = size(u,1)
     for i in 1:N
-      maxρ = max(maxρ, fluxρ(u[i,:],JacF))
+      maxρ = max(maxρ, fluxρ(u[i,:],f))
     end
     maxρ
 end
@@ -51,11 +50,11 @@ end
   @unpack N,x,dx,bdtype = integrator.mesh
 end
 @def fv_diffdeterministicpreamble begin
-  @unpack u0,Flux,DiffMat,Jf,CFL,M,TimeAlgorithm,tend = integrator
+  @unpack u0,Flux,DiffMat,CFL,M,TimeAlgorithm,tend = integrator
 end
 
 @def fv_deterministicpreamble begin
-  @unpack u0,Flux,Jf,CFL,M,TimeAlgorithm,tend = integrator
+  @unpack u0,Flux,CFL,M,TimeAlgorithm,tend = integrator
 end
 
 @def fv_generalpreamble begin
@@ -66,15 +65,15 @@ end
   if timeIntegrator.sol.t[end] != tend
     savevalues!(timeIntegrator)
   end
-  return(timeIntegrator.sol.u,timeIntegrator.sol.t)
+  return(timeIntegrator.sol.u,timeIntegrator.sol.t, timeIntegrator.sol.retcode,timeIntegrator.sol.interp,timeIntegrator.sol.dense)
 end
 
 @def fv_timeloop begin
   #First dt
-  dt = cdt(u0, CFL, dx, Jf)
+  dt = cdt(u0, CFL, dx, Flux)
   @fv_setup_time_integrator
   @inbounds for i in timeIntegrator
-    dt = cdt(timeIntegrator.u, CFL, dx, Jf)
+    dt = cdt(timeIntegrator.u, CFL, dx, Flux)
     set_proposed_dt!(timeIntegrator, dt)
   end
   @fv_postamble
@@ -82,10 +81,10 @@ end
 
 @def fv_difftimeloop begin
   #First dt
-  dt = cdt(u0, CFL, dx, Jf, DiffMat)
+  dt = cdt(u0, CFL, dx, Flux, DiffMat)
   @fv_setup_time_integrator
   @inbounds for i in timeIntegrator
-    dt = cdt(timeIntegrator.u, CFL, dx, Jf, DiffMat)
+    dt = cdt(timeIntegrator.u, CFL, dx, Flux, DiffMat)
     set_proposed_dt!(timeIntegrator, dt)
   end
   @fv_postamble
@@ -123,7 +122,7 @@ end
     rhs!(du,u,N,M,dx,dt,bdtype)
   end
   prob = ODEProblem(semidiscretef, u0, (0.0,tend))
-  timeIntegrator = init(prob, SSPRK22();dt=dt, kwargs...)
+  timeIntegrator = init(prob, TimeAlgorithm;dt=dt, kwargs...)
 end
 
 # nflux must be capable of receiving vectors
@@ -176,7 +175,7 @@ end
      push!(timeseries,copy(u))
      push!(ts,t)
   end
-  timeseries,ts
+  timeseries,ts,:Default,LinearInterpolation(ts,timeseries),true
 end
 
 @def fv_nt_footer begin

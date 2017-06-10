@@ -4,7 +4,7 @@ end
 ZeroFluxMatrix{T}(a::AbstractMatrix{T}) = ZeroFluxMatrix{T,typeof(a)}(a)
 Base.setindex!(A::ZeroFluxMatrix, v, I...) = Base.setindex!(A.a, v, I...)
 Base.size(A::ZeroFluxMatrix) = size(A.a)
-Base.linearindexing{T<:ZeroFluxMatrix}(::Type{T}) = Base.LinearFast()
+@compat Base.IndexStyle(::Type{<:ZeroFluxMatrix}) = IndexLinear()
 Base.similar{T}(A::ZeroFluxMatrix, ::Type{T}) = ZeroFluxMatrix(similar(A.a, T))
 Base.similar(A::ZeroFluxMatrix) = similar(A, eltype(A.a))
 
@@ -24,7 +24,7 @@ end
 PeriodicMatrix{T}(a::AbstractMatrix{T}) = PeriodicMatrix{T,typeof(a)}(a)
 
 Base.size(A::PeriodicMatrix) = size(A.a)
-Base.linearindexing{T<:PeriodicMatrix}(::Type{T}) = Base.LinearFast()
+@compat Base.IndexStyle(::Type{<:PeriodicMatrix}) = IndexLinear()
 Base.setindex!(A::PeriodicMatrix, v, I...) = Base.setindex!(A.a, v, I...)
 Base.similar{T}(A::PeriodicMatrix, ::Type{T}) = PeriodicMatrix(similar(A.a, T))
 Base.similar(A::PeriodicMatrix) = similar(A, eltype(A.a))

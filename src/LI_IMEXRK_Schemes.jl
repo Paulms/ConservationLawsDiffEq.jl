@@ -33,26 +33,26 @@ function RKTable(scheme)
     throw("$scheme scheme not available...")
   end
 end
-immutable LI_IMEX_RK_Algorithm <: AbstractFVAlgorithm
+immutable LI_IMEX_RK_Algorithm{F} <: AbstractFVAlgorithm
   RKTab :: RKTable
-  solver :: Symbol
+  linsolve :: F
 end
-function LI_IMEX_RK_Algorithm(;scheme = :H_CN_222, solver = :Direct)
-  LI_IMEX_RK_Algorithm(RKTable(scheme), solver)
+function LI_IMEX_RK_Algorithm(;scheme = :H_CN_222, linsolve = DEFAULT_LINSOLVE)
+  LI_IMEX_RK_Algorithm(RKTable(scheme), linsolve)
 end
 
-function FV_solve{tType,uType,tAlgType,F,G,B}(integrator::FVDiffIntegrator{LI_IMEX_RK_Algorithm,
-  Uniform1DFVMesh,tType,uType,tAlgType,F,G,B};timeseries_steps = 1, maxiters = 1000000,
+function FV_solve{sType,tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{LI_IMEX_RK_Algorithm{sType},
+  Uniform1DFVMesh,tType,uType,tAlgType,F,B};timeseries_steps = 1, maxiters = 1000000,
   saveat=tType[], progressbar_name="LI-IMEX-RK",progress=false,save_everystep = false,kwargs...)
   @fv_diffdeterministicpreamble
   @fv_uniform1Dmeshpreamble
   @fv_nt_generalpreamble
-  @unpack RKTab, solver = integrator.alg
+  @unpack RKTab, linsolve = integrator.alg
   Φ = view(u',:)
   crj = unif_crj(3) #eno weights for weno5
   order = 5         #weno5
   @inbounds for i=1:maxiters
-    α = maxfluxρ(u,Jf)
+    α = maxfluxρ(u,Flux)
     dt = CFL*dx/α
     Ki = zeros(Φ)
     Kj = Vector{typeof(Ki)}(0)
@@ -76,13 +76,7 @@ function FV_solve{tType,uType,tAlgType,F,G,B}(integrator::FVDiffIntegrator{LI_IM
       Cϕ = hh[2:N+1,:]-hh[1:N,:]
       b = -1/dx*view(Cϕ',:)+1\dx^2*BB*Φh
       #Solve linear system
-      if solver == :Direct
-        Ki = A\b
-      elseif solver == :CG
-        cg!(Ki,A,b)
-      elseif solver == :GMRES
-        gmres!(Ki,A,b)
-      end
+      linsolve(Ki,A,b)
       push!(Kj,copy(Ki))
     end
     for j = 1:RKTab.order
