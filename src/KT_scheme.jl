@@ -101,10 +101,9 @@ function FV_solve{tType,uType,tAlgType,F}(integrator::FVIntegrator{FVKTAlgorithm
   @fv_uniform1Dmeshpreamble
   @fv_generalpreamble
   @unpack Θ = integrator.alg
-
+  update_dt = cdt
   function rhs!(rhs, uold, N, M, dx, dt, bdtype)
     #SEt ghost Cells
-    ngc = 1
     @boundary_header
     @kt_rhs_header
     @no_diffusion_term
@@ -120,7 +119,7 @@ function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVKTAlg
   @fv_uniform1Dmeshpreamble
   @fv_generalpreamble
   @unpack Θ = integrator.alg
-
+  update_dt = cdt
   function rhs!(rhs, uold, N, M, dx, dt, bdtype)
     #SEt ghost Cells
     @boundary_header
@@ -138,5 +137,5 @@ function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVKTAlg
     @boundary_update
     @update_rhs
   end
-  @fv_difftimeloop
+  @fv_timeloop
 end

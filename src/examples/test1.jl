@@ -1,5 +1,4 @@
-#Shallo waters equations with flat bottom
-
+# 1D Shallow water equations with flat bottom
 using ConservationLawsDiffEq
 
 const CFL = 0.1

@@ -4,9 +4,9 @@ function get_L1_errors{T,N,uType,tType,ProbType}(sol::FVSolution{T,N,uType,tType
     @unpack tspan = sol.prob
     uexact = ref(x, tspan[end])
     if nvar == 0
-      return(sum(abs,sol.u[end] - uexact))
+      return(1/sol.prob.mesh.N*sum(abs,sol.u[end] - uexact))
     else
-      return(sum(abs,sol.u[end][:,nvar] - uexact[:,nvar]))
+      return(1/sol.prob.mesh.N*sum(abs,sol.u[end][:,nvar] - uexact[:,nvar]))
     end
 end
 

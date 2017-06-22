@@ -18,5 +18,6 @@ function FV_solve{tType,uType,tAlgType,F}(integrator::FVIntegrator{LaxFriedrichs
   @inline function nflux(ul, ur,dx,dt)
     0.5*(Flux(ul)+Flux(ur))-dx/(2*dt)*(ur-ul)
   end
+  update_dt = cdt
   @fv_method_with_nflux_common
 end

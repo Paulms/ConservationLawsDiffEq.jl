@@ -9,7 +9,7 @@ module ConservationLawsDiffEq
   using RecipesBase
 
   # Interfaces
-  import DiffEqBase: solve, @def, has_jac, DEFAULT_LINSOLVE, LinearInterpolation
+  import DiffEqBase: solve, @def, has_jac, LinSolveFactorize, LinearInterpolation
 
   #Solutions
   @compat abstract type AbstractFVSolution{T,N} <: AbstractTimeseriesSolution{T,N} end

@@ -1,21 +1,21 @@
-function cdt(u::Matrix, CFL, dx,f)
-  maxρ = 0
-  N = size(u,1)
-  for i in 1:N
-    maxρ = max(maxρ, fluxρ(u[i,:],f))
-  end
-  CFL/(1/dx*maxρ)
-end
-
-function cdt(u::AbstractArray, CFL, dx, f, BB)
+function cdt{T}(u::AbstractArray{T,2},integrator::FVDiffIntegrator)
   maxρ = 0
   maxρB = 0
   N = size(u,1)
   for i in 1:N
-    maxρ = max(maxρ, fluxρ(u[i,:],f))
-    maxρB = max(maxρB, maximum(abs,eigvals(BB(u[i,:]))))
+    maxρ = max(maxρ, fluxρ(u[i,:],integrator.Flux))
+    maxρB = max(maxρB, maximum(abs,eigvals(integrator.DiffMat(u[i,:]))))
   end
-  CFL/(1/dx*maxρ+1/(2*dx^2)*maxρB)
+  integrator.CFL/(1/integrator.mesh.dx*maxρ+1/(2*integrator.mesh.dx^2)*maxρB)
+end
+
+function cdt{T}(u::AbstractArray{T,2},integrator::FVIntegrator)
+  maxρ = 0
+  N = size(u,1)
+  for i in 1:N
+    maxρ = max(maxρ, fluxρ(u[i,:],integrator.Flux))
+  end
+  integrator.CFL/(1/integrator.mesh.dx*maxρ)
 end
 
 @inline function fluxρ(uj::Vector,f)
@@ -70,21 +70,10 @@ end
 
 @def fv_timeloop begin
   #First dt
-  dt = cdt(u0, CFL, dx, Flux)
+  dt = update_dt(u0, integrator)
   @fv_setup_time_integrator
   @inbounds for i in timeIntegrator
-    dt = cdt(timeIntegrator.u, CFL, dx, Flux)
-    set_proposed_dt!(timeIntegrator, dt)
-  end
-  @fv_postamble
-end
-
-@def fv_difftimeloop begin
-  #First dt
-  dt = cdt(u0, CFL, dx, Flux, DiffMat)
-  @fv_setup_time_integrator
-  @inbounds for i in timeIntegrator
-    dt = cdt(timeIntegrator.u, CFL, dx, Flux, DiffMat)
+    dt = update_dt(timeIntegrator.u, integrator)
     set_proposed_dt!(timeIntegrator, dt)
   end
   @fv_postamble

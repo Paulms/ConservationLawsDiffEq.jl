@@ -180,7 +180,7 @@ end
       Rj = eigvecs(MatJf);  Lj = inv(Rj)
       push!(RMats,Rj); push!(LMats,Lj)
       λl = eigvals(Flux(Val{:jac},ul)); λr = eigvals(Flux(Val{:jac},ur))
-      αj[j,:] = max.(abs.(λl),abs.(λr))
+      αj[j,:] = maximum(abs,[λl λr],2)
       if j < N+1
         gk[j,:] = Flux(uu[j,:])
       end

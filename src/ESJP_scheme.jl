@@ -33,7 +33,7 @@ function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVESJPA
   @fv_uniform1Dmeshpreamble
   @fv_generalpreamble
   @unpack Nflux,Ndiff,ϵ = integrator.alg
-
+  update_dt = cdt
   function rhs!(rhs, uold, N, M, dx, dt, bdtype)
     #SEt ghost Cells
     ngc = 1
@@ -51,7 +51,7 @@ function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVESJPA
     @boundary_update
     @update_rhs
   end
-  @fv_difftimeloop
+  @fv_timeloop
 end
 
 function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVESJPeAlgorithm,
@@ -60,7 +60,7 @@ function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVESJPe
   @fv_uniform1Dmeshpreamble
   @fv_generalpreamble
   @unpack Nflux,Ndiff,ϵ,ve = integrator.alg
-
+  update_dt = cdt
   function rhs!(rhs, uold, N, M, dx, dt, bdtype)
     #SEt ghost Cells
     ngc = 1
@@ -79,5 +79,5 @@ function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVESJPe
     @boundary_update
     @update_rhs
   end
-  @fv_difftimeloop
+  @fv_timeloop
 end

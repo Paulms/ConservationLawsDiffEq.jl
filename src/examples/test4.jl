@@ -35,10 +35,10 @@ VV(ϕ::Number) = (ϕ < ϕc) ? 1.0 : 1.0-ϕ
 VP(ϕ::Number) = (ϕ < ϕc) ? 0.0 : -1.0
 
 function BB(ϕ::AbstractArray)
+  M = size(ϕ,1)
   if (sum(ϕ) < ϕc)
-    0.0
+    zeros(M,M)
   else
-    M = size(ϕ,1)
     B = β(sum(ϕ))*eye(M)
     B
   end

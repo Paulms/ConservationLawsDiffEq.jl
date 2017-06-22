@@ -89,8 +89,16 @@ function FV_solve{sType,tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{L
   @fv_nt_postamble
 end
 
+@def update_assamble_vectors begin
+  for ir in 1:M
+    for ic in 1:M
+      vals[cent] = tmp[ir,ic]; idr[cent] = ((i-1)*M+ir); idc[cent] = ((j-1)*M+ic)
+      cent += 1
+    end
+  end
+end
+
 function assamble_B(Φ,N,M,DiffMat,bdtype)
-  BB = spzeros(N*M,N*M)
   uleft = view(Φ,1:M)
   uright = view(Φ,((N-1)*M+1):(N*M))
   if bdtype == :ZERO_FLUX
@@ -100,23 +108,31 @@ function assamble_B(Φ,N,M,DiffMat,bdtype)
   else
     throw("Boundary type $bdtype not supported")
   end
+  nnz=M*M*(N-2)*3+M*M*2*2
+  idr = zeros(Int,nnz)
+  idc = zeros(Int,nnz)
+  vals = zeros(eltype(Φ),nnz)
+  cent = 1
   for i = 1:N
     for j = 1:N
       if i == j
         ul = i>1 ? view(Φ,((i-2)*M+1):((i-1)*M)) : uleft
         uc = view(Φ,((i-1)*M+1):(i*M))
         ur = i < N ? view(Φ,(i*M+1):((i+1)*M)) : uright
-        BB[((i-1)*M+1):(i*M),((j-1)*M+1):(j*M)] = -0.5*(DiffMat(ul)+2*DiffMat(uc)+DiffMat(ur))
+        tmp = -0.5*(DiffMat(ul)+2*DiffMat(uc)+DiffMat(ur))
+        @update_assamble_vectors
       elseif j == i+1
         uc=view(Φ,((i-1)*M+1):(i*M))
         ur=i < N ? view(Φ,(i*M+1):((i+1)*M)) : uright
-        BB[((i-1)*M+1):(i*M),((j-1)*M+1):(j*M)] = 0.5*(DiffMat(uc)+DiffMat(ur))
+        tmp = 0.5*(DiffMat(uc)+DiffMat(ur))
+        @update_assamble_vectors
       elseif j == i-1
         ul=i>1 ? view(Φ,((i-2)*M+1):((i-1)*M)) : uleft
         uc=view(Φ,((i-1)*M+1):(i*M))
-        BB[((i-1)*M+1):(i*M),((j-1)*M+1):(j*M)] = 0.5*(DiffMat(ul)+DiffMat(uc))
+        tmp = 0.5*(DiffMat(ul)+DiffMat(uc))
+        @update_assamble_vectors
       end
     end
   end
-  BB
+  sparse(idr,idc,vals)
 end
