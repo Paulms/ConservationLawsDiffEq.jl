@@ -24,7 +24,7 @@ notifications:
     on_build_status_changed: false
 
 install:
- - ps: "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12"
+  - ps: "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12"
 # Download most recent Julia Windows binary
   - ps: (new-object net.webclient).DownloadFile(
         $env:JULIA_URL,
@@ -37,7 +37,7 @@ build_script:
 # Need to convert from shallow to complete for Pkg.clone to work
   - IF EXIST .git\shallow (git fetch --unshallow)
   - C:\projects\julia\bin\julia -e "versioninfo();
-      Pkg.clone(pwd(), \"ConservationLawsDiffEq\"); Pkg.build(\"ConservationLawsDiffEq\")"
+  Pkg.clone(pwd(), \"ConservationLawsDiffEq\"); Pkg.build(\"ConservationLawsDiffEq\")"
 
 test_script:
-  - C:\projects\julia\bin\julia --check-bounds=yes -e "Pkg.test(\"ConservationLawsDiffEq\")"
+ - C:\projects\julia\bin\julia --check-bounds=yes -e "Pkg.test(\"ConservationLawsDiffEq\")"
