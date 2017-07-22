@@ -59,9 +59,9 @@ end
 @def local_lax_flux begin
   # Lax Friedrichs flux splitting
   αk = zeros(N)
-  αl = fluxρ(uu[0,:])
+  αl = fluxρ(uu[0,:], Flux)
   for j = 1:N
-    αr = fluxρ(uu[j,:])
+    αr = fluxρ(uu[j,:], Flux)
     αk[j] = max(αl, αr)
     αl = αr
   end
