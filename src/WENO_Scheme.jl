@@ -62,7 +62,7 @@ end
   αl = fluxρ(uu[0,:])
   for j = 1:N
     αr = fluxρ(uu[j,:])
-    αk = max(αl, αr)
+    αk[j] = max(αl, αr)
     αl = αr
   end
   fminus = zeros(uu); fplus = zeros(uu)
