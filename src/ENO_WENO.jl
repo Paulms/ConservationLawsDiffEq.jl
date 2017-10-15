@@ -1,7 +1,7 @@
 #ENO coefficients for uniform mesh
 function unif_crj(k::Int)
   if k == 1
-    return([1;1])
+      return([1;1])
   end
   crj = zeros(k+1,k)
   for i = 1:(k+1)
@@ -9,8 +9,22 @@ function unif_crj(k::Int)
     for j = 1:k
       psum = 0.0
       for m = j:k
-        numer = sum([*([r-q+1 for q in 0:k if q!=m && q!=l]...) for l in 0:k if l != m])
-        denom = *([m-l for l in 0:k if l != m]...)
+        numer = 0.0
+        for l = 0:k
+          if (l!=m)
+            numer_prod = 1.0
+            for q = 0:k
+              if (q != m && q != l)
+                numer_prod = numer_prod*(r-q+1)
+              end
+            end
+            numer = numer + numer_prod
+          end
+        end
+        denom = 1.0
+        for l = 0:k
+          if (l!=m);denom = denom * (m-l);end
+        end
         psum = psum + numer/denom
       end
       crj[i,j] = psum

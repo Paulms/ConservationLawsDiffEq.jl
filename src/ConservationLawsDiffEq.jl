@@ -42,6 +42,9 @@ module ConservationLawsDiffEq
   include("LI_IMEXRK_Schemes.jl")
   include("Lax_Friedrichs_scheme.jl")
   include("Lax_Wendroff2s_scheme.jl")
+  include("CU_scheme.jl")
+  include("DRCU_scheme.jl")
+  include("SKT_scheme.jl")
 
   export solve
   export Uniform1DFVMesh
@@ -52,4 +55,5 @@ module ConservationLawsDiffEq
   export RKTable, LI_IMEX_RK_Algorithm
   export LaxFriedrichsAlgorithm, LaxWendroff2sAlgorithm
   export get_L1_errors, minmod
+  export FVCUAlgorithm, FVDRCUAlgorithm, FVSKTAlgorithm
 end

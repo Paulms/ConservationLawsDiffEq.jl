@@ -91,7 +91,7 @@ end
     aa[j]*(1-λ*aa[j])/4*(∇u[j,1:M]+∇u[j-1,1:M]) + λ*dx/2*(aa[j])^2*∇Ψ[j,:]
   end
   if bdtype == :ZERO_FLUX
-    hh[1,:] = 0.0_dp; hh[N+1,:] = 0.0_dp
+    hh[1,:] = 0.0; hh[N+1,:] = 0.0
   end
 end
 
@@ -132,7 +132,7 @@ function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVKTAlg
       pp[j,:] = 0.5*(DiffMat(uu[j,:])+DiffMat(uu[j-1,:]))*∇u_ap[j,1:M]
     end
     if bdtype == :ZERO_FLUX
-      pp[1,:] = 0.0_dp; pp[N+1,:] = 0.0_dp
+      pp[1,:] = 0.0; pp[N+1,:] = 0.0
     end
     @boundary_update
     @update_rhs
