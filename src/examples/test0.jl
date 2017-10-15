@@ -17,22 +17,23 @@ function u0_func(xx)
 end
 
 function get_problem(N)
-  mesh = Uniform1DFVMesh(N,0.0,1.0,:PERIODIC)
-  u0 = u0_func(mesh.x)
+  mesh = Uniform1DFVMesh(N,0.0,1.0,:PERIODIC,:PERIODIC)
+  u0 = u0_func(cell_centers(mesh))
   ConservationLawsProblem(u0,f,CFL,Tend,mesh)
 end
 #Compile
 prob = get_problem(10)
 #Run
 prob = get_problem(200)
-@time sol = solve(prob, FVKTAlgorithm();progress=true)
+@time sol = solve(prob, FVSKTAlgorithm();progress=true)
 @time sol2 = solve(prob, LaxFriedrichsAlgorithm();progress=true)
 @time sol3 = solve(prob, LaxWendroff2sAlgorithm();progress=true)
 @time sol4 = solve(prob, FVCompWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33())
 @time sol5 = solve(prob, FVCompMWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33())
 
 #Plot
-using Plots
+using Plots;
+gr()
 plot(sol,tidx = 1,lab="uo",line=(:dot,2))
 plot!(sol,lab="KT u")
 plot!(sol2,lab="L-F h")

@@ -22,7 +22,7 @@ function get_problem(N)
   ConservationLawsProblem(u0,f,CFL,Tend,mesh)
 end
 prob = get_problem(10)
-@time sol = solve(prob, FVKTAlgorithm();progress=true)
+@time sol = solve(prob, FVSKTAlgorithm();progress=true)
 @time sol2 = solve(prob, LaxFriedrichsAlgorithm();progress=true)
 #@time sol3 = solve(prob, LaxWendroff2sAlgorithm();progress=true)
 @time sol4 = solve(prob, FVCompWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33())

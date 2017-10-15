@@ -15,7 +15,7 @@ module ConservationLawsDiffEq
   @compat abstract type AbstractFVSolution{T,N} <: AbstractTimeseriesSolution{T,N} end
   # Mesh
   @compat abstract type AbstractFVMesh end
-  @compat abstract type AbstractUniformFVMesh <: AbstractFVMesh end
+
   # Problems
   #@compat abstract type PDEProblem <: DEProblem end
   @compat abstract type AbstractConservationLawProblem{islinear,isstochastic,MeshType} <: PDEProblem end
@@ -56,4 +56,5 @@ module ConservationLawsDiffEq
   export LaxFriedrichsAlgorithm, LaxWendroff2sAlgorithm
   export get_L1_errors, minmod
   export FVCUAlgorithm, FVDRCUAlgorithm, FVSKTAlgorithm
+  export cell_centers
 end

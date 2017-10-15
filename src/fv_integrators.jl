@@ -1,22 +1,54 @@
-struct FVIntegrator{T1,mType,tType,uType,tAlgType,F}
+struct FVIntegrator{T1,mType,F,cType,T2,tType}
   alg::T1
   mesh::mType
-  u0::uType
   Flux::F
-  CFL :: Number
+  CFL :: cType
   M::Int
-  TimeAlgorithm::tAlgType
-  tend::tType
+  fluxes :: T2
+  dt :: tType
 end
 
-struct FVDiffIntegrator{T1,mType,tType,uType,tAlgType,F,B}
+struct FVDiffIntegrator{T1,mType,F,B, cType,T2, tType}
   alg::T1
   mesh::mType
-  u0::uType
   Flux::F
   DiffMat::B
-  CFL :: Real
+  CFL :: cType
   M::Int
-  TimeAlgorithm::tAlgType
-  tend::tType
+  fluxes::T2
+  dt :: tType
+end
+
+function update_dt(u::AbstractArray{T,2},fv::FVIntegrator) where {T}
+  @unpack mesh, alg, Flux, dt, CFL = fv
+  update_dt(alg, u, Flux, CFL, mesh, dt)
+end
+
+"""
+    (fv::FVIntegrator)(t, u, du)
+
+Apply a finite volume semidiscretisation.
+"""
+function (fv::FVIntegrator)(t, u, du)
+  @boundscheck begin
+    if length(u) != length(du)
+      error("length(u) = $(length(u)) != $(length(du)) = length(du)")
+    end
+    length(u) != numcells(fv.mesh) && error("length(u) != numcells(fv.mesh)")
+  end
+
+  @unpack mesh, alg, Flux, M, fluxes, dt = fv
+
+  compute_fluxes!(fluxes, Flux, u, mesh, dt, M, alg)
+  compute_du!(du, fluxes, mesh, Val{false})
+
+  nothing
+end
+
+function compute_du!(du, fluxes, mesh::AbstractFVMesh1D, ::Type{Val{false}})
+    for cell in cell_indices(mesh)
+        @inbounds left = left_edge(cell, mesh)
+        @inbounds right = right_edge(cell, mesh)
+        @inbounds du[cell] = -( fluxes[right] - fluxes[left] ) / volume(cell, mesh)
+    end
 end

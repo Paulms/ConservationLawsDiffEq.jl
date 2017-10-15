@@ -9,13 +9,14 @@ function cdt{T}(u::AbstractArray{T,2},integrator::FVDiffIntegrator)
   integrator.CFL/(1/integrator.mesh.dx*maxρ+1/(2*integrator.mesh.dx^2)*maxρB)
 end
 
-function cdt{T}(u::AbstractArray{T,2},integrator::FVIntegrator)
+function update_dt(alg::AbstractFVAlgorithm,u::AbstractArray{T,2},Flux,
+    CFL,mesh::Uniform1DFVMesh, dt) where {T}
   maxρ = 0
-  N = size(u,1)
+  N = numcells(mesh)
   for i in 1:N
-    maxρ = max(maxρ, fluxρ(u[i,:],integrator.Flux))
+    maxρ = max(maxρ, fluxρ(u[i,:], Flux))
   end
-  integrator.CFL/(1/integrator.mesh.dx*maxρ)
+  CFL/(1/mesh.Δx*maxρ)
 end
 
 @inline function fluxρ(uj::Vector,f)

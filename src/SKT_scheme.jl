@@ -4,11 +4,46 @@
 # Laws and Convection-Difussion Equations. Journal of Comp Physics 160, pp 241-282. 2000
 
 immutable FVSKTAlgorithm <: AbstractFVAlgorithm
-  Θ :: Float64
+  θ :: Float64
 end
 
-function FVSKTAlgorithm(;Θ=1.0)
-  FVSKTAlgorithm(Θ)
+function FVSKTAlgorithm(;θ=1.0)
+  FVSKTAlgorithm(θ)
+end
+
+function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm)
+    @unpack θ = alg
+    λ = dt/mesh.Δx
+    N = numcells(mesh)
+    #update vector
+    # 1. slopes
+    ∇u = zeros(u)
+    for j = 1:N
+      ul = cellval_at_left(j,u,mesh)
+      ur = cellval_at_right(j+1,u,mesh)
+      for i = 1:M
+        uc = u[j,i]
+        ∇u[j,i] = minmod(θ*(uc-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-uc))
+      end
+    end
+    # Local speeds of propagation
+    uminus = zeros(N+1,M);uplus=zeros(N+1,M)
+    for j in edge_indices(mesh)
+        uminus[j,:]=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
+        uplus[j,:]=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
+    end
+    aa = zeros(N+1)
+    for j in edge_indices(mesh)
+      aa[j]=max(fluxρ(uminus[j,:],Flux),fluxρ(uplus[j,:],Flux))
+    end
+
+    # Numerical Fluxes
+    for j in edge_indices(mesh)
+      hh[j,:] = 0.5*(Flux(uplus[j,:])+Flux(uminus[j,:])) -
+      aa[j]/2*(uplus[j,:] - uminus[j,:])
+    end
+    if isleftzeroflux(mesh);hh[1,:] = 0.0; end
+    if isrightzeroflux(mesh);hh[N+1,:] = 0.0;end
 end
 
 # Numerical Fluxes
@@ -16,54 +51,6 @@ end
 # |---|---|---|......|---|---|
 # 1   2   3   4 ... N-1  N  N+1
 
-@def skt_rhs_header begin
-  #Compute diffusion
-  λ = dt/dx
-  #update vector
-  # 1. slopes
-  ∇u = zeros(uu)
-  for i = 1:M
-    for j = 1:N
-      ∇u[j,i] = minmod(Θ*(uu[j,i]-uu[j-1,i]),(uu[j+1,i]-uu[j-1,i])/2,Θ*(uu[j+1,i]-uu[j,i]))
-    end
-  end
-  # Local speeds of propagation
-  uminus = zeros(N+1,M);uplus=zeros(N+1,M)
-  uminus[:,:] = uu[0:N,1:M]+0.5*∇u[0:N,1:M]
-  uplus[:,:] = uu[1:N+1,1:M]-0.5*∇u[1:N+1,1:M]
-  aa = zeros(N+1)
-  for j = 1:N+1
-    aa[j]=max(fluxρ(uminus[j,:],Flux),fluxρ(uplus[j,:],Flux))
-  end
-
-  # Numerical Fluxes
-  hh = zeros(N+1,M)
-  for j = 1:(N+1)
-    hh[j,:] = 0.5*(Flux(uplus[j,:])+Flux(uminus[j,:])) -
-    aa[j]/2*(uplus[j,:] - uminus[j,:])
-  end
-  if bdtype == :ZERO_FLUX
-    hh[1,:] = 0.0; hh[N+1,:] = 0.0
-  end
-end
-
-function FV_solve{tType,uType,tAlgType,F}(integrator::FVIntegrator{FVSKTAlgorithm,
-  Uniform1DFVMesh,tType,uType,tAlgType,F};kwargs...)
-  @fv_deterministicpreamble
-  @fv_uniform1Dmeshpreamble
-  @fv_generalpreamble
-  @unpack Θ = integrator.alg
-  update_dt = cdt
-  function rhs!(rhs, uold, N, M, dx, dt, bdtype)
-    #SEt ghost Cells
-    @boundary_header
-    @skt_rhs_header
-    @no_diffusion_term
-    @boundary_update
-    @update_rhs
-  end
-  @fv_timeloop
-end
 
 function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVSKTAlgorithm,
   Uniform1DFVMesh,tType,uType,tAlgType,F,B};kwargs...)
@@ -75,7 +62,7 @@ function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVSKTAl
   function rhs!(rhs, uold, N, M, dx, dt, bdtype)
     #SEt ghost Cells
     @boundary_header
-    @skt_rhs_header
+    #@skt_rhs_header
     # Diffusion
     pp = zeros(N+1,M)
     ∇u_ap = zeros(uu)
