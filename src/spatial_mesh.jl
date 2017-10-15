@@ -68,6 +68,7 @@ end
 @inline function cellval_at_left(edge::Int, A::AbstractArray{T,2}, mesh::AbstractFVMesh1D; n = 1) where {T}
     idx = (edge-1,:)
     if n > 1; idx = ((edge-n):(edge-1),:);end
+    checkbounds(Bool, A, idx...) && return A[idx...]
     if isleftperiodic(mesh)
         getPeriodicIndex(A, idx...)
     elseif isleftzeroflux(mesh)
@@ -85,6 +86,7 @@ end
 @inline function cellval_at_right(edge::Int, A::AbstractArray{T,2}, mesh::AbstractFVMesh1D; n = 1) where {T}
     idx = (edge,:)
     if n > 1; idx = (edge:(edge+n-1),:);end
+    checkbounds(Bool, A, idx...) && return A[idx...]
     if isleftperiodic(mesh)
         getPeriodicIndex(A, idx...)
     elseif isleftzeroflux(mesh)

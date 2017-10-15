@@ -26,21 +26,14 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{V
         @inbounds ∇u[j,i] = minmod(θ*(uc-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-uc))
       end
     end
-    # Local speeds of propagation
-    uminus = zeros(N+1,M);uplus=zeros(N+1,M)
-    Threads.@threads for j in edge_indices(mesh)
-        @inbounds uminus[j,:]=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
-        @inbounds uplus[j,:]=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
-    end
-    aa = zeros(N+1)
-    Threads.@threads for j in edge_indices(mesh)
-      @inbounds aa[j]=max(fluxρ(uminus[j,:],Flux),fluxρ(uplus[j,:],Flux))
-    end
 
-    # Numerical Fluxes
     Threads.@threads for j in edge_indices(mesh)
-      hh[j,:] = 0.5*(Flux(uplus[j,:])+Flux(uminus[j,:])) -
-      aa[j]/2*(uplus[j,:] - uminus[j,:])
+        # Local speeds of propagation
+        @inbounds uminus=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
+        @inbounds uplus=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
+        aa = max(fluxρ(uminus,Flux),fluxρ(uplus,Flux))
+        # Numerical Fluxes
+        @inbounds hh[j,:] = 0.5*(Flux(uplus)+Flux(uminus)) - aa/2*(uplus - uminus)
     end
     if isleftzeroflux(mesh);hh[1,:] = 0.0; end
     if isrightzeroflux(mesh);hh[N+1,:] = 0.0;end
@@ -57,25 +50,18 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{V
       ul = cellval_at_left(j,u,mesh)
       ur = cellval_at_right(j+1,u,mesh)
       for i = 1:M
-        uc = u[j,i]
-        ∇u[j,i] = minmod(θ*(uc-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-uc))
+        @inbounds uc = u[j,i]
+        @inbounds ∇u[j,i] = minmod(θ*(uc-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-uc))
       end
     end
-    # Local speeds of propagation
-    uminus = zeros(N+1,M);uplus=zeros(N+1,M)
-    for j in edge_indices(mesh)
-        uminus[j,:]=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
-        uplus[j,:]=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
-    end
-    aa = zeros(N+1)
-    for j in edge_indices(mesh)
-      aa[j]=max(fluxρ(uminus[j,:],Flux),fluxρ(uplus[j,:],Flux))
-    end
 
-    # Numerical Fluxes
     for j in edge_indices(mesh)
-      hh[j,:] = 0.5*(Flux(uplus[j,:])+Flux(uminus[j,:])) -
-      aa[j]/2*(uplus[j,:] - uminus[j,:])
+        # Local speeds of propagation
+        @inbounds uminus=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
+        @inbounds uplus=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
+        aa = max(fluxρ(uminus,Flux),fluxρ(uplus,Flux))
+        # Numerical Fluxes
+        @inbounds hh[j,:] = 0.5*(Flux(uplus)+Flux(uminus)) - aa/2*(uplus - uminus)
     end
     if isleftzeroflux(mesh);hh[1,:] = 0.0; end
     if isrightzeroflux(mesh);hh[N+1,:] = 0.0;end
