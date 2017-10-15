@@ -1,4 +1,4 @@
-immutable FVIntegrator{T1,mType,tType,uType,tAlgType,F}
+struct FVIntegrator{T1,mType,tType,uType,tAlgType,F}
   alg::T1
   mesh::mType
   u0::uType
@@ -9,7 +9,7 @@ immutable FVIntegrator{T1,mType,tType,uType,tAlgType,F}
   tend::tType
 end
 
-immutable FVDiffIntegrator{T1,mType,tType,uType,tAlgType,F,B}
+struct FVDiffIntegrator{T1,mType,tType,uType,tAlgType,F,B}
   alg::T1
   mesh::mType
   u0::uType

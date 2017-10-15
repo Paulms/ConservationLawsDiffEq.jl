@@ -1,4 +1,4 @@
-type Uniform1DFVMesh <: AbstractUniformFVMesh
+struct Uniform1DFVMesh <: AbstractUniformFVMesh
   N ::Int
   x :: Vector{Float64}
   dx :: Float64
