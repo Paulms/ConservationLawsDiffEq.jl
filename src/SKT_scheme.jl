@@ -11,7 +11,42 @@ function FVSKTAlgorithm(;θ=1.0)
   FVSKTAlgorithm(θ)
 end
 
-function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm)
+function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{true}})
+    @unpack θ = alg
+    λ = dt/mesh.Δx
+    N = numcells(mesh)
+    #update vector
+    # 1. slopes
+    ∇u = zeros(u)
+    Threads.@threads for j = 1:N
+      ul = cellval_at_left(j,u,mesh)
+      ur = cellval_at_right(j+1,u,mesh)
+      Threads.@threads for i = 1:M
+        @inbounds uc = u[j,i]
+        @inbounds ∇u[j,i] = minmod(θ*(uc-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-uc))
+      end
+    end
+    # Local speeds of propagation
+    uminus = zeros(N+1,M);uplus=zeros(N+1,M)
+    Threads.@threads for j in edge_indices(mesh)
+        @inbounds uminus[j,:]=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
+        @inbounds uplus[j,:]=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
+    end
+    aa = zeros(N+1)
+    Threads.@threads for j in edge_indices(mesh)
+      @inbounds aa[j]=max(fluxρ(uminus[j,:],Flux),fluxρ(uplus[j,:],Flux))
+    end
+
+    # Numerical Fluxes
+    Threads.@threads for j in edge_indices(mesh)
+      hh[j,:] = 0.5*(Flux(uplus[j,:])+Flux(uminus[j,:])) -
+      aa[j]/2*(uplus[j,:] - uminus[j,:])
+    end
+    if isleftzeroflux(mesh);hh[1,:] = 0.0; end
+    if isrightzeroflux(mesh);hh[N+1,:] = 0.0;end
+end
+
+function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{false}})
     @unpack θ = alg
     λ = dt/mesh.Δx
     N = numcells(mesh)
@@ -45,12 +80,6 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm)
     if isleftzeroflux(mesh);hh[1,:] = 0.0; end
     if isrightzeroflux(mesh);hh[N+1,:] = 0.0;end
 end
-
-# Numerical Fluxes
-#   1   2   3          N-1  N
-# |---|---|---|......|---|---|
-# 1   2   3   4 ... N-1  N  N+1
-
 
 function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVSKTAlgorithm,
   Uniform1DFVMesh,tType,uType,tAlgType,F,B};kwargs...)

@@ -10,7 +10,7 @@ function cdt{T}(u::AbstractArray{T,2},integrator::FVDiffIntegrator)
 end
 
 function update_dt(alg::AbstractFVAlgorithm,u::AbstractArray{T,2},Flux,
-    CFL,mesh::Uniform1DFVMesh, dt) where {T}
+    CFL,mesh::Uniform1DFVMesh) where {T}
   maxρ = 0
   N = numcells(mesh)
   for i in 1:N

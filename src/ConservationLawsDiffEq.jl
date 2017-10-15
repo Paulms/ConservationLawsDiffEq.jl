@@ -56,5 +56,5 @@ module ConservationLawsDiffEq
   export LaxFriedrichsAlgorithm, LaxWendroff2sAlgorithm
   export get_L1_errors, minmod
   export FVCUAlgorithm, FVDRCUAlgorithm, FVSKTAlgorithm
-  export cell_centers
+  export cell_centers, get_semidiscretization
 end

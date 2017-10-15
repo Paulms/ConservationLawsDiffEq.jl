@@ -25,7 +25,7 @@ end
 prob = get_problem(10)
 #Run
 prob = get_problem(200)
-@time sol = solve(prob, FVSKTAlgorithm();progress=true)
+@time sol = solve(prob, FVSKTAlgorithm();progress=true, use_threads = true)
 @time sol2 = solve(prob, LaxFriedrichsAlgorithm();progress=true)
 @time sol3 = solve(prob, LaxWendroff2sAlgorithm();progress=true)
 @time sol4 = solve(prob, FVCompWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33())
@@ -33,7 +33,7 @@ prob = get_problem(200)
 
 #Plot
 using Plots;
-gr()
+pyplot()
 plot(sol,tidx = 1,lab="uo",line=(:dot,2))
 plot!(sol,lab="KT u")
 plot!(sol2,lab="L-F h")

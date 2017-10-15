@@ -1,7 +1,7 @@
 function solve{islinear,isstochastic,MeshType,F,F3,F4,F5}(
   prob::ConservationLawsProblem{islinear,isstochastic,MeshType,F,F3,F4,F5},
   alg::AbstractFVAlgorithm;
-  TimeAlgorithm::OrdinaryDiffEqAlgorithm = SSPRK22(),force_cfl = true, kwargs...)
+  TimeAlgorithm::OrdinaryDiffEqAlgorithm = SSPRK22(),use_threads = false, kwargs...)
 
   #Unroll some important constants
   @unpack tspan,f,u0 = prob
@@ -10,23 +10,24 @@ function solve{islinear,isstochastic,MeshType,F,F3,F4,F5}(
   end
 
   # Semidiscretization
-  ode_fv = get_semidiscretization(alg, prob)
+  ode_fv = get_semidiscretization(alg, prob; use_threads = use_threads)
   ode_prob = ODEProblem(ode_fv, u0, tspan)
   # Check CFL condition
-  dt = update_dt(u0, ode_fv)
-  condition(t,u,integrator) = force_cfl
-  affect!(integrator) = set_proposed_dt!(integrator, update_dt(integrator.u, ode_fv))
-  cb = DiscreteCallback(condition,affect!)
-  sol = solve(ode_prob,TimeAlgorithm,dt=dt,callback=cb)
-
-  return(FVSolution(sol.u,sol.t,prob,sol.retcode,sol.interp;dense = sol.dense))
+  ode_fv.dt = update_dt(u0, ode_fv)
+  timeIntegrator = init(ode_prob, TimeAlgorithm;dt=ode_fv.dt,kwargs...)
+  @inbounds for i in timeIntegrator
+    ode_fv.dt = update_dt(timeIntegrator.u, ode_fv)
+    set_proposed_dt!(timeIntegrator, ode_fv.dt)
+  end
+  return(FVSolution(timeIntegrator.sol.u,timeIntegrator.sol.t,prob,
+  timeIntegrator.sol.retcode,timeIntegrator.sol.interp;dense = timeIntegrator.sol.dense))
 end
 
-function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsProblem)
+function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsProblem;use_threads=false)
     @unpack f,CFL,numvars,mesh,u0 = prob
     fluxes = zeros(eltype(u0),numedges(mesh),numvars)
     dt = 0.0
-    FVIntegrator(alg,mesh,f,CFL,numvars, fluxes, dt)
+    FVIntegrator(alg,mesh,f,CFL,numvars, fluxes, dt, use_threads)
 end
 
 # function solve{islinear,isstochastic,MeshType,F,F3,F4,F5,F6}(
