@@ -1,12 +1,13 @@
-function cdt{T}(u::AbstractArray{T,2},integrator::FVDiffIntegrator)
+function update_dt(alg::AbstractFVAlgorithm,u::AbstractArray{T,2},Flux,
+    DiffMat, CFL,mesh::Uniform1DFVMesh) where {T}
   maxρ = 0
   maxρB = 0
-  N = size(u,1)
+  N = numcells(mesh)
   for i in 1:N
-    maxρ = max(maxρ, fluxρ(u[i,:],integrator.Flux))
-    maxρB = max(maxρB, maximum(abs,eigvals(integrator.DiffMat(u[i,:]))))
+    maxρ = max(maxρ, fluxρ(u[i,:], Flux))
+    maxρB = max(maxρB, maximum(abs,eigvals(DiffMat(u[i,:]))))
   end
-  integrator.CFL/(1/integrator.mesh.dx*maxρ+1/(2*integrator.mesh.dx^2)*maxρB)
+  CFL/(1/mesh.Δx*maxρ+1/(2*mesh.Δx^2)*maxρB)
 end
 
 function update_dt(alg::AbstractFVAlgorithm,u::AbstractArray{T,2},Flux,

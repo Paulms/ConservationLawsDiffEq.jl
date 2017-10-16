@@ -1,5 +1,5 @@
-function solve{islinear,isstochastic,MeshType,F,F3,F4,F5}(
-  prob::ConservationLawsProblem{islinear,isstochastic,MeshType,F,F3,F4,F5},
+function solve(
+  prob::AbstractConservationLawProblem,
   alg::AbstractFVAlgorithm;
   TimeAlgorithm::OrdinaryDiffEqAlgorithm = SSPRK22(),use_threads = false, kwargs...)
 
@@ -28,6 +28,13 @@ function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLaws
     fluxes = zeros(eltype(u0),numedges(mesh),numvars)
     dt = 0.0
     FVIntegrator(alg,mesh,f,CFL,numvars, fluxes, dt, use_threads)
+end
+
+function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsWithDiffusionProblem;use_threads=false)
+    @unpack f,CFL,numvars,mesh,u0, DiffMat = prob
+    fluxes = zeros(eltype(u0),numedges(mesh),numvars)
+    dt = 0.0
+    FVDiffIntegrator(alg,mesh,f,DiffMat,CFL,numvars, fluxes, dt, use_threads)
 end
 
 # function solve{islinear,isstochastic,MeshType,F,F3,F4,F5,F6}(
