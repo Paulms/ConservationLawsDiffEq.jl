@@ -12,21 +12,12 @@ mutable struct GlobalLaxFriedrichsAlgorithm{T} <: AbstractFVAlgorithm
   α :: T
 end
 
-function update_dt(alg::GlobalLaxFriedrichsAlgorithm{T1},u::AbstractArray{T2,2},Flux,
+function update_dt(alg::GlobalLaxFriedrichsAlgorithm{T1},u::AbstractArray{T2,2},Flux, 
     CFL,mesh::Uniform1DFVMesh) where {T1,T2}
   alg.α = alg.αf(u,Flux)
   assert(abs(alg.α) > eps(T1))
   CFL*mesh.Δx/alg.α
-end
-
-@inline function maxfluxρ(u::AbstractArray,f)
-    maxρ = zero(eltype(u))
-    N = size(u,1)
-    for i in 1:N
-      maxρ = max(maxρ, fluxρ(u[i,:],f))
-    end
-    maxρ
-end
+ end
 
 function GlobalLaxFriedrichsAlgorithm(;αf = nothing)
     if αf == nothing

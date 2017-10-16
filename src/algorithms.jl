@@ -20,17 +20,17 @@ function update_dt(alg::AbstractFVAlgorithm,u::AbstractArray{T,2},Flux,
   CFL/(1/mesh.Δx*maxρ)
 end
 
-@inline function fluxρ(uj::Vector,f)
-  maximum(abs,eigvals(f(Val{:jac}, uj)))
-end
-
 @inline function maxfluxρ(u::AbstractArray,f)
-    maxρ = 0
+    maxρ = zero(eltype(u))
     N = size(u,1)
     for i in 1:N
       maxρ = max(maxρ, fluxρ(u[i,:],f))
     end
     maxρ
+end
+
+@inline function fluxρ(uj::Vector,f)
+  maximum(abs,eigvals(f(Val{:jac}, uj)))
 end
 
 function minmod(a,b,c)

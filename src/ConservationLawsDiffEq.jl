@@ -38,7 +38,7 @@ module ConservationLawsDiffEq
   include("Tecno_scheme.jl")
   include("ESJP_scheme.jl")
   include("WENO_Scheme.jl")
-  include("LI_IMEXRK_Schemes.jl")
+  #include("LI_IMEXRK_Schemes.jl")
   include("Lax_Friedrichs_scheme.jl")
   include("Lax_Wendroff2s_scheme.jl")
   include("CU_scheme.jl")
@@ -46,6 +46,7 @@ module ConservationLawsDiffEq
   include("SKT_scheme.jl")
 
   export solve, fast_solve
+  export AbstractFVAlgorithm
   export Uniform1DFVMesh, AbstractFVMesh1D
   export FVSolution, save_csv
   export ConservationLawsProblem, ConservationLawsWithDiffusionProblem

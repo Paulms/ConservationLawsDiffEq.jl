@@ -59,9 +59,27 @@ end
 #   1   2   3          N-1  N
 # |---|---|---|......|---|---|
 # 1   2   3   4 ... N-1  N  N+1
+"""
+    get_cellvals(A::AbstractArray{T,2}, idx..., mesh::AbstractFVMesh1D) where {T}
+   cell values of variable `A` on cells `idx` of `mesh`.
+"""
+@inline function get_cellvals(A::AbstractArray{T,2}, mesh::AbstractFVMesh1D, idx...) where {T}
+    checkbounds(Bool, A, idx...) && return A[idx...]
+    if (minimum(idx[1]) < 1) && isleftperiodic(mesh)
+        getPeriodicIndex(A, idx...)
+    elseif (minimum(idx[1]) < 1) && isleftzeroflux(mesh)
+        getZFindex(A,idx...)
+    elseif (maximum(idx[1]) > numcells(mesh)) && isrightperiodic(mesh)
+        getPeriodicIndex(A, idx...)
+    elseif (maximum(idx[1]) > numcells(mesh)) && isrightzeroflux(mesh)
+        getZFindex(A,idx...)
+    else
+        error("To be implemented.")
+    end
+end
 
 """
-    cellval_at_left(edge::Int, A::AbstractArray{T,2}, mesh::AbstractFVMesh1D; n = 1) where {T}
+    cellval_at_left(edge::Int, A::AbstractArray{T,2}, mesh::AbstractFVMesh1D) where {T}
 
    cell values of variable `A` to the left of `edge` in `mesh`.
 """
@@ -78,16 +96,16 @@ end
 end
 
 """
-    cellval_at_right(edge::Int, A::AbstractArray{T,2}, mesh::AbstractFVMesh1D; n = 1) where {T}
+    cellval_at_right(edge::Int, A::AbstractArray{T,2}, mesh::AbstractFVMesh1D) where {T}
 
 cell values of variable `A` to the right of `edge` in `mesh`.
 """
 @inline function cellval_at_right(edge::Int, A::AbstractArray{T,2}, mesh::AbstractFVMesh1D) where {T}
     idx = (edge,:)
     checkbounds(Bool, A, idx...) && return A[idx...]
-    if isleftperiodic(mesh)
+    if isrightperiodic(mesh)
         getPeriodicIndex(A, idx...)
-    elseif isleftzeroflux(mesh)
+    elseif isrightzeroflux(mesh)
         getZFindex(A,idx...)
     else
         error("To be implemented.")
