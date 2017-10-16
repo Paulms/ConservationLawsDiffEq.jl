@@ -40,8 +40,9 @@ function (fv::FVIntegrator)(t, u, du)
   end
 
   @unpack mesh, alg, Flux, M, fluxes, dt, use_threads = fv
-
   compute_fluxes!(fluxes, Flux, u, mesh, dt, M, alg, Val{use_threads})
+  if isleftzeroflux(mesh);fluxes[1,:] = 0.0; end
+  if isrightzeroflux(mesh);fluxes[numedges(mesh),:] = 0.0;end
   compute_du!(du, fluxes, mesh, Val{false}, Val{use_threads})
 
   nothing

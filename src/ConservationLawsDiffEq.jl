@@ -46,8 +46,8 @@ module ConservationLawsDiffEq
   include("DRCU_scheme.jl")
   include("SKT_scheme.jl")
 
-  export solve
-  export Uniform1DFVMesh
+  export solve, fast_solve
+  export Uniform1DFVMesh, AbstractFVMesh1D
   export FVSolution, save_csv
   export ConservationLawsProblem, ConservationLawsWithDiffusionProblem
   export FVKTAlgorithm, FVTecnoAlgorithm, FVESJPAlgorithm

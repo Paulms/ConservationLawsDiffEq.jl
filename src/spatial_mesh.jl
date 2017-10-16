@@ -63,11 +63,10 @@ end
 """
     cellval_at_left(edge::Int, A::AbstractArray{T,2}, mesh::AbstractFVMesh1D; n = 1) where {T}
 
-`n` cell values of variable `A` to the left of `edge` in `mesh`.
+   cell values of variable `A` to the left of `edge` in `mesh`.
 """
-@inline function cellval_at_left(edge::Int, A::AbstractArray{T,2}, mesh::AbstractFVMesh1D; n = 1) where {T}
+@inline function cellval_at_left(edge::Int, A::AbstractArray{T,2}, mesh::AbstractFVMesh1D) where {T}
     idx = (edge-1,:)
-    if n > 1; idx = ((edge-n):(edge-1),:);end
     checkbounds(Bool, A, idx...) && return A[idx...]
     if isleftperiodic(mesh)
         getPeriodicIndex(A, idx...)
@@ -81,11 +80,10 @@ end
 """
     cellval_at_right(edge::Int, A::AbstractArray{T,2}, mesh::AbstractFVMesh1D; n = 1) where {T}
 
-`n` cell values of variable `A` to the right of `edge` in `mesh`.uu[j,i]
+cell values of variable `A` to the right of `edge` in `mesh`.
 """
-@inline function cellval_at_right(edge::Int, A::AbstractArray{T,2}, mesh::AbstractFVMesh1D; n = 1) where {T}
+@inline function cellval_at_right(edge::Int, A::AbstractArray{T,2}, mesh::AbstractFVMesh1D) where {T}
     idx = (edge,:)
-    if n > 1; idx = (edge:(edge+n-1),:);end
     checkbounds(Bool, A, idx...) && return A[idx...]
     if isleftperiodic(mesh)
         getPeriodicIndex(A, idx...)

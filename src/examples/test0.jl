@@ -25,7 +25,8 @@ end
 prob = get_problem(10)
 #Run
 prob = get_problem(200)
-@time sol = solve(prob, FVSKTAlgorithm();progress=true, use_threads = true)
+@time sol = solve(prob, FVSKTAlgorithm();progress=true, use_threads = true, save_everystep = false)
+@time sol1 = fast_solve(prob, FVSKTAlgorithm();progress=true)
 @time sol2 = solve(prob, LaxFriedrichsAlgorithm();progress=true)
 @time sol3 = solve(prob, LaxWendroff2sAlgorithm();progress=true)
 @time sol4 = solve(prob, FVCompWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33())

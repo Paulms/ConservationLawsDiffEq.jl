@@ -22,8 +22,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{V
       ul = cellval_at_left(j,u,mesh)
       ur = cellval_at_right(j+1,u,mesh)
       Threads.@threads for i = 1:M
-        @inbounds uc = u[j,i]
-        @inbounds ∇u[j,i] = minmod(θ*(uc-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-uc))
+        @inbounds ∇u[j,i] = minmod(θ*(u[j,i]-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-u[j,i]))
       end
     end
 
@@ -35,8 +34,6 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{V
         # Numerical Fluxes
         @inbounds hh[j,:] = 0.5*(Flux(uplus)+Flux(uminus)) - aa/2*(uplus - uminus)
     end
-    if isleftzeroflux(mesh);hh[1,:] = 0.0; end
-    if isrightzeroflux(mesh);hh[N+1,:] = 0.0;end
 end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{false}})
@@ -50,8 +47,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{V
       ul = cellval_at_left(j,u,mesh)
       ur = cellval_at_right(j+1,u,mesh)
       for i = 1:M
-        @inbounds uc = u[j,i]
-        @inbounds ∇u[j,i] = minmod(θ*(uc-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-uc))
+        @inbounds ∇u[j,i] = minmod(θ*(u[j,i]-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-u[j,i]))
       end
     end
 
@@ -63,8 +59,6 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{V
         # Numerical Fluxes
         @inbounds hh[j,:] = 0.5*(Flux(uplus)+Flux(uminus)) - aa/2*(uplus - uminus)
     end
-    if isleftzeroflux(mesh);hh[1,:] = 0.0; end
-    if isrightzeroflux(mesh);hh[N+1,:] = 0.0;end
 end
 
 function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVSKTAlgorithm,
