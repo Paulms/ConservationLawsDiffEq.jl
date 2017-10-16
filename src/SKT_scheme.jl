@@ -71,13 +71,13 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{V
     end
 end
 
-function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{false}})
+function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{true}})
     @unpack θ = alg
     λ = dt/mesh.Δx
     N = numcells(mesh)
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, N, M, Val{false})
+    ∇u = compute_slopes(u, mesh, θ, N, M, Val{true})
 
     Threads.@threads for j in edge_indices(mesh)
         # Local speeds of propagation
@@ -87,17 +87,17 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVSKTAlgorithm
         @inbounds ur = cellval_at_right(j,u,mesh)
         aa = max(fluxρ(uminus,Flux),fluxρ(uplus,Flux))
         # Numerical Fluxes
-        @inbounds hh[j,:] = 0.5*(Flux(uplus)+Flux(uminus)) - aa/2*(uplus - uminus) - 0.5*(DiffMat(ur)+DiffMat(ul))*∇u[j,:]/mesh.Δx
+        @inbounds hh[j,:] = 0.5*(Flux(uplus)+Flux(uminus)) - aa/2*(uplus - uminus) - 0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_right(j,∇u,mesh)/mesh.Δx
     end
 end
 
-function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{true}})
+function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{false}})
     @unpack θ = alg
     λ = dt/mesh.Δx
     N = numcells(mesh)
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, N, M, Val{true})
+    ∇u = compute_slopes(u, mesh, θ, N, M, Val{false})
 
     for j in edge_indices(mesh)
         # Local speeds of propagation
@@ -107,6 +107,6 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVSKTAlgorithm
         @inbounds ur = cellval_at_right(j,u,mesh)
         aa = max(fluxρ(uminus,Flux),fluxρ(uplus,Flux))
         # Numerical Fluxes
-        @inbounds hh[j,:] = 0.5*(Flux(uplus)+Flux(uminus)) - aa/2*(uplus - uminus) - 0.5*(DiffMat(ur)+DiffMat(ul))*∇u[j,:]/mesh.Δx
+        @inbounds hh[j,:] = 0.5*(Flux(uplus)+Flux(uminus)) - aa/2*(uplus - uminus) - 0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_right(j,∇u,mesh)/mesh.Δx
     end
 end

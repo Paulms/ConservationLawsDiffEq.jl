@@ -62,7 +62,7 @@ end
 prob = get_problem(10)
 #Run
 prob = get_problem(100)
-@time sol = solve(prob, FVSKTAlgorithm();progress=true, use_threads = false, save_everystep = false)
+@time sol = solve(prob, FVSKTAlgorithm();progress=true, use_threads = false, save_everystep = false, saveat=0.01)
 @time sol2 = solve(prob, LI_IMEX_RK_Algorithm();progress=true,saveat=0.01)
 
 #Plot
