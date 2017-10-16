@@ -35,10 +35,6 @@ function GlobalLaxFriedrichsAlgorithm(;αf = nothing)
     GlobalLaxFriedrichsAlgorithm(αf,0.0)
 end
 
-# Numerical Fluxes
-#   1   2   3          N-1  N
-# |---|---|---|......|---|---|
-# 1   2   3   4 ... N-1  N  N+1
 """
 compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxFriedrichsAlgorithm, ::Type{Val{true}})
 Numerical flux of lax friedrichs algorithm in 1D
