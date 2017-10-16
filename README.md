@@ -21,21 +21,21 @@ Solutions follow a conservative finite diference (finite volume) pattern. This m
 
 Where the numerical flux <a href="https://www.codecogs.com/eqnedit.php?latex=F_{i&plus;1/2}(t)&space;=&space;F(u_{i}(t),u_{i&plus;1}(t)))" target="_blank"><img src="https://latex.codecogs.com/gif.latex?F_{i&plus;1/2}(t)&space;=&space;F(u_{i}(t),u_{i&plus;1}(t)))" title="F_{i+1/2}(t) = F(u_{i}(t),u_{i+1}(t)))" /></a> is an approximate solution of the Riemann problem at the cell interface (x(i+1/2)).
 
-An extra term **P** similar to **F** could be added to account for the Diffusion in the second case.
+An extra numerical function **P** similar to **F** could be added to account for the Diffusion in the second case.
 
-Time integration of the semi discrete form is performed using [OrdinaryDiffEq](https://github.com/JuliaDiffEq/OrdinaryDiffEq.jl) algorithms.
+Time integration of the semi-discrete form is performed using [OrdinaryDiffEq](https://github.com/JuliaDiffEq/OrdinaryDiffEq.jl) algorithms.
 
 ## Features
 ### Mesh:
-At the momento only Cartesian 1D uniform mesh available, using `FVMesh(N,a,b,boundary)` command. Where
+At the momento only Cartesian 1D uniform mesh available, using `Uniform1DFVMesh(N,a,b,left_boundary, right_boundary)` command. Where
 
 `N` = Number of cells
 
 `a,b` = start and end coordinates.
 
-`boundary` = boundary type (`:ZERO_FLUX` (default), `:PERIODIC`)
+`left_boundary`,`right_boundary` = boundary type (`:ZERO_FLUX` (default), `:PERIODIC`)
 
-* Problem types: System of Conservation Laws without (`ConservationLawsProblem`) and with diffusion term (`ConservationLawsWithDiffusionProblem`).
+* Problem types: System of Conservation Laws without (`ConservationLawsProblem`) and with degenerate diffusion term (`ConservationLawsWithDiffusionProblem`).
 
 ### Algorithms
 
