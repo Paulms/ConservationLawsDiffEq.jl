@@ -11,7 +11,7 @@ These PDEs are of the form
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=u_{t}&plus;f(u)_{x}&=0,\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{&plus;}\\u(x,0)&=u_{0}(x),\qquad\forall&space;x\in\mathbb{R}^{n}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?u_{t}&plus;f(u)_{x}&=0,\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{&plus;}\\u(x,0)&=u_{0}(x),\qquad\forall&space;x\in\mathbb{R}^{n}" title="u_{t}+f(u)_{x}&=0,\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{+}\\u(x,0)&=u_{0}(x),\qquad\forall x\in\mathbb{R}^{n}" /></a>
 
-We also consider degenerate convection-diffusion systems of the form:
+We also consider degenerate convection-diffusion systems (degenerate parabolic-hyperbolic equations) of the form:
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=u_{t}&plus;f(u)_{x}&=(B(u)u_{x})_{x},\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{&plus;}\\u(x,0)&=u_{0}(x),\qquad\forall&space;x\in\mathbb{R}^{n}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?u_{t}&plus;f(u)_{x}&=(B(u)u_{x})_{x},\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{&plus;}\\u(x,0)&=u_{0}(x),\qquad\forall&space;x\in\mathbb{R}^{n}" title="u_{t}+f(u)_{x}&=(B(u)u_{x})_{x},\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{+}\\u(x,0)&=u_{0}(x),\qquad\forall x\in\mathbb{R}^{n}" /></a>
 
@@ -38,6 +38,8 @@ At the momento only Cartesian 1D uniform mesh available, using `FVMesh(N,a,b,bou
 * Problem types: System of Conservation Laws without (`ConservationLawsProblem`) and with diffusion term (`ConservationLawsWithDiffusionProblem`).
 
 ### Algorithms
+
+The algorithms follow the method of lines, so first we compute a semidiscretization in space and time integration is performed using ODE solvers.
 
 * Lax-Friedrichs method (`LaxFriedrichsAlgorithm()`), Ritchmeyer Two-step Lax-Wendroff Method (`LaxWendroff2sAlgorithm()`)
 
@@ -125,10 +127,10 @@ end
 
 # Setup Mesh
 N = 100
-mesh = Uniform1DFVMesh(N,-5.0,5.0,:PERIODIC)
+mesh = Uniform1DFVMesh(N,-5.0,5.0,:PERIODIC,:PERIODIC)
 
 #Setup initial condition
-u0 = u0_func(mesh.x)
+u0 = u0_func(cell_centers(mesh))
 
 #Setup problem:
 prob = ConservationLawsProblem(u0,f,CFL,Tend,mesh)
