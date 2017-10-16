@@ -34,7 +34,6 @@ module ConservationLawsDiffEq
   include("plotRecipe.jl")
 
   #Algoritms
-  include("KT_scheme.jl")
   include("ENO_WENO.jl")
   include("Tecno_scheme.jl")
   include("ESJP_scheme.jl")
@@ -50,7 +49,7 @@ module ConservationLawsDiffEq
   export Uniform1DFVMesh, AbstractFVMesh1D
   export FVSolution, save_csv
   export ConservationLawsProblem, ConservationLawsWithDiffusionProblem
-  export FVKTAlgorithm, FVTecnoAlgorithm, FVESJPAlgorithm
+  export FVTecnoAlgorithm, FVESJPAlgorithm
   export FVCompWENOAlgorithm, FVCompMWENOAlgorithm, FVSpecMWENOAlgorithm
   export RKTable, LI_IMEX_RK_Algorithm
   export LaxFriedrichsAlgorithm, LaxWendroff2sAlgorithm
