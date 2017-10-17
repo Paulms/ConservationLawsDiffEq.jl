@@ -99,7 +99,7 @@ end
     solve{T,T1}(prob::RiemannProblem{Burgers{T,1},T,T1})
 Compute the solution of the Riemann prolem `prob`.
 """
-function solve{T,T1}(prob::RiemannProblem{Burgers{T,1},T,T1})
+function get_solution{T,T1}(prob::RiemannProblem{Burgers{T,1},T,T1})
   @unpack uₗ, uᵣ = prob
   if uₗ > uᵣ
     σ⁻ = σ⁺ = (uₗ + uᵣ) / 2

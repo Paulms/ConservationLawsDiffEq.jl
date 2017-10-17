@@ -13,7 +13,7 @@ const xl = -3.0
 const xr = 3.0
 
 prob1 = RiemannProblem(Burgers(), ul, ur, x0, 0.0)
-sol_ana  = solve(prob1)
+sol_ana  = get_solution(prob1)
 
 f(::Type{Val{:jac}},u::Vector) = diagm(u)
 f(u::Vector) = u.^2/2
