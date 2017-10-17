@@ -54,7 +54,7 @@ module ConservationLawsDiffEq
   export FVCompWENOAlgorithm, FVCompMWENOAlgorithm, FVSpecMWENOAlgorithm
   export RKTable, LI_IMEX_RK_Algorithm
   export LaxFriedrichsAlgorithm, LaxWendroff2sAlgorithm
-  export get_L1_errors, minmod
+  export get_L1_errors, minmod, approx_L1_error
   export FVCUAlgorithm, FVDRCUAlgorithm, FVSKTAlgorithm
   export cell_centers, get_semidiscretization
 end

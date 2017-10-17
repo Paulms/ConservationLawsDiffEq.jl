@@ -54,11 +54,20 @@ function u0_func(xx)
 end
 
 function get_problem(N)
-  mesh = Uniform1DFVMesh(N,0.0,10.0,:PERIODIC)
-  u0 = u0_func(mesh.x)
+  mesh = Uniform1DFVMesh(N,0.0,10.0,:PERIODIC, :PERIODIC)
+  u0 = u0_func(cell_centers(mesh))
   ConservationLawsWithDiffusionProblem(u0,f,BB,CFL,Tend,mesh)
 end
+#Compile
 prob = get_problem(10)
-@time sol = solve(prob, FVKTAlgorithm();progress=true,saveat=0.01)
-@time sol2 = solve(prob, LI_IMEX_RK_Algorithm();progress=true,saveat=0.01)
-true
+sol = solve(prob, FVSKTAlgorithm();progress=true, save_everystep = false)
+#Get numerical reference
+prob = get_problem(200)
+sol = solve(prob, FVSKTAlgorithm();progress=true, save_everystep = false)
+# Compute errors
+prob = get_problem(100)
+#@time sol2 = solve(prob, LI_IMEX_RK_Algorithm();progress=true, save_everystep = false)
+@time sol3 = solve(prob, FVCUAlgorithm();progress=true, save_everystep = false)
+@test approx_L1_error(sol, sol3) < 6e-4
+@time sol4 = solve(prob, FVDRCUAlgorithm();progress=true, save_everystep = false)
+@test approx_L1_error(sol, sol4) < 6e-4

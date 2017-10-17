@@ -10,6 +10,17 @@ function get_L1_errors(sol::FVSolution, ref::Function; nvar = 0)
     end
 end
 
+function approx_L1_error(uref, uu; nvar = 1)
+  Nr = numcells(uref.prob.mesh)
+  Ns = numcells(uu.prob.mesh)
+  R = Int(round(Nr/Ns))
+  uexact = zeros(Ns)
+  for i = 1:Ns
+      uexact[i] = 1.0/R*sum(uref.u[end][R*(i-1)+1:R*i, nvar])
+  end
+  1.0/Ns*sum(abs,uu.u[end][:,nvar] - uexact)
+end
+
 function estimate_L1_error(reference, M, uu,N)
   uexact = zeros(N)
   R = Int(round(M/N))

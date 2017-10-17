@@ -5,99 +5,127 @@
 # Vol 23, No 3m pp 707-740. 2001
 
 immutable FVCUAlgorithm <: AbstractFVAlgorithm
-  Θ :: Float64
+  θ :: Float64
 end
 
-function FVCUAlgorithm(;Θ=1.0)
-  FVCUAlgorithm(Θ)
+function FVCUAlgorithm(;θ=1.0)
+  FVCUAlgorithm(θ)
 end
 
-# Numerical Fluxes
-#   1   2   3          N-1  N
-# |---|---|---|......|---|---|
-# 1   2   3   4 ... N-1  N  N+1
+"""
+compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCUAlgorithm, ::Type{Val{true}})
+Numerical flux of Second-Order upwind central scheme in 1D
+"""
+function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCUAlgorithm, ::Type{Val{true}})
+    @unpack θ = alg
+    λ = dt/mesh.Δx
+    N = numcells(mesh)
+    #update vector
+    # 1. slopes
+    ∇u = compute_slopes(u, mesh, θ, N, M, Val{true})
 
-@def cu_rhs_header begin
-  #Compute diffusion
-  λ = dt/dx
-  #update vector
-  # 1. Reconstruct approximate derivatives
-  ∇u = zeros(uu)
-  for i = 1:M
-    for j = 1:N
-      ∇u[j,i] = minmod(Θ*(uu[j,i]-uu[j-1,i]),(uu[j+1,i]-uu[j-1,i])/2,Θ*(uu[j+1,i]-uu[j,i]))
-    end
-  end
-  # Local speeds of propagation (Assuming convex flux)
-  # A second-order piecewise linear interpolant is used
-  uminus = zeros(N+1,M);uplus=zeros(N+1,M)
-  uminus[:,:] = uu[0:N,1:M]+0.5*∇u[0:N,1:M]
-  uplus[:,:] = uu[1:N+1,1:M]-0.5*∇u[1:N+1,1:M]
-  aa_plus = zeros(N+1)
-  aa_minus = zeros(N+1)
-  for j = 1:N+1
-    λm = sort(eigvals(Flux(Val{:jac}, uminus[j,:])))
-    λp = sort(eigvals(Flux(Val{:jac}, uplus[j,:])))
-    aa_plus[j]=maximum((λm[end], λp[end],0))
-    aa_minus[j]=minimum((λm[1], λp[1],0))
-  end
+    # Local speeds of propagation (Assuming convex flux)
+    # A second-order piecewise linear interpolant is used
+    Threads.@threads for j in edge_indices(mesh)
+      @inbounds uminus=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
+      @inbounds uplus=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
 
-    # Numerical Fluxes
-  hh = zeros(N+1,M)
-  for j = 1:(N+1)
-    if abs(aa_plus[j]-aa_minus[j]) < 1e-8
-      hh[j,:] = 0.0
-    else
-      hh[j,:] = (aa_plus[j]*Flux(uminus[j,:])-aa_minus[j]*Flux(uplus[j,:]))/(aa_plus[j]-aa_minus[j]) +
-      (aa_plus[j]*aa_minus[j])/(aa_plus[j]-aa_minus[j])*(uplus[j,:] - uminus[j,:])
+      λm = sort(eigvals(Flux(Val{:jac}, uminus)))
+      λp = sort(eigvals(Flux(Val{:jac}, uplus)))
+      aa_plus=maximum((λm[end], λp[end],0))
+      aa_minus=minimum((λm[1], λp[1],0))
+      # Update numerical fluxes
+      if abs(aa_plus-aa_minus) < 1e-8
+        hh[j,:] = 0.0
+      else
+        hh[j,:] = (aa_plus*Flux(uminus)-aa_minus*Flux(uplus))/(aa_plus-aa_minus) +
+        (aa_plus*aa_minus)/(aa_plus-aa_minus)*(uplus - uminus)
+      end
     end
-  end
-  if bdtype == :ZERO_FLUX
-    hh[1,:] = 0.0; hh[N+1,:] = 0.0
-  end
 end
 
-function FV_solve{tType,uType,tAlgType,F}(integrator::FVIntegrator{FVCUAlgorithm,
-  Uniform1DFVMesh,tType,uType,tAlgType,F};kwargs...)
-  @fv_deterministicpreamble
-  @fv_uniform1Dmeshpreamble
-  @fv_generalpreamble
-  @unpack Θ = integrator.alg
-  update_dt = cdt
-  function rhs!(rhs, uold, N, M, dx, dt, bdtype)
-    #SEt ghost Cells
-    @boundary_header
-    @cu_rhs_header
-    @no_diffusion_term
-    @boundary_update
-    @update_rhs
-  end
-  @fv_timeloop
+function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCUAlgorithm, ::Type{Val{false}})
+    @unpack θ = alg
+    λ = dt/mesh.Δx
+    N = numcells(mesh)
+    #update vector
+    # 1. slopes
+    ∇u = compute_slopes(u, mesh, θ, N, M, Val{false})
+
+    # Local speeds of propagation (Assuming convex flux)
+    # A second-order piecewise linear interpolant is used
+    for j in edge_indices(mesh)
+      @inbounds uminus=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
+      @inbounds uplus=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
+
+      λm = sort(eigvals(Flux(Val{:jac}, uminus)))
+      λp = sort(eigvals(Flux(Val{:jac}, uplus)))
+      aa_plus=maximum((λm[end], λp[end],0))
+      aa_minus=minimum((λm[1], λp[1],0))
+      # Update numerical fluxes
+      if abs(aa_plus-aa_minus) < 1e-8
+        hh[j,:] = 0.0
+      else
+        hh[j,:] = (aa_plus*Flux(uminus)-aa_minus*Flux(uplus))/(aa_plus-aa_minus) +
+        (aa_plus*aa_minus)/(aa_plus-aa_minus)*(uplus - uminus)
+      end
+    end
 end
 
-function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVCUAlgorithm,
-  Uniform1DFVMesh,tType,uType,tAlgType,F,B};kwargs...)
-  @fv_diffdeterministicpreamble
-  @fv_uniform1Dmeshpreamble
-  @fv_generalpreamble
-  @unpack Θ = integrator.alg
-  update_dt = cdt
-  function rhs!(rhs, uold, N, M, dx, dt, bdtype)
-    #SEt ghost Cells
-    @boundary_header
-    @cu_rhs_header
-    # Diffusion
-    pp = zeros(N+1,M)
-    ∇u_ap = zeros(uu)
-    ∇u_ap[:,:] = ∇u/dx#(uu[2:N,:]-uu[1:N-1,:])/dx
-    for j = 1:(N+1)
-      pp[j,:] = 0.5*(DiffMat(uu[j,:])+DiffMat(uu[j-1,:]))*∇u_ap[j,1:M]
+function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVCUAlgorithm, ::Type{Val{true}})
+    @unpack θ = alg
+    λ = dt/mesh.Δx
+    N = numcells(mesh)
+    #update vector
+    # 1. slopes
+    ∇u = compute_slopes(u, mesh, θ, N, M, Val{true})
+
+    Threads.@threads for j in edge_indices(mesh)
+        @inbounds uminus=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
+        @inbounds uplus=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
+        @inbounds ul = cellval_at_left(j,u,mesh)
+        @inbounds ur = cellval_at_right(j,u,mesh)
+
+        λm = sort(eigvals(Flux(Val{:jac}, uminus)))
+        λp = sort(eigvals(Flux(Val{:jac}, uplus)))
+        aa_plus=maximum((λm[end], λp[end],0))
+        aa_minus=minimum((λm[1], λp[1],0))
+        # Update numerical fluxes
+        if abs(aa_plus-aa_minus) < 1e-8
+          hh[j,:] = 0.0 - 0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_right(j,∇u,mesh)/mesh.Δx
+        else
+          hh[j,:] = (aa_plus*Flux(uminus)-aa_minus*Flux(uplus))/(aa_plus-aa_minus) +
+          (aa_plus*aa_minus)/(aa_plus-aa_minus)*(uplus - uminus) -
+          0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_right(j,∇u,mesh)/mesh.Δx
+        end
     end
-    if bdtype == :ZERO_FLUX
-      pp[1,:] = 0.0; pp[N+1,:] = 0.0
+end
+
+function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVCUAlgorithm, ::Type{Val{false}})
+    @unpack θ = alg
+    λ = dt/mesh.Δx
+    N = numcells(mesh)
+    #update vector
+    # 1. slopes
+    ∇u = compute_slopes(u, mesh, θ, N, M, Val{false})
+
+    for j in edge_indices(mesh)
+        @inbounds uminus=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
+        @inbounds uplus=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
+        @inbounds ul = cellval_at_left(j,u,mesh)
+        @inbounds ur = cellval_at_right(j,u,mesh)
+
+        λm = sort(eigvals(Flux(Val{:jac}, uminus)))
+        λp = sort(eigvals(Flux(Val{:jac}, uplus)))
+        aa_plus=maximum((λm[end], λp[end],0))
+        aa_minus=minimum((λm[1], λp[1],0))
+        # Update numerical fluxes
+        if abs(aa_plus-aa_minus) < 1e-8
+          hh[j,:] = 0.0 - 0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_right(j,∇u,mesh)/mesh.Δx
+        else
+          hh[j,:] = (aa_plus*Flux(uminus)-aa_minus*Flux(uplus))/(aa_plus-aa_minus) +
+          (aa_plus*aa_minus)/(aa_plus-aa_minus)*(uplus - uminus) -
+          0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_right(j,∇u,mesh)/mesh.Δx
+        end
     end
-    @boundary_update
-    @update_rhs
-  end
-  @fv_timeloop
 end

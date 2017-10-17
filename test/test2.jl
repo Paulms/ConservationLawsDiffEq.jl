@@ -38,3 +38,7 @@ prob = get_problem(20)
 @test get_L1_errors(sol4, exact_sol; nvar = 1) < 0.32
 @time sol5 = solve(prob, FVSpecMWENOAlgorithm();progress=true)
 @test get_L1_errors(sol5, exact_sol; nvar = 1) < 0.32
+@time sol6 = solve(prob, FVCUAlgorithm(); use_threads = true, save_everystep = false)
+@test get_L1_errors(sol6, exact_sol; nvar = 1) < 0.61
+@time sol7 = solve(prob, FVDRCUAlgorithm(); use_threads = true, save_everystep = false)
+@test get_L1_errors(sol7, exact_sol; nvar = 1) < 0.6

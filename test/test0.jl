@@ -50,3 +50,7 @@ prob = get_problem(50)
 @test get_L1_errors(sol_ana, sol6, Tend, -2.0, 2.0) < 0.095
 @time sol7 = solve(prob, FVSpecMWENOAlgorithm();use_threads = false)
 @test get_L1_errors(sol_ana, sol7, Tend, -2.0, 2.0) < 0.095
+@time sol8 = solve(prob, FVCUAlgorithm(); use_threads = true, save_everystep = false)
+@test get_L1_errors(sol_ana, sol8, Tend, -2.0, 2.0) < 0.095
+@time sol9 = solve(prob, FVDRCUAlgorithm(); use_threads = true, save_everystep = false)
+@test get_L1_errors(sol_ana, sol9, Tend, -2.0, 2.0) < 0.095

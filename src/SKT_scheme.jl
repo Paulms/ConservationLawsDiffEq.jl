@@ -11,30 +11,6 @@ function FVSKTAlgorithm(;θ=1.0)
   FVSKTAlgorithm(θ)
 end
 
-function compute_slopes(u, mesh, θ, N, M, ::Type{Val{true}})
-    ∇u = zeros(u)
-    Threads.@threads for j = 1:N
-      ul = cellval_at_left(j,u,mesh)
-      ur = cellval_at_right(j+1,u,mesh)
-      Threads.@threads for i = 1:M
-        @inbounds ∇u[j,i] = minmod(θ*(u[j,i]-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-u[j,i]))
-      end
-    end
-    ∇u
-end
-
-function compute_slopes(u, mesh, θ, N, M, ::Type{Val{false}})
-    ∇u = zeros(u)
-    for j = 1:N
-      ul = cellval_at_left(j,u,mesh)
-      ur = cellval_at_right(j+1,u,mesh)
-      for i = 1:M
-        @inbounds ∇u[j,i] = minmod(θ*(u[j,i]-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-u[j,i]))
-      end
-    end
-    ∇u
-end
-
 """
 compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{true}})
 Numerical flux of Kurkanov Tadmor scheme in 1D
