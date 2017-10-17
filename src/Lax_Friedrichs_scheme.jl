@@ -12,7 +12,7 @@ mutable struct GlobalLaxFriedrichsAlgorithm{T} <: AbstractFVAlgorithm
   α :: T
 end
 
-function update_dt(alg::GlobalLaxFriedrichsAlgorithm{T1},u::AbstractArray{T2,2},Flux, 
+function update_dt(alg::GlobalLaxFriedrichsAlgorithm{T1},u::AbstractArray{T2,2},Flux,
     CFL,mesh::Uniform1DFVMesh) where {T1,T2}
   alg.α = alg.αf(u,Flux)
   assert(abs(alg.α) > eps(T1))
@@ -60,24 +60,6 @@ end
 compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsAlgorithm, ::Type{Val{true}})
 Numerical flux of local lax friedrichs algorithm in 1D
 """
-function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsAlgorithm, ::Type{Val{true}})
-    N = numcells(mesh)
-    dx = mesh.Δx
-    ul=cellval_at_left(1,u,mesh)
-    αl = fluxρ(ul)
-    #update vector
-    Threads.@threads for j in edge_indices(mesh)
-        # Local speeds of propagation
-        @inbounds ul=cellval_at_left(j,u,mesh)
-        @inbounds ur=cellval_at_right(j,u,mesh)
-        αr = fluxρ(ur)
-        αk = max(αl, αr)
-        # Numerical Fluxes
-        @inbounds hh[j,:] = 0.5*(Flux(ul)+Flux(ur))-αk*(ur-ul)
-        αl = αr
-    end
-end
-
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsAlgorithm, ::Type{Val{false}})
     N = numcells(mesh)
     dx = mesh.Δx

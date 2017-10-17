@@ -33,14 +33,15 @@ function get_problem(N)
   ConservationLawsProblem(u0,f,CFL,Tend,mesh)
 end
 prob = get_problem(50)
-@time sol = solve(prob, FVSKTAlgorithm();progress=true, use_threads = true, save_everystep = false)
-@time sol1 = fast_solve(prob, FVSKTAlgorithm();progress=true)
-@time sol2 = solve(prob, LaxFriedrichsAlgorithm();progress=true, save_everystep = false)
-@time sol3 = solve(prob, LocalLaxFriedrichsAlgorithm();progress=true, save_everystep = false)
-@time sol4 = solve(prob, GlobalLaxFriedrichsAlgorithm();progress=true, save_everystep = false)
+@time sol = solve(prob, FVSKTAlgorithm(); use_threads = true, save_everystep = false)
+@time sol1 = fast_solve(prob, FVSKTAlgorithm();use_threads = true)
+@time sol2 = solve(prob, LaxFriedrichsAlgorithm();use_threads = true, save_everystep = false)
+@time sol3 = solve(prob, LocalLaxFriedrichsAlgorithm();use_threads = false, save_everystep = false)
+@time sol4 = solve(prob, GlobalLaxFriedrichsAlgorithm();use_threads = true, save_everystep = false)
 #@time sol5 = solve(prob, LaxWendroff2sAlgorithm();progress=true, save_everystep = false)
-@time sol5 = solve(prob, FVCompWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33())
-@time sol6 = solve(prob, FVCompMWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33())
+@time sol5 = solve(prob, FVCompWENOAlgorithm();use_threads = true, TimeAlgorithm = SSPRK33())
+@time sol6 = solve(prob, FVCompMWENOAlgorithm();use_threads = true, TimeAlgorithm = SSPRK33())
+@time sol7 = solve(prob, FVSpecMWENOAlgorithm();use_threads = false)
 
 #Compute approximate errors at tend
 function calc_error(uana, unum::AbstractFVSolution, tend, xl, xr)
@@ -59,3 +60,4 @@ end
 @test calc_error(sol_ana, sol4, Tend, -2.0, 2.0) < 0.14
 @test calc_error(sol_ana, sol5, Tend, -2.0, 2.0) < 0.095
 @test calc_error(sol_ana, sol6, Tend, -2.0, 2.0) < 0.095
+@test calc_error(sol_ana, sol7, Tend, -2.0, 2.0) < 0.095

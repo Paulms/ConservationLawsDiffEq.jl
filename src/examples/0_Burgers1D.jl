@@ -33,6 +33,8 @@ prob = get_problem(200)
 #@time sol5 = solve(prob, LaxWendroff2sAlgorithm();progress=true, save_everystep = false)
 @time sol5 = solve(prob, FVCompWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33())
 @time sol6 = solve(prob, FVCompMWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33())
+@time sol7 = solve(prob, FVSpecMWENOAlgorithm();progress=true, save_everystep = false)
+
 
 #Plot
 using Plots;
@@ -44,3 +46,4 @@ plot!(sol3,lab="LLF h")
 plot!(sol4,lab="GLF h")
 plot!(sol5,lab="Comp WENO5 h")
 plot!(sol6,lab="Comp MWENO5 h")
+plot!(sol7,lab="Spec MWENO5 h")

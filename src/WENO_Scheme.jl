@@ -64,12 +64,20 @@ function update_dt(alg::FVCompMWENOAlgorithm{T1,T2,T3},u::AbstractArray{T4,2},Fl
   CFL*mesh.Δx/alg.α
  end
 
-immutable FVSpecMWENOAlgorithm <: AbstractFVAlgorithm
+immutable FVSpecMWENOAlgorithm{cType} <: AbstractFVAlgorithm
   order :: Int
+  crj :: cType
 end
 
+"""
+FVSpecMWENOAlgorithm(;order=5)
+Initialize Spectral Mapped Weno algorithm with
+WENO reconstruction of `order` default WENO5
+"""
 function FVSpecMWENOAlgorithm(;order=5)
-  FVSpecMWENOAlgorithm(order)
+  k = Int((order + 1)/2)-1
+  crj = unif_crj(k+1)
+  FVSpecMWENOAlgorithm(order, crj)
 end
 
 # Numerical Fluxes
@@ -211,77 +219,65 @@ end
 ###############################################################
 #Characteristic Wise WENO algorithm (Spectral)
 #################################################################
-# @def specmweno_rhs_header begin
-#     save_case = zeros(N+1,M)
-#     αj = zeros(N+1,M)
-#     RMats = Vector{typeof(Flux(Val{:jac},uu[1,:]))}(0)
-#     LMats = Vector{typeof(Flux(Val{:jac},uu[1,:]))}(0)
-#     gk = zeros(uu)
-#     for j =1:(N+1)
-#       ul = uu[j-1,:]; ur = uu[j,:]
-#       MatJf = Flux(Val{:jac},0.5*(ul+ur))
-#       Rj = eigvecs(MatJf);  Lj = inv(Rj)
-#       push!(RMats,Rj); push!(LMats,Lj)
-#       λl = eigvals(Flux(Val{:jac},ul)); λr = eigvals(Flux(Val{:jac},ur))
-#       αj[j,:] = maximum(abs,[λl λr],2)
-#       if j < N+1
-#         gk[j,:] = Flux(uu[j,:])
-#       end
-#       for i in 1:M
-#         if λl[i]*λr[i] <= 0
-#           save_case[j,i] = 1
-#         else
-#           if λl[i] > 0 && λr[i] > 0
-#             save_case[j,i] = 2
-#           else
-#             save_case[j,i] = 3
-#           end
-#         end
-#       end
-#     end
-#   #WEno Reconstrucion
-#   hh = zeros(N+1,M)
-#   gklloc = zeros(k*2+1,M);gkrloc = zeros(k*2+1,M)
-#   gmloc = zeros(k*2+1,M);gploc = zeros(k*2+1,M)
-#   for j = 0:N
-#     for (ll,l) in enumerate((j-k):(j+k))
-#       gklloc[ll,:] = LMats[j+1]*gk[l+1,:]
-#       gkrloc[ll,:] =  LMats[j+1]*gk[l,:]
-#       gmloc[ll,:] = 0.5*LMats[j+1]*(gk[l+1,:]-αj[j+1,:].*uu[l+1,:])
-#       gploc[ll,:] = 0.5*LMats[j+1]*(gk[l,:]+αj[j+1,:].*uu[l,:])
-#     end
-#     for i = 1:M
-#       if save_case[j+1,i] == 1
-#         hh[j+1,i] = sum(MWENO_pm_rec(gmloc[:,i],gploc[:,i],order; crj = crj))
-#       elseif save_case[j+1,i] == 2
-#         hh[j+1,i] = MWENO_pm_rec(gklloc[:,i],gkrloc[:,i],order; crj = crj)[2]
-#       else
-#         hh[j+1,i] = MWENO_pm_rec(gklloc[:,i],gkrloc[:,i],order; crj = crj)[1]
-#       end
-#     end
-#     hh[j+1,:] = RMats[j+1]*hh[j+1,:]
-#   end
-#   if bdtype == :ZERO_FLUX
-#     hh[1,:] = 0.0; hh[N+1,:] = 0.0
-#   end
-# end
-#
-# function FV_solve{tType,uType,F}(integrator::FVIntegrator{FVSpecMWENOAlgorithm,
-#   Uniform1DFVMesh,tType,uType,F};kwargs...)
-#   @fv_deterministicpreamble
-#   @fv_uniform1Dmeshpreamble
-#   @fv_generalpreamble
-#   @unpack order = integrator.alg
-#   α = 0.0
-#   k = Int((order + 1)/2)-1
-#   crj = unif_crj(k+1)
-#   function rhs!(rhs, uold, N, M, dx, dt, bdtype)
-#     @boundary_header
-#     @specmweno_rhs_header
-#     # Diffusion
-#     pp = zeros(N+1,M)
-#     @boundary_update
-#     @update_rhs
-#   end
-#   @weno_time_loop
-# end
+"""
+compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSpecMWENOAlgorithm, ::Type{Val{true}})
+Numerical flux of Mapped Spectral WENO algorithm Scheme in 1D
+"""
+function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSpecMWENOAlgorithm, ::Type{Val{false}})
+    N = numcells(mesh)
+    @unpack order, crj = alg
+    k = Int((order + 1)/2)-1
+    save_case = zeros(N+1,M)
+    αj = zeros(N+1,M)
+    RMats = Vector{typeof(Flux(Val{:jac},u[1,:]))}(0)
+    LMats = Vector{typeof(Flux(Val{:jac},u[1,:]))}(0)
+    gk = zeros(u)
+    for j in edge_indices(mesh)
+      @inbounds ul = cellval_at_left(j,u,mesh)
+      @inbounds ur = cellval_at_right(j,u,mesh)
+      MatJf = Flux(Val{:jac},0.5*(ul+ur))
+      Rj = eigvecs(MatJf);  Lj = inv(Rj)
+      push!(RMats,Rj); push!(LMats,Lj)
+      λl = eigvals(Flux(Val{:jac},ul)); λr = eigvals(Flux(Val{:jac},ur))
+      αj[j,:] = maximum(abs,[λl λr],2)
+      if j < N+1
+        gk[j,:] = Flux(u[j,:])
+      end
+      for i in 1:M
+        if λl[i]*λr[i] <= 0
+          save_case[j,i] = 1
+        else
+          if λl[i] > 0 && λr[i] > 0
+            save_case[j,i] = 2
+          else
+            save_case[j,i] = 3
+          end
+        end
+      end
+    end
+  #WEno Reconstrucion
+  gklloc = zeros(k*2+1,M);gkrloc = zeros(k*2+1,M)
+  gmloc = zeros(k*2+1,M);gploc = zeros(k*2+1,M)
+  for j = 0:N
+    for (ll,l) in enumerate((j-k):(j+k))
+      gkl = get_cellvals(gk,mesh,(l+1,:)...)
+      gkr = get_cellvals(gk,mesh,(l,:)...)
+      ul = get_cellvals(u,mesh,(l+1,:)...)
+      ur = get_cellvals(u,mesh,(l,:)...)
+      gklloc[ll,:] = LMats[j+1]*gkl
+      gkrloc[ll,:] =  LMats[j+1]*gkr
+      gmloc[ll,:] = 0.5*LMats[j+1]*(gkl-αj[j+1,:].*ul)
+      gploc[ll,:] = 0.5*LMats[j+1]*(gkr+αj[j+1,:].*ur)
+    end
+    for i = 1:M
+      if save_case[j+1,i] == 1
+        hh[j+1,i] = sum(MWENO_pm_rec(gmloc[:,i],gploc[:,i],order; crj = crj))
+      elseif save_case[j+1,i] == 2
+        hh[j+1,i] = MWENO_pm_rec(gklloc[:,i],gkrloc[:,i],order; crj = crj)[2]
+      else
+        hh[j+1,i] = MWENO_pm_rec(gklloc[:,i],gkrloc[:,i],order; crj = crj)[1]
+      end
+    end
+    hh[j+1,:] = RMats[j+1]*hh[j+1,:]
+  end
+end
