@@ -54,3 +54,5 @@ prob = get_problem(50)
 @test get_L1_errors(sol_ana, sol8, Tend, -2.0, 2.0) < 0.095
 @time sol9 = solve(prob, FVDRCUAlgorithm(); use_threads = true, save_everystep = false)
 @test get_L1_errors(sol_ana, sol9, Tend, -2.0, 2.0) < 0.095
+@time sol10 = solve(prob, FVDRCU5Algorithm(); use_threads = true, save_everystep = false)
+@test get_L1_errors(sol_ana, sol10, Tend, -2.0, 2.0) < 0.095

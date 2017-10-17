@@ -80,10 +80,6 @@ function FVSpecMWENOAlgorithm(;order=5)
   FVSpecMWENOAlgorithm(order, crj)
 end
 
-# Numerical Fluxes
-#   1   2   3          N-1  N
-# |---|---|---|......|---|---|
-# 1   2   3   4 ... N-1  N  N+1
 
 function glf_splitting(u, α, Flux, N)
   # Lax Friedrichs flux splitting

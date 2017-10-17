@@ -42,6 +42,7 @@ module ConservationLawsDiffEq
   include("Lax_Wendroff2s_scheme.jl")
   include("CU_scheme.jl")
   include("DRCU_scheme.jl")
+  include("DRCU5_scheme.jl")
   include("SKT_scheme.jl")
 
   export solve, fast_solve
@@ -55,5 +56,6 @@ module ConservationLawsDiffEq
   export LaxFriedrichsAlgorithm, LaxWendroff2sAlgorithm
   export get_L1_errors, minmod, approx_L1_error
   export FVCUAlgorithm, FVDRCUAlgorithm, FVSKTAlgorithm
+  export FVDRCU5Algorithm
   export cell_centers, get_semidiscretization
 end
