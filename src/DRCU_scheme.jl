@@ -35,7 +35,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{
       aa_minus=minimum((λm[1], λp[1],0))
       # Update numerical fluxes
       if abs(aa_plus-aa_minus) < 1e-8
-        hh[j,:] = 0.0
+        hh[j,:] = 0.5*(Flux(uminus)+Flux(uplus))
       else
         flm = Flux(uminus); flp = Flux(uplus)
         wint = 1/(aa_plus-aa_minus)*(aa_plus*uplus-aa_minus*uminus-
@@ -67,7 +67,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{
       aa_minus=minimum((λm[1], λp[1],0))
       # Update numerical fluxes
       if abs(aa_plus-aa_minus) < 1e-8
-        hh[j,:] = 0.0
+        hh[j,:] = 0.5*(Flux(uminus)+Flux(uplus))
       else
         flm = Flux(uminus); flp = Flux(uplus)
         wint = 1/(aa_plus-aa_minus)*(aa_plus*uplus-aa_minus*uminus-
@@ -99,7 +99,7 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCUAlgorith
         aa_minus=minimum((λm[1], λp[1],0))
         # Update numerical fluxes
         if abs(aa_plus-aa_minus) < 1e-8
-          hh[j,:] = 0.0 - 0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_right(j,∇u,mesh)/mesh.Δx
+          hh[j,:] = 0.5*(Flux(uminus)+Flux(uplus)) - 0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_right(j,∇u,mesh)/mesh.Δx
         else
           flm = Flux(uminus); flp = Flux(uplus)
           wint = 1/(aa_plus-aa_minus)*(aa_plus*uplus-aa_minus*uminus-
@@ -132,7 +132,7 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCUAlgorith
         aa_minus=minimum((λm[1], λp[1],0))
         # Update numerical fluxes
         if abs(aa_plus-aa_minus) < 1e-8
-          hh[j,:] = 0.0 - 0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_right(j,∇u,mesh)/mesh.Δx
+          hh[j,:] = 0.5*(Flux(uminus)+Flux(uplus)) - 0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_right(j,∇u,mesh)/mesh.Δx
         else
           flm = Flux(uminus); flp = Flux(uplus)
           wint = 1/(aa_plus-aa_minus)*(aa_plus*uplus-aa_minus*uminus-

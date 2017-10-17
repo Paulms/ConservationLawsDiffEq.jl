@@ -71,3 +71,5 @@ prob = get_problem(100)
 @test approx_L1_error(sol, sol3) < 6e-4
 @time sol4 = solve(prob, FVDRCUAlgorithm();progress=true, save_everystep = false)
 @test approx_L1_error(sol, sol4) < 6e-4
+@time sol5 = solve(prob, FVDRCU5Algorithm();progress=true, save_everystep = false)
+@test approx_L1_error(sol, sol5) < 6e-4

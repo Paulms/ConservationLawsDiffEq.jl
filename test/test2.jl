@@ -42,3 +42,5 @@ prob = get_problem(20)
 @test get_L1_errors(sol6, exact_sol; nvar = 1) < 0.61
 @time sol7 = solve(prob, FVDRCUAlgorithm(); use_threads = true, save_everystep = false)
 @test get_L1_errors(sol7, exact_sol; nvar = 1) < 0.6
+@time sol8 = solve(prob, FVDRCU5Algorithm(); use_threads = true, save_everystep = false)
+@test get_L1_errors(sol8, exact_sol; nvar = 1) < 0.6
