@@ -26,11 +26,10 @@ module ConservationLawsDiffEq
   include("spatial_mesh.jl")
   include("ConservationLawsProblems.jl")
   include("fv_integrators.jl")
-  include("algorithms.jl")
+  include("aux_functions.jl")
   include("solutions.jl")
   include("fv_solve.jl")
   include("errors.jl")
-  include("ArrayUtils.jl")
   include("plotRecipe.jl")
 
   #Algoritms
