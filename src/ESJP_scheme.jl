@@ -22,62 +22,62 @@ function FVESJPAlgorithm(Nflux, Ndiff;ϵ=0.0,ve=nothing)
   end
 end
 
-# Numerical Fluxes
-#   1   2   3          N-1  N
-# |---|---|---|......|---|---|
-# 1   2   3   4 ... N-1  N  N+1
-
-function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVESJPAlgorithm,
-  Uniform1DFVMesh,tType,uType,tAlgType,F,B};kwargs...)
-  @fv_diffdeterministicpreamble
-  @fv_uniform1Dmeshpreamble
-  @fv_generalpreamble
-  @unpack Nflux,Ndiff,ϵ = integrator.alg
-  update_dt = cdt
-  function rhs!(rhs, uold, N, M, dx, dt, bdtype)
-    #SEt ghost Cells
-    ngc = 1
-    @boundary_header
-    # Numerical Fluxes
-    hh = zeros(N+1,M)
-    for j = 1:N+1
-      hh[j,:] = Nflux(uu[j-1,:], uu[j,:])
+"""
+compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVESJPAlgorithm, ::Type{Val{true}})
+Numerical flux of Entropy Stable Schemes in 1D
+"""
+function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVESJPAlgorithm, ::Type{Val{true}})
+    @unpack Nflux,Ndiff,ϵ = alg
+    N = numcells(mesh)
+    dx = mesh.Δx
+    #update vector
+    Threads.@threads for j in edge_indices(mesh)
+        @inbounds ul = cellval_at_left(j,u,mesh)
+        @inbounds ur = cellval_at_right(j,u,mesh)
+        hh[j,:] = Nflux(ul, ur) -
+        1/dx*(Ndiff(ul, ur)*(ur-ul)+ ϵ*(ur-ul))
     end
-    # Diffusion
-    pp = zeros(N+1,M)
-    for j = 1:N+1
-      pp[j,:] = 1/dx*(Ndiff(uu[j-1,:], uu[j,:])*(uu[j,:]-uu[j-1,:])+ ϵ*(uu[j,:]-uu[j-1,:]))
-    end
-    @boundary_update
-    @update_rhs
-  end
-  @fv_timeloop
 end
 
-function FV_solve{tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{FVESJPeAlgorithm,
-  Uniform1DFVMesh,tType,uType,tAlgType,F,B};kwargs...)
-  @fv_diffdeterministicpreamble
-  @fv_uniform1Dmeshpreamble
-  @fv_generalpreamble
-  @unpack Nflux,Ndiff,ϵ,ve = integrator.alg
-  update_dt = cdt
-  function rhs!(rhs, uold, N, M, dx, dt, bdtype)
-    #SEt ghost Cells
-    ngc = 1
-    @boundary_header
-    # Numerical Fluxes
-    hh = zeros(N+1,M)
-    for j = 1:N+1
-      hh[j,:] = Nflux(ve(uu[j-1,:]), ve(uu[j,:]))
+function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVESJPAlgorithm, ::Type{Val{false}})
+    @unpack Nflux,Ndiff,ϵ = alg
+    N = numcells(mesh)
+    dx = mesh.Δx
+    #update vector
+    for j in edge_indices(mesh)
+        @inbounds ul = cellval_at_left(j,u,mesh)
+        @inbounds ur = cellval_at_right(j,u,mesh)
+        hh[j,:] = Nflux(ul, ur) -
+        1/dx*(Ndiff(ul, ur)*(ur-ul)+ ϵ*(ur-ul))
     end
-    # Diffusion
-    pp = zeros(N+1,M)
-    for j = 1:N+1
-      vdiff = ve(uu[j,:])-ve(uu[j-1,:])
-      pp[j,:] = 1/dx*(Ndiff(ve(uu[j-1,:]), ve(uu[j,:]))*vdiff+ ϵ*vdiff)
+end
+
+"""
+compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVESJPAlgorithm, ::Type{Val{true}})
+Numerical flux of Entropy Stable Schemes in entropy variables 1D
+"""
+function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVESJPeAlgorithm, ::Type{Val{true}})
+    @unpack Nflux,Ndiff,ϵ = alg
+    N = numcells(mesh)
+    dx = mesh.Δx
+    #update vector
+    Threads.@threads for j in edge_indices(mesh)
+        @inbounds vl = ve(cellval_at_left(j,u,mesh))
+        @inbounds vr = ve(cellval_at_right(j,u,mesh))
+        hh[j,:] = Nflux(vl, vr) -
+        1/dx*(Ndiff(vl, vr)*(vr-vl)+ ϵ*(vr-vl))
     end
-    @boundary_update
-    @update_rhs
-  end
-  @fv_timeloop
+end
+
+function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVESJPeAlgorithm, ::Type{Val{false}})
+    @unpack Nflux,Ndiff,ϵ = alg
+    N = numcells(mesh)
+    dx = mesh.Δx
+    #update vector
+    for j in edge_indices(mesh)
+        @inbounds vl = ve(cellval_at_left(j,u,mesh))
+        @inbounds vr = ve(cellval_at_right(j,u,mesh))
+        hh[j,:] = Nflux(vl, vr) -
+        1/dx*(Ndiff(vl, vr)*(vr-vl)+ ϵ*(vr-vl))
+    end
 end

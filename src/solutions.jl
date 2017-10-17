@@ -1,6 +1,6 @@
 #@compat abstract type AbstractFVSolution{T,N} <: DESolution end
 
-type FVSolution{T,N,uType,tType,ProbType,MeshType,IType} <: AbstractFVSolution{T,N}
+struct FVSolution{T,N,uType,tType,ProbType,MeshType,IType} <: AbstractFVSolution{T,N}
   u::uType
   t::tType
   prob::ProbType

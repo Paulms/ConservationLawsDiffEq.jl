@@ -16,5 +16,5 @@
     else
       label --> reshape(labels,1,length(labels))
     end
-    sol.prob.mesh.x, yvector
+    sol.prob.mesh.cell_centers, yvector
 end

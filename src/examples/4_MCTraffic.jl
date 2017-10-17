@@ -54,23 +54,32 @@ function u0_func(xx)
 end
 
 function get_problem(N)
-  mesh = Uniform1DFVMesh(N,0.0,10.0,:PERIODIC)
-  u0 = u0_func(mesh.x)
+  mesh = Uniform1DFVMesh(N,0.0,10.0,:PERIODIC, :PERIODIC)
+  u0 = u0_func(cell_centers(mesh))
   ConservationLawsWithDiffusionProblem(u0,f,BB,CFL,Tend,mesh)
 end
 #Compile
 prob = get_problem(10)
 #Run
 prob = get_problem(100)
-@time sol = solve(prob, FVKTAlgorithm();progress=true,saveat=0.01)
-@time sol2 = solve(prob, LI_IMEX_RK_Algorithm();progress=true,saveat=0.01)
+@time sol = solve(prob, FVSKTAlgorithm();progress=true, save_everystep = false)
+@time sol2 = solve(prob, LI_IMEX_RK_Algorithm();progress=true, save_everystep = false)
+@time sol3 = solve(prob, FVCUAlgorithm();progress=true, save_everystep = false)
+@time sol4 = solve(prob, FVDRCUAlgorithm();progress=true, save_everystep = false)
 
 #Plot
 using(Plots)
+pyplot()
 plot(sol, tidx=1, line=(:dot,2), ylab="u", xlab = "x")
-plot!(sol.prob.mesh.x, [sum(sol.u[1][i,:]) for i=1:sol.prob.mesh.N],lab="u")
+plot!(cell_centers(sol.prob.mesh), [sum(sol.u[1][i,:]) for i=1:numcells(sol.prob.mesh)],lab="u")
 plot(sol, line=(:dot,2), ylab="u", xlab = "x")
-plot!(sol.prob.mesh.x, [sum(sol.u[end][i,:]) for i=1:sol.prob.mesh.N],line=(2),lab="u KT")
+plot!(cell_centers(sol.prob.mesh), [sum(sol.u[end][i,:]) for i=1:numcells(sol.prob.mesh)],line=(2),lab="u KT")
 
 plot(sol2, line=(:dot,2), ylab="u", xlab = "x")
-plot!(sol2.prob.mesh.x, [sum(sol2.u[end][i,:]) for i=1:sol.prob.mesh.N],lab="u IMEX")
+plot!(cell_centers(sol2.prob.mesh), [sum(sol2.u[end][i,:]) for i=1:numcells(sol2.prob.mesh)],lab="u IMEX")
+
+plot(sol3, line=(:dot,2), ylab="u", xlab = "x")
+plot!(cell_centers(sol3.prob.mesh), [sum(sol3.u[end][i,:]) for i=1:numcells(sol3.prob.mesh)],lab="u CU")
+
+plot(sol4, line=(:dot,2), ylab="u", xlab = "x")
+plot!(cell_centers(sol4.prob.mesh), [sum(sol4.u[end][i,:]) for i=1:numcells(sol4.prob.mesh)],lab="u DRCU")

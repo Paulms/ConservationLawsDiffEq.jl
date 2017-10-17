@@ -1,6 +1,6 @@
 # ConservationLawsDiffEq
 
-[![Build Status](https://travis-ci.org/Paulms/ConservationLawsDiffEq.jl.svg?branch=master)](https://travis-ci.org/Paulms/ConservationLawsDiffEq.jl) 
+[![Build Status](https://travis-ci.org/Paulms/ConservationLawsDiffEq.jl.svg?branch=master)](https://travis-ci.org/Paulms/ConservationLawsDiffEq.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/3x0qjeud3viejfn0?svg=true)](https://ci.appveyor.com/project/Paulms/conservationlawsdiffeq-jl)
 [![Coverage Status](https://coveralls.io/repos/Paulms/ConservationLawsDiffEq.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/Paulms/ConservationLawsDiffEq.jl?branch=master)
 [![codecov.io](http://codecov.io/github/Paulms/ConservationLawsDiffEq.jl/coverage.svg?branch=master)](http://codecov.io/github/Paulms/ConservationLawsDiffEq.jl?branch=master)
@@ -11,7 +11,7 @@ These PDEs are of the form
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=u_{t}&plus;f(u)_{x}&=0,\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{&plus;}\\u(x,0)&=u_{0}(x),\qquad\forall&space;x\in\mathbb{R}^{n}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?u_{t}&plus;f(u)_{x}&=0,\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{&plus;}\\u(x,0)&=u_{0}(x),\qquad\forall&space;x\in\mathbb{R}^{n}" title="u_{t}+f(u)_{x}&=0,\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{+}\\u(x,0)&=u_{0}(x),\qquad\forall x\in\mathbb{R}^{n}" /></a>
 
-We also consider degenerate convection-diffusion systems of the form:
+We also consider degenerate convection-diffusion systems (degenerate parabolic-hyperbolic equations) of the form:
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=u_{t}&plus;f(u)_{x}&=(B(u)u_{x})_{x},\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{&plus;}\\u(x,0)&=u_{0}(x),\qquad\forall&space;x\in\mathbb{R}^{n}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?u_{t}&plus;f(u)_{x}&=(B(u)u_{x})_{x},\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{&plus;}\\u(x,0)&=u_{0}(x),\qquad\forall&space;x\in\mathbb{R}^{n}" title="u_{t}+f(u)_{x}&=(B(u)u_{x})_{x},\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{+}\\u(x,0)&=u_{0}(x),\qquad\forall x\in\mathbb{R}^{n}" /></a>
 
@@ -21,25 +21,27 @@ Solutions follow a conservative finite diference (finite volume) pattern. This m
 
 Where the numerical flux <a href="https://www.codecogs.com/eqnedit.php?latex=F_{i&plus;1/2}(t)&space;=&space;F(u_{i}(t),u_{i&plus;1}(t)))" target="_blank"><img src="https://latex.codecogs.com/gif.latex?F_{i&plus;1/2}(t)&space;=&space;F(u_{i}(t),u_{i&plus;1}(t)))" title="F_{i+1/2}(t) = F(u_{i}(t),u_{i+1}(t)))" /></a> is an approximate solution of the Riemann problem at the cell interface (x(i+1/2)).
 
-An extra term **P** similar to **F** could be added to account for the Diffusion in the second case.
+An extra numerical function **P** similar to **F** could be added to account for the Diffusion in the second case.
 
-Time integration of the semi discrete form is performed using [OrdinaryDiffEq](https://github.com/JuliaDiffEq/OrdinaryDiffEq.jl) algorithms.
+Time integration of the semi-discrete form is performed using [OrdinaryDiffEq](https://github.com/JuliaDiffEq/OrdinaryDiffEq.jl) algorithms.
 
 ## Features
 ### Mesh:
-At the momento only Cartesian 1D uniform mesh available, using `FVMesh(N,a,b,boundary)` command. Where
+At the momento only Cartesian 1D uniform mesh available, using `Uniform1DFVMesh(N,a,b,left_boundary, right_boundary)` command. Where
 
 `N` = Number of cells
 
 `a,b` = start and end coordinates.
 
-`boundary` = boundary type (`:ZERO_FLUX` (default), `:PERIODIC`)
+`left_boundary`,`right_boundary` = boundary type (`:ZERO_FLUX` (default), `:PERIODIC`)
 
-* Problem types: System of Conservation Laws without (`ConservationLawsProblem`) and with diffusion term (`ConservationLawsWithDiffusionProblem`).
+* Problem types: System of Conservation Laws without (`ConservationLawsProblem`) and with degenerate diffusion term (`ConservationLawsWithDiffusionProblem`).
 
 ### Algorithms
 
-* Lax-Friedrichs method (`LaxFriedrichsAlgorithm()`), Ritchmeyer Two-step Lax-Wendroff Method (`LaxWendroff2sAlgorithm()`)
+The algorithms follow the method of lines, so first we compute a semidiscretization in space and time integration is performed using ODE solvers.
+
+* Lax-Friedrichs method (`LaxFriedrichsAlgorithm()`), Global/Local L-F Scheme (`GlobalLaxFriedrichsAlgorithm()`, `LocalLaxFriedrichsAlgorithm()`), Ritchmeyer Two-step Lax-Wendroff Method (`LaxWendroff2sAlgorithm()`)
 
 R. LeVeque. Finite Volume Methods for Hyperbolic Problems.Cambridge University Press. New York 2002
 
@@ -47,9 +49,17 @@ R. LeVeque. Finite Volume Methods for Hyperbolic Problems.Cambridge University P
 
 U. Fjordholm, S. Mishra, E. Tadmor, *Arbitrarly high-order accurate entropy stable essentially nonoscillatory schemes for systems of conservation laws*. 2012. SIAM. vol. 50. No 2. pp. 544-573
 
-* High-Resolution Central Schemes (`FVKTAlgorithm()`)
+* High-Resolution Central Schemes (`FVSKTAlgorithm()`)
 
 Kurganov, Tadmor, *New High-Resolution Central Schemes for Nonlinear Conservation Laws and Convection–Diffusion Equations*, Journal of Computational Physics, Vol 160, issue 1, 1 May 2000, Pages 241-282
+
+* Second-Order upwind central scheme (`FVCUAlgorithm`)
+
+Kurganov A., Noelle S., Petrova G., Semidiscrete Central-Upwind schemes for hyperbolic Conservation Laws and Hamilton-Jacobi Equations. SIAM. Sci Comput, Vol 23, No 3m pp 707-740. 2001
+
+* Dissipation Reduced Central upwind Scheme: Second-Order (`FVDRCUAlgorithm`)
+
+Kurganov A., Lin C., On the reduction of Numerical Dissipation in Central-Upwind # Schemes, Commun. Comput. Phys. Vol 2. No. 1, pp 141-163, Feb 2007.
 
 * Component Wise Weighted Essentially Non-Oscilaroty (WENO-LF) (`FVCompWENOAlgorithm(;order)`)
 
@@ -58,6 +68,8 @@ C.-W. Shu, *High order weighted essentially non-oscillatory schemes for convecti
 * Component Wise Mapped WENO Scheme (`FVCompMWENOAlgorithm(;order)`)
 
 A. Henrick, T. Aslam, J. Powers, *Mapped weighted essentially non-oscillatory schemes: Achiving optimal order near critical points*. Journal of Computational Physics. Vol 207. 2005. Pages 542-567
+
+* Component Wise Global Lax-Friedrichs Scheme (`COMP_GLF_Diff_Algorithm()`)
 
 * Characteristic Wise WENO (Spectral) Scheme (`FVSpecMWENOAlgorithm(;order)`)
 
@@ -117,10 +129,10 @@ end
 
 # Setup Mesh
 N = 100
-mesh = Uniform1DFVMesh(N,-5.0,5.0,:PERIODIC)
+mesh = Uniform1DFVMesh(N,-5.0,5.0,:PERIODIC,:PERIODIC)
 
 #Setup initial condition
-u0 = u0_func(mesh.x)
+u0 = u0_func(cell_centers(mesh))
 
 #Setup problem:
 prob = ConservationLawsProblem(u0,f,CFL,Tend,mesh)
