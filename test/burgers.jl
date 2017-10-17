@@ -2,7 +2,6 @@
 
 using Parameters
 using RecipesBase
-using LaTeXStrings
 
 """
 An abstract type representing a balance law in `Dim` space dimensions.

@@ -57,7 +57,7 @@ Kurganov, Tadmor, *New High-Resolution Central Schemes for Nonlinear Conservatio
 
 Kurganov A., Noelle S., Petrova G., Semidiscrete Central-Upwind schemes for hyperbolic Conservation Laws and Hamilton-Jacobi Equations. SIAM. Sci Comput, Vol 23, No 3m pp 707-740. 2001
 
-* Dissipation Reduced Central upwind Scheme: Second-Order (`FVDRCUAlgorithm`)
+* Dissipation Reduced Central upwind Scheme: Second-Order (`FVDRCUAlgorithm`), fifth-order (`FVDRCU5Algorithm`)
 
 Kurganov A., Lin C., On the reduction of Numerical Dissipation in Central-Upwind # Schemes, Commun. Comput. Phys. Vol 2. No. 1, pp 141-163, Feb 2007.
 
@@ -69,13 +69,13 @@ C.-W. Shu, *High order weighted essentially non-oscillatory schemes for convecti
 
 A. Henrick, T. Aslam, J. Powers, *Mapped weighted essentially non-oscillatory schemes: Achiving optimal order near critical points*. Journal of Computational Physics. Vol 207. 2005. Pages 542-567
 
-* Component Wise Global Lax-Friedrichs Scheme (`COMP_GLF_Diff_Algorithm()`)
+* Component Wise Global Lax-Friedrichs Scheme (`COMP_GLF_Diff_Algorithm()`) (?)
 
 * Characteristic Wise WENO (Spectral) Scheme (`FVSpecMWENOAlgorithm(;order)`)
 
 R. Bürger, R. Donat, P. Mulet, C. Vega, *On the implementation of WENO schemes for a class of polydisperse sedimentation models*. Journal of Computational Physics, Volume 230, Issue 6, 20 March 2011, Pages 2322-2344
 
-* Linearly implicit IMEX Runge-Kutta schemes (`LI_IMEX_RK_Algorithm(;scheme, linsolve)`)
+* Linearly implicit IMEX Runge-Kutta schemes (`LI_IMEX_RK_Algorithm(;scheme, linsolve)`) (not working...)
 
 (See Time integration methods for RK options (`scheme`), Flux reconstruction uses Comp WENO5, to change linear solver see [DifferentialEquations.jl: Specifying (Non)Linear Solvers](http://docs.juliadiffeq.org/stable/features/linear_nonlinear.html))
 
@@ -138,7 +138,7 @@ u0 = u0_func(cell_centers(mesh))
 prob = ConservationLawsProblem(u0,f,CFL,Tend,mesh)
 
 #Solve problem using Kurganov-Tadmor scheme and Strong Stability Preserving RK33
-@time sol = solve(prob, FVKTAlgorithm();progress=true, TimeIntegrator = SSPRK33())
+@time sol = solve(prob, FVSKTAlgorithm();progress=true, TimeIntegrator = SSPRK33())
 
 #Plot
 using Plots

@@ -6,7 +6,7 @@ module ConservationLawsDiffEq
 
   using Parameters, Compat, Juno
   using ForwardDiff, Interpolations, IterativeSolvers
-  using RecipesBase
+  using RecipesBase, LaTeXStrings
 
   # Interfaces
   import DiffEqBase: solve, @def, has_jac, LinSolveFactorize, LinearInterpolation
