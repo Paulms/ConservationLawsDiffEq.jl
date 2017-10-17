@@ -35,6 +35,10 @@ function compute_slopes(u, mesh, θ, N, M, ::Type{Val{false}})
     ∇u
 end
 
+"""
+compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{true}})
+Numerical flux of Kurkanov Tadmor scheme in 1D
+"""
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{true}})
     @unpack θ = alg
     λ = dt/mesh.Δx

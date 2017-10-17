@@ -36,22 +36,22 @@ end
 ve(u::Vector) = [gr*u[1]-0.5*(u[2]/u[1])^2;u[2]/u[1]]
 
 function get_problem(N)
-  mesh = Uniform1DFVMesh(N,-5.0,5.0,:PERIODIC)
-  u0 = u0_func(mesh.x)
+  mesh = Uniform1DFVMesh(N,-5.0,5.0,:PERIODIC, :PERIODIC)
+  u0 = u0_func(cell_centers(mesh))
   prob = ConservationLawsProblem(u0,f,CFL,Tend,mesh)
 end
 #Compile
 prob = get_problem(10)
 #Run
 prob = get_problem(200)
-@time sol = solve(prob, FVKTAlgorithm();progress=true)
+@time sol = solve(prob, FVSKTAlgorithm();progress=true)
 @time sol2 = solve(prob, FVTecnoAlgorithm(Nflux;ve = ve, order=3);progress=true)
 @time sol3 = solve(prob, FVCompWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33())
 @time sol4 = solve(prob, FVCompMWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33())
 @time sol5 = solve(prob, FVSpecMWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33())
 
 #Plot
-using Plots
+using Plots;pyplot();
 plot(sol, tidx=1, vars=1, lab="ho",line=(:dot,2))
 plot!(sol, vars=1,lab="KT h")
 plot!(sol2, vars=1,lab="Tecno h")

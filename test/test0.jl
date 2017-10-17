@@ -34,30 +34,19 @@ function get_problem(N)
 end
 prob = get_problem(50)
 @time sol = solve(prob, FVSKTAlgorithm(); use_threads = true, save_everystep = false)
+@test get_L1_errors(sol_ana, sol, Tend, -2.0, 2.0) < 0.095
 @time sol1 = fast_solve(prob, FVSKTAlgorithm();use_threads = true)
+@test get_L1_errors(sol_ana, sol1, Tend, -2.0, 2.0) < 0.095
 @time sol2 = solve(prob, LaxFriedrichsAlgorithm();use_threads = true, save_everystep = false)
+@test get_L1_errors(sol_ana, sol2, Tend, -2.0, 2.0) < 0.14
 @time sol3 = solve(prob, LocalLaxFriedrichsAlgorithm();use_threads = false, save_everystep = false)
+@test get_L1_errors(sol_ana, sol3, Tend, -2.0, 2.0) < 0.13
 @time sol4 = solve(prob, GlobalLaxFriedrichsAlgorithm();use_threads = true, save_everystep = false)
+@test get_L1_errors(sol_ana, sol4, Tend, -2.0, 2.0) < 0.14
 #@time sol5 = solve(prob, LaxWendroff2sAlgorithm();progress=true, save_everystep = false)
 @time sol5 = solve(prob, FVCompWENOAlgorithm();use_threads = true, TimeAlgorithm = SSPRK33())
+@test get_L1_errors(sol_ana, sol5, Tend, -2.0, 2.0) < 0.095
 @time sol6 = solve(prob, FVCompMWENOAlgorithm();use_threads = true, TimeAlgorithm = SSPRK33())
+@test get_L1_errors(sol_ana, sol6, Tend, -2.0, 2.0) < 0.095
 @time sol7 = solve(prob, FVSpecMWENOAlgorithm();use_threads = false)
-
-#Compute approximate errors at tend
-function calc_error(uana, unum::AbstractFVSolution, tend, xl, xr)
-    N = numcells(unum.prob.mesh)
-    xk = cell_centers(unum.prob.mesh)
-    uexact = zeros(N)
-    for (i,x) = enumerate(xk)
-        uexact[i] = uana(tend, x)
-    end
-    sum(1.0/N*abs.(unum.u[end] - uexact))
-end
-@test calc_error(sol_ana, sol, Tend, -2.0, 2.0) < 0.095
-@test calc_error(sol_ana, sol1, Tend, -2.0, 2.0) < 0.095
-@test calc_error(sol_ana, sol2, Tend, -2.0, 2.0) < 0.14
-@test calc_error(sol_ana, sol3, Tend, -2.0, 2.0) < 0.13
-@test calc_error(sol_ana, sol4, Tend, -2.0, 2.0) < 0.14
-@test calc_error(sol_ana, sol5, Tend, -2.0, 2.0) < 0.095
-@test calc_error(sol_ana, sol6, Tend, -2.0, 2.0) < 0.095
-@test calc_error(sol_ana, sol7, Tend, -2.0, 2.0) < 0.095
+@test get_L1_errors(sol_ana, sol7, Tend, -2.0, 2.0) < 0.095

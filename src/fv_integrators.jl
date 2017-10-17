@@ -41,7 +41,7 @@ function (fv::FVIntegrator)(t, u, du)
     if length(u) != length(du)
       error("length(u) = $(length(u)) != $(length(du)) = length(du)")
     end
-    length(u) != numcells(fv.mesh) && error("length(u) != numcells(fv.mesh)")
+    size(u,1) != numcells(fv.mesh) && error("length(u) != numcells(fv.mesh)")
   end
 
   @unpack mesh, alg, Flux, M, fluxes, dt, use_threads = fv
