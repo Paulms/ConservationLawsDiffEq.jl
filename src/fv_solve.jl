@@ -37,28 +37,7 @@ function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLaws
     FVDiffIntegrator(alg,mesh,f,DiffMat,CFL,numvars, fluxes, dt, use_threads)
 end
 
-# function solve{islinear,isstochastic,MeshType,F,F3,F4,F5,F6}(
-#   prob::ConservationLawsWithDiffusionProblem{islinear,isstochastic,MeshType,F,F3,F4,F5,F6},
-#   alg::AbstractFVAlgorithm;
-#   TimeAlgorithm::OrdinaryDiffEqAlgorithm = SSPRK22(),
-#   save_everystep = false, kwargs...)
-#
-#   #Unroll some important constants
-#   @unpack u0,f,CFL,tspan,numvars,mesh,DiffMat = prob
-#   tend = tspan[end]
-#   if !has_jac(f)
-#     f(::Type{Val{:jac}},x) = x -> ForwardDiff.jacobian(f,x)
-#   end
-#
-#   #Equation Loop
-#   timeseries,ts,retcode,interp,dense=FV_solve(FVDiffIntegrator{typeof(alg),typeof(prob.mesh),typeof(tend),typeof(u0),
-#   typeof(TimeAlgorithm),typeof(f),typeof(DiffMat)}(alg,prob.mesh,u0,f,DiffMat,CFL,
-#   numvars,TimeAlgorithm,tend);save_everystep = save_everystep,
-#   progress_steps=1000, kwargs...)
-#
-#   return(FVSolution(timeseries,ts,prob,retcode,interp;dense=dense))
-# end
-
+######### Legacy solve method (easy to debug)
 @def fv_generalpreamble begin
   progress && (prog = Juno.ProgressBar(name=progressbar_name))
   percentage = 0
@@ -185,7 +164,7 @@ function fast_solve{islinear,isstochastic,MeshType,F,F3,F4,F5}(
   ode_fv = get_semidiscretization(alg, prob; use_threads = use_threads)
 
   #Setup timeseries
-  t = 0.0
+  t = tspan[1]
   timeseries = Vector{typeof(u0)}(0)
   push!(timeseries,copy(u0))
   ts = Float64[t]
