@@ -144,8 +144,8 @@ end
   end
 end
 
-function fast_solve{islinear,isstochastic,MeshType,F,F3,F4,F5}(
-  prob::ConservationLawsProblem{islinear,isstochastic,MeshType,F,F3,F4,F5},
+function fast_solve(
+  prob::AbstractConservationLawProblem,
   alg::AbstractFVAlgorithm;
   timeseries_steps::Int = 100,
   save_everystep::Bool = false,
