@@ -74,3 +74,5 @@ approx_L1_error(sol, sol2) < 2e-3 #TODO: Too high
 @test approx_L1_error(sol, sol4) < 6e-4
 @time sol5 = solve(prob, FVDRCU5Algorithm();progress=false, save_everystep = false)
 @test approx_L1_error(sol, sol5) < 6e-4
+@time sol6 = solve(prob, COMP_GLF_Diff_Algorithm();progress=false, save_everystep = false)
+@test approx_L1_error(sol, sol6) < 6e-4
