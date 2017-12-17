@@ -1,4 +1,4 @@
-type ConservationLawsProblem{islinear,isstochastic,MeshType,F,F3,F4,F5} <: AbstractConservationLawProblem{islinear,isstochastic,MeshType}
+struct ConservationLawsProblem{islinear,isstochastic,MeshType,F,F3,F4,F5} <: AbstractConservationLawProblem{islinear,isstochastic,MeshType}
  u0::F5
  f::F
  CFL::F3
@@ -7,7 +7,7 @@ type ConservationLawsProblem{islinear,isstochastic,MeshType,F,F3,F4,F5} <: Abstr
  mesh::MeshType
 end
 
-type ConservationLawsWithDiffusionProblem{islinear,isstochastic,MeshType,F,F3,F4,F5,F6} <: AbstractConservationLawProblem{islinear,isstochastic,MeshType}
+struct ConservationLawsWithDiffusionProblem{islinear,isstochastic,MeshType,F,F3,F4,F5,F6} <: AbstractConservationLawProblem{islinear,isstochastic,MeshType}
  u0::F5
  f::F
  CFL::F3

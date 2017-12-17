@@ -2,6 +2,7 @@
 #Based on:
 #S. Boscarino, R. Bürger, P. Mulet, G. Russo, L. Villada, Linearly implicit IMEX
 #Runge Kutta methods for a class of degenerate convection difussion problems
+
 immutable RKTable{T}
   order ::Int
   ct :: Vector{T}
@@ -33,60 +34,11 @@ function RKTable(scheme)
     throw("$scheme scheme not available...")
   end
 end
-immutable LI_IMEX_RK_Algorithm{F} <: AbstractFVAlgorithm
-  RKTab :: RKTable
+struct LI_IMEX_RK_Algorithm{F} <: AbstractFVAlgorithm
   linsolve :: F
 end
-function LI_IMEX_RK_Algorithm(;scheme = :H_CN_222, linsolve = LinSolveFactorize(lufact))
-  LI_IMEX_RK_Algorithm(RKTable(scheme), linsolve)
-end
-
-function FV_solve{sType,tType,uType,tAlgType,F,B}(integrator::FVDiffIntegrator{LI_IMEX_RK_Algorithm{sType},
-  Uniform1DFVMesh,tType,uType,tAlgType,F,B};timeseries_steps = 1, maxiters = 1000000,
-  saveat=tType[], progressbar_name="LI-IMEX-RK",progress=false,save_everystep = false,kwargs...)
-  @fv_diffdeterministicpreamble
-  @fv_uniform1Dmeshpreamble
-  @fv_nt_generalpreamble
-  @unpack RKTab, linsolve = integrator.alg
-  Φ = view(u',:)
-  crj = unif_crj(3) #eno weights for weno5
-  order = 5         #weno5
-  @inbounds for i=1:maxiters
-    α = maxfluxρ(u,Flux)
-    dt = CFL*dx/α
-    Ki = zeros(Φ)
-    Kj = Vector{typeof(Ki)}(0)
-    # i step
-    for i = 1:RKTab.order
-      Kjs = zeros(Ki); Kjh = zeros(Ki)
-      for j = 1:i-1
-        Kjs = Kjs + RKTab.At[i,j]*Kj[j]
-        Kjh = Kjh + RKTab.A[i,j]*Kj[j]
-      end
-      Φs = Φ + dt*Kjs
-      Φh = Φ + dt*Kjh
-      BB = assamble_B(Φs,N,M,DiffMat,bdtype)
-      A = I-dt/dx^2*RKTab.A[i,i]*BB
-      #Reconstruct flux with comp weno5 see: WENO_Scheme.jl
-      uold = reshape(Φs,M,N)'
-      @boundary_header
-      @global_lax_flux
-      k=2
-      @weno_rhs_header
-      Cϕ = hh[2:N+1,:]-hh[1:N,:]
-      b = -1/dx*view(Cϕ',:)+1\dx^2*BB*Φh
-      #Solve linear system
-      linsolve(Ki,A,b,true)
-      push!(Kj,copy(Ki))
-    end
-    for j = 1:RKTab.order
-      Φ = Φ + dt*RKTab.b[j]*Kj[j]
-    end
-    u = reshape(Φ,M,N)'
-    t += dt
-    @fv_nt_footer
-  end
-  @fv_nt_postamble
+function LI_IMEX_RK_Algorithm(;linsolve = LinSolveFactorize(lufact))
+  LI_IMEX_RK_Algorithm(linsolve)
 end
 
 @def update_assamble_vectors begin
@@ -98,16 +50,11 @@ end
   end
 end
 
-function assamble_B(Φ,N,M,DiffMat,bdtype)
-  uleft = view(Φ,1:M)
+function assamble_B(Φ,N,M,DiffMat,mesh)
+  uleft = view(Φ,1:M)       #TODO: default is ZERO_flux?
   uright = view(Φ,((N-1)*M+1):(N*M))
-  if bdtype == :ZERO_FLUX
-  elseif bdtype == :PERIODIC
-    uright = view(Φ,1:M)
-    uleft = view(Φ,((N-1)*M+1):(N*M))
-  else
-    throw("Boundary type $bdtype not supported")
-  end
+  if isleftperiodic(mesh);uleft = view(Φ,((N-1)*M+1):(N*M));end
+  if isrightperiodic(mesh);uright = view(Φ,1:M);end
   nnz=M*M*(N-2)*3+M*M*2*2
   idr = zeros(Int,nnz)
   idc = zeros(Int,nnz)
@@ -135,4 +82,75 @@ function assamble_B(Φ,N,M,DiffMat,bdtype)
     end
   end
   sparse(idr,idc,vals)
+end
+
+function solve(
+  prob::AbstractConservationLawProblem,
+  alg::LI_IMEX_RK_Algorithm;
+  TimeAlgorithm = :H_CN_222,use_threads = false,
+  timeseries_steps = 1, iterations = 1000000,
+  progressbar_name="LI-IMEX-RK",progress=false,
+  save_everystep = false,kwargs...)
+
+  #Unroll some important constants
+  @unpack tspan,f,u0, DiffMat, CFL, numvars, mesh = prob
+  M = numvars; dx = mesh.Δx
+  N = numcells(mesh); Flux = f
+  if !has_jac(f)
+    f(::Type{Val{:jac}},x) = x -> ForwardDiff.jacobian(f,x)
+  end
+  RKTab = RKTable(TimeAlgorithm)
+  @unpack linsolve = alg
+
+  #Setup timeseries
+  t = tspan[1]
+  timeseries = Vector{typeof(u0)}(0)
+  push!(timeseries,copy(u0))
+  ts = Vector{typeof(t)}(0)
+  push!(ts, t)
+  tend = tspan[end]
+
+  #Setup juno progressbar
+  @fv_generalpreamble
+
+  #Start Computation
+  u = copy(u0)
+  Φ = view(u',:)
+  hh = zeros(eltype(u), N+1, M)
+  crj = unif_crj(3) #eno weights for weno5
+  order = 5         #weno5
+  @inbounds for i=1:iterations
+    α = maxfluxρ(u,Flux)
+    dt = CFL*dx/α
+    Ki = zeros(Φ)
+    Kj = Vector{typeof(Ki)}(0)
+    # i step
+    for i = 1:RKTab.order
+      Kjs = zeros(Ki); Kjh = zeros(Ki)
+      for j = 1:i-1
+        Kjs = Kjs + RKTab.At[i,j]*Kj[j]
+        Kjh = Kjh + RKTab.A[i,j]*Kj[j]
+      end
+      Φs = Φ + dt*Kjs
+      Φh = Φ + dt*Kjh
+      BB = assamble_B(Φs,N,M,DiffMat,mesh)
+      A = I-dt/dx^2*RKTab.A[i,i]*BB
+      #Reconstruct flux with comp weno5 see: WENO_Scheme.jl
+      uold = reshape(Φs,M,N)'
+      compute_fluxes!(hh, Flux, uold, mesh, dt, M, FVCompWENOAlgorithm(), Val{use_threads})
+      Cϕ = hh[2:N+1,:]-hh[1:N,:]
+      b = -1/dx*view(Cϕ',:)+1\dx^2*BB*Φh
+      #Solve linear system
+      linsolve(Ki,A,b,true)
+      push!(Kj,copy(Ki))
+    end
+    for j = 1:RKTab.order
+      Φ = Φ + dt*RKTab.b[j]*Kj[j]
+    end
+    u = reshape(Φ,M,N)'
+    t += dt
+    @fv_footer
+  end
+  @fv_postamble
+  return(FVSolution(timeseries,ts,prob,:Default,LinearInterpolation(ts,timeseries);dense = false))
 end
