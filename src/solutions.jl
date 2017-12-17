@@ -23,8 +23,8 @@ function save_csv(sol::FVSolution, file_name::String; idx = -1)
     file_name = "$file_name.csv"
   end
   if idx == -1
-    writedlm(file_name, hcat(sol.prob.mesh.x,sol.u[end]), ',')
+    writedlm(file_name, hcat(cell_centers(sol.prob.mesh),sol.u[end]), ',')
   else
-    writedlm(file_name, hcat(sol.prob.mesh.x,sol.u[idx]), ',')
+    writedlm(file_name, hcat(cell_centers(sol.prob.mesh),sol.u[idx]), ',')
   end
 end
