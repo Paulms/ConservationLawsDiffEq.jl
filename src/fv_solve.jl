@@ -80,6 +80,7 @@ end
     u = uold + dt*rhs
   elseif (TimeIntegrator == :SSPRK22)
     #FIRST Step
+    ode_fv(t,uold,rhs)
     u = 0.5*(uold + dt*rhs)
     #Second Step
     ode_fv(t,uold + dt*rhs,rhs)
