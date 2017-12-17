@@ -34,7 +34,7 @@ function get_problem(N)
 end
 prob = get_problem(50)
 @time sol = solve(prob, FVSKTAlgorithm(); use_threads = true, save_everystep = false)
-@test get_L1_errors(sol_ana, sol, Tend, -2.0, 2.0) < 0.095
+@test get_L1_errors(sol_ana, sol, Tend, -2.0, 2.0) < 0.0952
 @time sol1 = fast_solve(prob, FVSKTAlgorithm();use_threads = true)
 @test get_L1_errors(sol_ana, sol1, Tend, -2.0, 2.0) < 0.095
 @time sol2 = solve(prob, LaxFriedrichsAlgorithm();use_threads = true, save_everystep = false)
