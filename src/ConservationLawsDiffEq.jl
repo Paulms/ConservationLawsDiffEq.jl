@@ -59,5 +59,5 @@ module ConservationLawsDiffEq
   export get_L1_errors, minmod, approx_L1_error
   export FVCUAlgorithm, FVDRCUAlgorithm, FVSKTAlgorithm
   export FVDRCU5Algorithm
-  export cell_centers, get_semidiscretization
+  export cell_centers, get_semidiscretization, volume, cell_indices, numcells
 end
