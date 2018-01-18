@@ -57,7 +57,7 @@ end
 compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVESJPAlgorithm, ::Type{Val{true}})
 Numerical flux of Entropy Stable Schemes in entropy variables 1D
 """
-function inner_loop!(hh, j, u, mesh, ϵ, dx, Nflux, Ndiff,alg::FVESJPeAlgorithm)
+function inner_loop!(hh, j, u, ve, mesh, ϵ, dx, Nflux, Ndiff,alg::FVESJPeAlgorithm)
     @inbounds vl = ve(cellval_at_left(j,u,mesh))
     @inbounds vr = ve(cellval_at_right(j,u,mesh))
     hh[j,:] = Nflux(vl, vr) -
@@ -69,7 +69,7 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVESJPeAlgorit
     dx = mesh.Δx
     #update vector
     Threads.@threads for j in edge_indices(mesh)
-        inner_loop!(hh, j, u, mesh, ϵ, dx, Nflux, Ndiff, alg)
+        inner_loop!(hh, j, u, ve, mesh, ϵ, dx, Nflux, Ndiff, alg)
     end
 end
 
@@ -79,6 +79,6 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVESJPeAlgorit
     dx = mesh.Δx
     #update vector
     for j in edge_indices(mesh)
-        inner_loop!(hh, j, u, mesh, ϵ, dx, Nflux, Ndiff, alg)
+        inner_loop!(hh, j, u, ve, mesh, ϵ, dx, Nflux, Ndiff, alg)
     end
 end
