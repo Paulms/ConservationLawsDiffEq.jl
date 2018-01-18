@@ -5,6 +5,14 @@
 
 immutable LaxWendroff2sAlgorithm <: AbstractFVAlgorithm end
 
+function inner_loop!(hh,j,u,dx,dt,mesh,Flux, alg::LaxWendroff2sAlgorithm)
+    # Local speeds of propagation
+    @inbounds ul=cellval_at_left(j,u,mesh)
+    @inbounds ur=cellval_at_right(j,u,mesh)
+    # Numerical Fluxes
+    @inbounds hh[j,:] = Flux(0.5*(ul+ur)-dx/(2*dt)*(Flux(ur)-Flux(ul)))
+end
+
 """
 compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxWendroff2sAlgorithm, ::Type{Val{true}})
 Numerical flux of second order lax Wendroff scheme in 1D
@@ -14,11 +22,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxWendroff2sAlgorithm, 
     dx = mesh.Δx
     #update vector
     Threads.@threads for j in edge_indices(mesh)
-        # Local speeds of propagation
-        @inbounds ul=cellval_at_left(j,u,mesh)
-        @inbounds ur=cellval_at_right(j,u,mesh)
-        # Numerical Fluxes
-        @inbounds hh[j,:] = Flux(0.5*(ul+ur)-dx/(2*dt)*(Flux(ur)-Flux(ul)))
+        inner_loop!(hh,j,u,dx,dt,mesh,Flux, alg)
     end
 end
 
@@ -27,10 +31,6 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxWendroff2sAlgorithm, 
     dx = mesh.Δx
     #update vector
     for j in edge_indices(mesh)
-        # Local speeds of propagation
-        @inbounds ul=cellval_at_left(j,u,mesh)
-        @inbounds ur=cellval_at_right(j,u,mesh)
-        # Numerical Fluxes
-        @inbounds hh[j,:] = Flux(0.5*(ul+ur)-dx/(2*dt)*(Flux(ur)-Flux(ul)))
+        inner_loop!(hh,j,u,dx,dt,mesh,Flux, alg)
     end
 end

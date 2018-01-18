@@ -80,13 +80,24 @@ function FVSpecMWENOAlgorithm(;order=5)
   FVSpecMWENOAlgorithm(order, crj)
 end
 
+function glf_splt_inner_loop!(fminus, fplus, j, u, α, Flux)
+    fminus[j,:] = 0.5*(Flux(u[j,:])-α*u[j,:])
+    fplus[j,:] = 0.5*(Flux(u[j,:])+α*u[j,:])
+end
+function glf_splitting(u, α, Flux, N, ::Type{Val{true}})
+  # Lax Friedrichs flux splitting
+  fminus = zeros(u); fplus = zeros(u)
+  Threads.@threads for j = 1:N
+      glf_splt_inner_loop!(fminus, fplus, j, u, α, Flux)
+  end
+  fminus, fplus
+end
 
-function glf_splitting(u, α, Flux, N)
+function glf_splitting(u, α, Flux, N, ::Type{Val{false}})
   # Lax Friedrichs flux splitting
   fminus = zeros(u); fplus = zeros(u)
   for j = 1:N
-    fminus[j,:] = 0.5*(Flux(u[j,:])-α*u[j,:])
-    fplus[j,:] = 0.5*(Flux(u[j,:])+α*u[j,:])
+      glf_splt_inner_loop!(fminus, fplus, j, u, α, Flux)
   end
   fminus, fplus
 end
@@ -97,6 +108,7 @@ function llf_splitting(u, mesh, Flux)
   fminus = zeros(u); fplus = zeros(u)
   ul=cellval_at_left(1,u,mesh)
   αl = fluxρ(ul, Flux)
+  αr = zero(αl)
   for j = 1:N
     ur=cellval_at_right(j,u,mesh)
     αr = fluxρ(ur, Flux)
@@ -111,6 +123,13 @@ end
 ##############################################################
 #Component Wise WENO algorithm
 ##############################################################
+function inner_loop!(hh,j,k,M,order,crj,fminus,fplus,mesh,alg::FVCompWENOAlgorithm)
+    @inbounds for i = 1:M
+      fm = get_cellvals(fminus,mesh,(j-k+1:j+k+1,i)...)
+      fp = get_cellvals(fplus,mesh,(j-k:j+k,i)...)
+      hh[j+1,i] = sum(WENO_pm_rec(fm,fp,order; crj = crj))
+    end
+end
 """
 compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompWENOAlgorithm, ::Type{Val{true}})
 Numerical flux of Component Wise WENO algorithm Scheme in 1D
@@ -121,7 +140,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompWENOAlgorithm, ::T
     k = Int((order + 1)/2)-1
     # Flux splitting
     if splitting == :GLF
-      fminus, fplus = glf_splitting(u, alg.α, Flux, N)
+      fminus, fplus = glf_splitting(u, alg.α, Flux, N, Val{true})
     elseif spliting == :LLF
       fminus, fplus = llf_splitting(u, mesh, Flux)
     else
@@ -129,11 +148,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompWENOAlgorithm, ::T
     end
     #Compute numerical fluxes
     Threads.@threads for j = 0:N
-      Threads.@threads for i = 1:M
-        fm = get_cellvals(fminus,mesh,(j-k+1:j+k+1,i)...)
-        fp = get_cellvals(fplus,mesh,(j-k:j+k,i)...)
-        hh[j+1,i] = sum(WENO_pm_rec(fm,fp,order; crj = crj))
-      end
+        inner_loop!(hh,j,k,M,order,crj,fminus,fplus,mesh,alg)
     end
 end
 
@@ -143,7 +158,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompWENOAlgorithm, ::T
     k = Int((order + 1)/2)-1
     # Flux splitting
     if splitting == :GLF
-      fminus, fplus = glf_splitting(u, alg.α, Flux, N)
+      fminus, fplus = glf_splitting(u, alg.α, Flux, N,Val{false})
     elseif spliting == :LLF
       fminus, fplus = llf_splitting(u, mesh, Flux)
     else
@@ -151,17 +166,21 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompWENOAlgorithm, ::T
     end
     #Compute numerical fluxes
     for j = 0:N
-      for i = 1:M
-        fm = get_cellvals(fminus,mesh,(j-k+1:j+k+1,i)...)
-        fp = get_cellvals(fplus,mesh,(j-k:j+k,i)...)
-        hh[j+1,i] = sum(WENO_pm_rec(fm,fp,order; crj = crj))
-      end
+        inner_loop!(hh,j,k,M,order,crj,fminus,fplus,mesh,alg)
     end
 end
 
 ################################################################
 #Component Wise Mapped WENO algorithm
 ##############################################################
+
+function inner_loop!(hh,j,k,M,order,crj,fminus,fplus,mesh,alg::FVCompMWENOAlgorithm)
+    @inbounds for i = 1:M
+      fm = get_cellvals(fminus,mesh,(j-k+1:j+k+1,i)...)
+      fp = get_cellvals(fplus,mesh,(j-k:j+k,i)...)
+      hh[j+1,i] = sum(MWENO_pm_rec(fm,fp,order; crj = crj))
+    end
+end
 
 """
 compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompMWENOAlgorithm, ::Type{Val{true}})
@@ -173,7 +192,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompMWENOAlgorithm, ::
     k = Int((order + 1)/2)-1
     # Flux splitting
     if splitting == :GLF
-      fminus, fplus = glf_splitting(u, alg.α, Flux, N)
+      fminus, fplus = glf_splitting(u, alg.α, Flux, N,Val{true})
     elseif spliting == :LLF
       fminus, fplus = llf_splitting(u, mesh, Flux)
     else
@@ -181,11 +200,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompMWENOAlgorithm, ::
     end
     #Compute numerical fluxes
     Threads.@threads for j = 0:N
-      Threads.@threads for i = 1:M
-        fm = get_cellvals(fminus,mesh,(j-k+1:j+k+1,i)...)
-        fp = get_cellvals(fplus,mesh,(j-k:j+k,i)...)
-        hh[j+1,i] = sum(MWENO_pm_rec(fm,fp,order; crj = crj))
-      end
+        inner_loop!(hh,j,k,M,order,crj,fminus,fplus,mesh,alg)
     end
 end
 
@@ -195,7 +210,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompMWENOAlgorithm, ::
     k = Int((order + 1)/2)-1
     # Flux splitting
     if splitting == :GLF
-      fminus, fplus = glf_splitting(u, alg.α, Flux, N)
+      fminus, fplus = glf_splitting(u, alg.α, Flux, N,Val{false})
     elseif spliting == :LLF
       fminus, fplus = llf_splitting(u, mesh, Flux)
     else
@@ -203,11 +218,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompMWENOAlgorithm, ::
     end
     #Compute numerical fluxes
     for j = 0:N
-      for i = 1:M
-        fm = get_cellvals(fminus,mesh,(j-k+1:j+k+1,i)...)
-        fp = get_cellvals(fplus,mesh,(j-k:j+k,i)...)
-        hh[j+1,i] = sum(MWENO_pm_rec(fm,fp,order; crj = crj))
-      end
+        inner_loop!(hh,j,k,M,order,crj,fminus,fplus,mesh,alg)
     end
 end
 

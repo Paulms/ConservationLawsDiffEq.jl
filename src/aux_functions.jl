@@ -1,11 +1,15 @@
+function inner_slopes_loop!(∇u,j,u,mesh,θ,M)
+    ul = cellval_at_left(j,u,mesh)
+    ur = cellval_at_right(j+1,u,mesh)
+    @inbounds for i = 1:M
+      ∇u[j,i] = minmod(θ*(u[j,i]-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-u[j,i]))
+    end
+end
+
 function compute_slopes(u, mesh, θ, N, M, ::Type{Val{true}})
     ∇u = zeros(u)
     Threads.@threads for j = 1:N
-      ul = cellval_at_left(j,u,mesh)
-      ur = cellval_at_right(j+1,u,mesh)
-      Threads.@threads for i = 1:M
-        @inbounds ∇u[j,i] = minmod(θ*(u[j,i]-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-u[j,i]))
-      end
+        inner_slopes_loop!(∇u,j,u,mesh,θ,M)
     end
     ∇u
 end
@@ -13,11 +17,7 @@ end
 function compute_slopes(u, mesh, θ, N, M, ::Type{Val{false}})
     ∇u = zeros(u)
     for j = 1:N
-      ul = cellval_at_left(j,u,mesh)
-      ur = cellval_at_right(j+1,u,mesh)
-      for i = 1:M
-        @inbounds ∇u[j,i] = minmod(θ*(u[j,i]-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-u[j,i]))
-      end
+        inner_slopes_loop!(∇u,j,u,mesh,θ,M)
     end
     ∇u
 end

@@ -66,13 +66,27 @@ prob = get_problem(200)
 sol = solve(prob, FVSKTAlgorithm();progress=false, save_everystep = false)
 # Compute errors
 prob = get_problem(100)
-@time sol2 = solve(prob, LI_IMEX_RK_Algorithm();progress=false, save_everystep = false)
-approx_L1_error(sol, sol2) < 2e-3 #TODO: Too high
-@time sol3 = solve(prob, FVCUAlgorithm();progress=false, save_everystep = false)
+@time sol1 = fast_solve(prob, FVSKTAlgorithm();progress=false, save_everystep = false, use_threads=false)
+@test approx_L1_error(sol, sol1) < 6e-4
+@time sol1 = fast_solve(prob, FVSKTAlgorithm();progress=false, save_everystep = false, use_threads=true)
+@test approx_L1_error(sol, sol1) < 6e-4
+@time sol2 = solve(prob, LI_IMEX_RK_Algorithm();progress=false, save_everystep = false, use_threads=false)
+@test approx_L1_error(sol, sol2) < 2e-3 #TODO: Too high
+@time sol2 = solve(prob, LI_IMEX_RK_Algorithm();progress=false, save_everystep = false, use_threads=true)
+@test approx_L1_error(sol, sol2) < 2e-3 #TODO: Too high
+@time sol3 = solve(prob, FVCUAlgorithm();progress=false, save_everystep = false, use_threads=false)
 @test approx_L1_error(sol, sol3) < 6e-4
-@time sol4 = solve(prob, FVDRCUAlgorithm();progress=false, save_everystep = false)
+@time sol3 = solve(prob, FVCUAlgorithm();progress=false, save_everystep = false, use_threads=true)
+@test approx_L1_error(sol, sol3) < 6e-4
+@time sol4 = solve(prob, FVDRCUAlgorithm();progress=false, save_everystep = false, use_threads=false)
 @test approx_L1_error(sol, sol4) < 6e-4
-@time sol5 = solve(prob, FVDRCU5Algorithm();progress=false, save_everystep = false)
+@time sol4 = solve(prob, FVDRCUAlgorithm();progress=false, save_everystep = false, use_threads=true)
+@test approx_L1_error(sol, sol4) < 6e-4
+@time sol5 = solve(prob, FVDRCU5Algorithm();progress=false, save_everystep = false, use_threads=false)
 @test approx_L1_error(sol, sol5) < 6e-4
-@time sol6 = solve(prob, COMP_GLF_Diff_Algorithm();progress=false, save_everystep = false)
+@time sol5 = solve(prob, FVDRCU5Algorithm();progress=false, save_everystep = false, use_threads=true)
+@test approx_L1_error(sol, sol5) < 6e-4
+@time sol6 = solve(prob, COMP_GLF_Diff_Algorithm();progress=false, save_everystep = false, use_threads=false)
+@test approx_L1_error(sol, sol6) < 6e-4
+@time sol6 = solve(prob, COMP_GLF_Diff_Algorithm();progress=false, save_everystep = false, use_threads=true)
 @test approx_L1_error(sol, sol6) < 6e-4

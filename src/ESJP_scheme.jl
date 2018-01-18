@@ -22,6 +22,13 @@ function FVESJPAlgorithm(Nflux, Ndiff;ϵ=0.0,ve=nothing)
   end
 end
 
+function inner_loop!(hh, j, u, mesh, ϵ, dx, Nflux, Ndiff, alg::FVESJPAlgorithm)
+    @inbounds ul = cellval_at_left(j,u,mesh)
+    @inbounds ur = cellval_at_right(j,u,mesh)
+    hh[j,:] = Nflux(ul, ur) -
+    1/dx*(Ndiff(ul, ur)*(ur-ul)+ ϵ*(ur-ul))
+end
+
 """
 compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVESJPAlgorithm, ::Type{Val{true}})
 Numerical flux of Entropy Stable Schemes in 1D
@@ -32,10 +39,7 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVESJPAlgorith
     dx = mesh.Δx
     #update vector
     Threads.@threads for j in edge_indices(mesh)
-        @inbounds ul = cellval_at_left(j,u,mesh)
-        @inbounds ur = cellval_at_right(j,u,mesh)
-        hh[j,:] = Nflux(ul, ur) -
-        1/dx*(Ndiff(ul, ur)*(ur-ul)+ ϵ*(ur-ul))
+        inner_loop!(hh, j, u, mesh, ϵ, dx, Nflux, Ndiff, alg)
     end
 end
 
@@ -45,10 +49,7 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVESJPAlgorith
     dx = mesh.Δx
     #update vector
     for j in edge_indices(mesh)
-        @inbounds ul = cellval_at_left(j,u,mesh)
-        @inbounds ur = cellval_at_right(j,u,mesh)
-        hh[j,:] = Nflux(ul, ur) -
-        1/dx*(Ndiff(ul, ur)*(ur-ul)+ ϵ*(ur-ul))
+        inner_loop!(hh, j, u, mesh, ϵ, dx, Nflux, Ndiff, alg)
     end
 end
 
@@ -56,16 +57,19 @@ end
 compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVESJPAlgorithm, ::Type{Val{true}})
 Numerical flux of Entropy Stable Schemes in entropy variables 1D
 """
+function inner_loop!(hh, j, u, mesh, ϵ, dx, Nflux, Ndiff,alg::FVESJPeAlgorithm)
+    @inbounds vl = ve(cellval_at_left(j,u,mesh))
+    @inbounds vr = ve(cellval_at_right(j,u,mesh))
+    hh[j,:] = Nflux(vl, vr) -
+    1/dx*(Ndiff(vl, vr)*(vr-vl)+ ϵ*(vr-vl))
+end
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVESJPeAlgorithm, ::Type{Val{true}})
     @unpack Nflux,Ndiff,ϵ,ve = alg
     N = numcells(mesh)
     dx = mesh.Δx
     #update vector
     Threads.@threads for j in edge_indices(mesh)
-        @inbounds vl = ve(cellval_at_left(j,u,mesh))
-        @inbounds vr = ve(cellval_at_right(j,u,mesh))
-        hh[j,:] = Nflux(vl, vr) -
-        1/dx*(Ndiff(vl, vr)*(vr-vl)+ ϵ*(vr-vl))
+        inner_loop!(hh, j, u, mesh, ϵ, dx, Nflux, Ndiff, alg)
     end
 end
 
@@ -75,9 +79,6 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVESJPeAlgorit
     dx = mesh.Δx
     #update vector
     for j in edge_indices(mesh)
-        @inbounds vl = ve(cellval_at_left(j,u,mesh))
-        @inbounds vr = ve(cellval_at_right(j,u,mesh))
-        hh[j,:] = Nflux(vl, vr) -
-        1/dx*(Ndiff(vl, vr)*(vr-vl)+ ϵ*(vr-vl))
+        inner_loop!(hh, j, u, mesh, ϵ, dx, Nflux, Ndiff, alg)
     end
 end
