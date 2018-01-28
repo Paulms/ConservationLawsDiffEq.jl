@@ -18,10 +18,9 @@ module ConservationLawsDiffEq
 
   # Problems
   #@compat abstract type PDEProblem <: DEProblem end
-  @compat abstract type AbstractConservationLawProblem{islinear,isstochastic,MeshType} <: PDEProblem end
+  @compat abstract type AbstractConservationLawProblem{islinear,isstochastic,MeshType} <: DEProblem end
   # algorithms
-  @compat abstract type PDEAlgorithm <: DEAlgorithm end
-  @compat abstract type AbstractFVAlgorithm <: PDEAlgorithm end
+  @compat abstract type AbstractFVAlgorithm <: DEAlgorithm end
 
   include("spatial_mesh.jl")
   include("ConservationLawsProblems.jl")

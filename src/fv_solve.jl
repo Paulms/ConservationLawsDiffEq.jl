@@ -76,69 +76,69 @@ end
   uold = copy(u)
   dt = ode_fv.dt
   if (TimeIntegrator == :FORWARD_EULER)
-    ode_fv(t,uold,rhs)
+    ode_fv(rhs,uold,nothing,t)
     u = uold + dt*rhs
   elseif (TimeIntegrator == :SSPRK22)
     #FIRST Step
-    ode_fv(t,uold,rhs)
+    ode_fv(rhs,uold,nothing,t)
     u = 0.5*(uold + dt*rhs)
     #Second Step
-    ode_fv(t,uold + dt*rhs,rhs)
+    ode_fv(rhs,uold + dt*rhs,nothing, t)
     u = u + 0.5*(uold + dt*rhs)
   elseif (TimeIntegrator == :RK4)
     #FIRST Step
-    ode_fv(t,uold,rhs)
+    ode_fv(rhs,uold,nothing,t)
     u = uold + dt/6*rhs
     #Second Step
-    ode_fv(t,uold+dt/2*rhs,rhs)
+    ode_fv(rhs,uold+dt/2*rhs,nothing,t)
     u = u + dt/3*rhs
     #Third Step
-    ode_fv(t,uold+dt/2*rhs,rhs)
+    ode_fv(rhs,uold+dt/2*rhs,nothing,t)
     u = u + dt/3*rhs
     #Fourth Step
-    ode_fv(t,uold+dt*rhs,rhs)
+    ode_fv(rhs,uold+dt*rhs,nothing,t)
     u = u + dt/6 *rhs
   elseif (TimeIntegrator == :SSPRK33)
-    ode_fv(t,uold,rhs)
+    ode_fv(rhs,uold,nothing,t)
     tmp = uold + dt*rhs
-    ode_fv(t,tmp,rhs)
+    ode_fv(rhs,tmp,nothing,t)
     tmp = (3*uold + tmp + dt*rhs) / 4
     ode_fv.dt = ode_fv.dt/2
-    ode_fv(t,tmp,rhs)
+    ode_fv(rhs,tmp,nothing,t)
     ode_fv.dt = ode_fv.dt*2
     u = (uold + 2*tmp + 2*dt*rhs) / 3
   elseif (TimeIntegrator == :SSPRK104)
     dt_6 = dt/6
     dt_3 = dt/3
     dt_2 = dt/2
-    ode_fv(t,uold,rhs)
+    ode_fv(rhs,uold,nothing,t)
     tmp = uold + dt_6 * rhs # u₁
     ode_fv.dt = dt_6
-    ode_fv(t,tmp,rhs)
+    ode_fv(rhs,tmp,nothing,t)
     tmp = tmp + dt_6 * rhs # u₂
     ode_fv.dt = dt_3
-    ode_fv(t,tmp,rhs)
+    ode_fv(rhs,tmp,nothing,t)
     tmp = tmp + dt_6 * rhs # u₃
     ode_fv.dt = dt_2
-    ode_fv(t,tmp,rhs)
+    ode_fv(rhs,tmp,nothing,t)
     u₄ = tmp + dt_6 * rhs # u₄
     k₄ = zeros(rhs)
     ode_fv.dt = dt_3
-    ode_fv(t,u₄,k₄)
+    ode_fv(k₄,u₄,nothing,t)
     tmp = (3*uold + 2*u₄ + 2*dt_6 * k₄) / 5 # u₅
-    ode_fv(t,tmp,rhs)
+    ode_fv(rhs,tmp,nothing,t)
     tmp = tmp + dt_6 * rhs # u₆
     ode_fv.dt = dt_2
-    ode_fv(t,tmp,rhs)
+    ode_fv(rhs,tmp,nothing,t)
     tmp = tmp + dt_6 * rhs # u₇
     ode_fv.dt = dt_3
-    ode_fv(t,tmp,rhs)
+    ode_fv(rhs,tmp,nothing,t)
     tmp = tmp + dt_6 * rhs # u₈
     ode_fv.dt = 5*dt_6
-    ode_fv(t,tmp,rhs)
+    ode_fv(rhs,tmp,nothing,t)
     tmp = tmp + dt_6 * rhs # u₉
     ode_fv.dt = dt
-    ode_fv(t,tmp,rhs)
+    ode_fv(rhs,tmp,nothing,t)
     u = (uold + 9*(u₄ + dt_6*k₄) + 15*(tmp + dt_6*rhs)) / 25
   else
     throw("Time integrator not defined...")

@@ -36,7 +36,7 @@ end
 
 Apply a finite volume semidiscretisation.
 """
-function (fv::FVIntegrator)(t, u, du)
+function (fv::FVIntegrator)(du, u, p, t)
   @boundscheck begin
     if length(u) != length(du)
       error("length(u) = $(length(u)) != $(length(du)) = length(du)")
@@ -57,7 +57,7 @@ end
 
 Apply a finite volume semidiscretisation.
 """
-function (fv::FVDiffIntegrator)(t, u, du)
+function (fv::FVDiffIntegrator)(du, u, p, t)
   @boundscheck begin
     if length(u) != length(du)
       error("length(u) = $(length(u)) != $(length(du)) = length(du)")
