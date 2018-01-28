@@ -22,6 +22,18 @@ function FVESJPAlgorithm(Nflux, Ndiff;ϵ=0.0,ve=nothing)
   end
 end
 
+function update_dt(alg::FVESJPeAlgorithm,u::AbstractArray{T,2},Flux,
+    DiffMat, CFL,mesh::Uniform1DFVMesh) where {T}
+  maxρ = 0
+  maxρB = 0
+  N = numcells(mesh)
+  for i in 1:N
+    maxρ = max(maxρ, fluxρ(u[i,:], Flux))
+    maxρB = max(maxρB, maximum(abs,eigvals(DiffMat(u[i,:]))))
+  end
+  CFL/(1/mesh.Δx*maxρ+2/(mesh.Δx^2)*maxρB)
+end
+
 function inner_loop!(hh, j, u, mesh, ϵ, dx, Nflux, Ndiff, alg::FVESJPAlgorithm)
     @inbounds ul = cellval_at_left(j,u,mesh)
     @inbounds ur = cellval_at_right(j,u,mesh)
