@@ -13,12 +13,13 @@ end
 function approx_L1_error(uref, uu; nvar = 1)
   Nr = numcells(uref.prob.mesh)
   Ns = numcells(uu.prob.mesh)
+  Ms = size(uu.u[end],2)
   R = Int(round(Nr/Ns))
-  uexact = zeros(Ns)
+  uexact = zeros(Ns,Ms)
   for i = 1:Ns
-      uexact[i] = 1.0/R*sum(uref.u[end][R*(i-1)+1:R*i, nvar])
+      uexact[i,:] = 1.0/R*sum(uref.u[end][R*(i-1)+1:R*i, :],1)
   end
-  1.0/Ns*sum(abs,uu.u[end][:,nvar] - uexact)
+  1.0/Ns*sum(abs,uu.u[end] - uexact)
 end
 
 function estimate_L1_error(reference, M, uu,N)
