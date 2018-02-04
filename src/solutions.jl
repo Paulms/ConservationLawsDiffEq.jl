@@ -28,3 +28,11 @@ function save_csv(sol::FVSolution, file_name::String; idx = -1)
     writedlm(file_name, hcat(cell_centers(sol.prob.mesh),sol.u[idx]), ',')
   end
 end
+
+function get_total_u(sol)
+    masa = zeros(size(sol.u))
+    for (i,u) in enumerate(sol.u)
+        masa[i] = sum(u*sol.prob.mesh.Δx)
+    end
+    return masa
+end

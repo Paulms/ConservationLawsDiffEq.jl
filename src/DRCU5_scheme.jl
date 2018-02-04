@@ -95,7 +95,7 @@ function inner_loop!(hh,j,u,∇u,mesh,θ,Flux, DiffMat, alg::FVDRCU5Algorithm)
       qj = minmod.((uplus-wint)/(aa_plus-aa_minus),(wint-uminus)/(aa_plus-aa_minus))
       hh[j,:] = (aa_plus*flm-aa_minus*flp)/(aa_plus-aa_minus) +
       (aa_plus*aa_minus)*((uplus - uminus)/(aa_plus-aa_minus) - qj) -
-      0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_right(j,∇u,mesh)/mesh.Δx
+      0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_left(j,∇u,mesh)/mesh.Δx
     end
 end
 

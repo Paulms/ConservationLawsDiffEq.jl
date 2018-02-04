@@ -59,4 +59,5 @@ module ConservationLawsDiffEq
   export FVCUAlgorithm, FVDRCUAlgorithm, FVSKTAlgorithm
   export FVDRCU5Algorithm
   export cell_centers, get_semidiscretization, volume, cell_indices, numcells
+  export get_total_u
 end

@@ -143,7 +143,7 @@ function inner_loop!(hh, fminus, fplus, M,mesh, j,k,crj,u,∇u, DiffMat, order,a
     end
     @inbounds ul=cellval_at_left(j+1,u,mesh)
     @inbounds ur=cellval_at_right(j+1,u,mesh)
-    @inbounds hh[j+1,:] = hh[j+1,:] - 0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_right(j+1,∇u,mesh)/mesh.Δx
+    @inbounds hh[j+1,:] = hh[j+1,:] - 0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_left(j+1,∇u,mesh)/mesh.Δx
 end
 """
 compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::COMP_GLF_Diff_Algorithm, ::Type{Val{false}})

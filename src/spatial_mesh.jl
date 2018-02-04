@@ -46,6 +46,23 @@ function getPeriodicIndex(A::AbstractArray{T,2}, I...) where {T}
     end
 end
 
+# function getDirichletIndex(A::AbstractArray{T,2}, I...) where {T}
+#     checkbounds(Bool, A, I...) && return A[I...]
+#     I... < 1 ? A.oob_val[1] : A.oob_val[2]
+# end
+
+# Reflective boundaries
+# function getZFindex(A::AbstractArray{T,2}, I...) where {T}
+#     checkbounds(Bool, A, I...) && return A[I...]
+#     k::Int64 = indices(A,1)[end]
+#     if typeof(I[1]) <: Int
+#       a = I[1] < 1 ? 1:-1
+#       return A[k+1+a-mod1(I[1],k),I[2]]
+#     else
+#       return A[[checkindex(Bool, indices(A)[1], i) ? i : k + 1 + (i < 1 ? 1:-1) - mod1(i,k) for i in I[1]],I[2]]
+#     end
+# end
+
 function getZFindex(A::AbstractArray{T,2}, I...) where {T}
     checkbounds(Bool, A, I...) && return A[I...]
     if typeof(I[1]) <: Int
@@ -54,6 +71,55 @@ function getZFindex(A::AbstractArray{T,2}, I...) where {T}
       return A[[min(size(A,1),max(1,i)) for i in I[1]],I[2]]
     end
 end
+
+# function getZFrow(A, idx, idc)
+#     if checkindex(Bool, indices(A)[1], idx)
+#         return A[idx,idc]
+#     else
+#         a = interpolate!(A, BSpline(Linear()), OnGrid())
+#         a = extrapolate(a, Linear())
+#         return a[idx,idc]
+#     end
+# end
+
+#Zero flux with recommendation from
+#C.-W. Shu, Essentially non-oscillatory and weighted essentially non-oscillatory
+#schemes for hyperbolic conservation laws.
+#In: B. Cockburn, C. Johnson, C.-W. Shu and E. Tadmor
+# function getZFrow(A, idx, idc)
+#     if checkindex(Bool, indices(A)[1], idx)
+#         return A[idx,idc]
+#     else
+#         k::typeof(idx) = min(abs(idx-indices(A)[1][1]), abs(idx - indices(A)[1][end]))
+#         if typeof(idc) <: Int
+#           return (10*k)^10*one(eltype(A))
+#         else
+#           return (10*k)^10*ones(A[indices(A)[1][1],idc])
+#         end
+#     end
+# end
+#
+# function getZFindex(A::AbstractArray{T,2}, I...) where {T}
+#     checkbounds(Bool, A, I...) && return A[I...]
+#     if typeof(I[1]) <: Int
+#       return getZFrow(A,I[1],I[2])
+#     else
+#         idend::Int64 = (I[2] == Colon() ? size(A,2) : size(I[2],1))
+#         if idend > 1
+#             B = zeros(eltype(A), size(I[1],1), idend)
+#             for (k,j) in enumerate(I[1])
+#                 B[k,:] = getZFrow(A,j,I[2])
+#             end
+#             return B
+#         else
+#             B = zeros(eltype(A), size(I[1],1))
+#             for (k,j) in enumerate(I[1])
+#                 B[k] = getZFrow(A,j,I[2])
+#             end
+#             return B
+#         end
+#     end
+# end
 
 # Reference for cell and edge numbers
 #   1   2   3          N-1  N
