@@ -1,7 +1,6 @@
 # Mass conservation test
 
 using ConservationLawsDiffEq
-using FastGaussQuadrature
 
 #FastGaussQuadrature
 const t_nodes = [0.06943184420297371,0.33000947820757187, 0.6699905217924281,0.9305681557970262]
