@@ -121,11 +121,6 @@ function run_test(prob;α=1.0e-13, ses = false, ut = false)
 end
 
 prob = get_problem(50, 0.4, 300.0)
-@time sol = fast_solve(prob, FVSKTAlgorithm();progress=true, save_everystep = true, use_threads = true)
-@time sol2 = fast_solve(prob, COMP_GLF_Diff_Algorithm(αf = αf); progress=true, save_everystep = false, use_threads = true)
-@time sol1 = run_test(prob;α = 1.0e-13, ut = true,ses = true)
-@time sol3 = fast_solve(prob, FVCUAlgorithm(); progress=true, save_everystep = true, use_threads = true)
-
 @time sol = run_test(prob;α = 1.0e-13, ut = false,ses = true)
 masa = get_total_u(sol);
 @test minimum(masa) ≈ maximum(masa)
