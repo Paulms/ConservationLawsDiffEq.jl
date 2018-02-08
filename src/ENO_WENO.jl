@@ -109,7 +109,7 @@ end
   return βk, dr
 end
 
-function WENO_urec(vloc::Vector,order::Int;ɛ = 1e-12, crj = nothing)
+function WENO_urec(vloc::Vector,order::Int;ɛ = 1e-6, crj = nothing)
   vl = zero(eltype(vloc))
   vr = zero(eltype(vloc))
   N = size(vloc,1)
@@ -163,7 +163,7 @@ function WENO_urec(vloc::Vector,order::Int;ɛ = 1e-12, crj = nothing)
   return(vl,vr)
 end
 
-function WENO_pm_rec(vmloc::Vector, vploc::Vector,order::Int;ɛ = 1e-12, crj = nothing)
+function WENO_pm_rec(vmloc::Vector, vploc::Vector,order::Int;ɛ = 1e-6, crj = nothing)
   vl = zero(eltype(vmloc))
   vr = zero(eltype(vploc))
   N = size(vmloc,1)
@@ -233,7 +233,7 @@ end
   g
 end
 
-function MWENO_urec(vloc::Vector,order::Int;ɛ = 1e-12, crj = nothing)
+function MWENO_urec(vloc::Vector,order::Int;ɛ = 1e-6, crj = nothing)
   vl = zero(eltype(vloc))
   vr = zero(eltype(vloc))
   N = size(vloc,1)
@@ -309,7 +309,7 @@ function MWENO_urec(vloc::Vector,order::Int;ɛ = 1e-12, crj = nothing)
   return(vl,vr)
 end
 
-function MWENO_pm_rec(vmloc::Vector,vploc::Vector,order::Int;ɛ = 1e-12, crj=nothing)
+function MWENO_pm_rec(vmloc::Vector,vploc::Vector,order::Int;ɛ = 1e-6, crj=nothing)
   vl = zero(eltype(vmloc))
   vr = zero(eltype(vploc))
   N = size(vmloc,1)

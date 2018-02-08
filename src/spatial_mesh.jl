@@ -19,10 +19,13 @@ struct Uniform1DFVMesh{T} <: AbstractFVMesh1D
   right_boundary::Symbol
 end
 
+# REMARK: Dirichlet condition values are given by initial conditions.
 isleftperiodic(mesh::AbstractFVMesh1D) = (mesh.left_boundary == :PERIODIC)
 isrightperiodic(mesh::AbstractFVMesh1D) = (mesh.right_boundary == :PERIODIC)
 isleftzeroflux(mesh::AbstractFVMesh1D) = (mesh.left_boundary == :ZERO_FLUX)
 isrightzeroflux(mesh::AbstractFVMesh1D) = (mesh.right_boundary == :ZERO_FLUX)
+isleftdirichlet(mesh::AbstractFVMesh1D) = (mesh.left_boundary == :DIRICHLET)
+isrightdirichlet(mesh::AbstractFVMesh1D) = (mesh.right_boundary == :DIRICHLET)
 
 function Uniform1DFVMesh(N::Int,xinit::Real,xend::Real,leftbdtype=:ZERO_FLUX,rightbdtype=:ZERO_FLUX)
     L = xend - xinit
@@ -133,11 +136,11 @@ end
     checkbounds(Bool, A, idx...) && return A[idx...]
     if (minimum(idx[1]) < 1) && isleftperiodic(mesh)
         getPeriodicIndex(A, idx...)
-    elseif (minimum(idx[1]) < 1) && isleftzeroflux(mesh)
+    elseif (minimum(idx[1]) < 1) && (isleftzeroflux(mesh) || isleftdirichlet(mesh))
         getZFindex(A,idx...)
     elseif (maximum(idx[1]) > numcells(mesh)) && isrightperiodic(mesh)
         getPeriodicIndex(A, idx...)
-    elseif (maximum(idx[1]) > numcells(mesh)) && isrightzeroflux(mesh)
+    elseif (maximum(idx[1]) > numcells(mesh)) && (isrightzeroflux(mesh) || isrightdirichlet(mesh))
         getZFindex(A,idx...)
     else
         error("To be implemented.")
@@ -154,7 +157,7 @@ end
     checkbounds(Bool, A, idx...) && return A[idx...]
     if isleftperiodic(mesh)
         getPeriodicIndex(A, idx...)
-    elseif isleftzeroflux(mesh)
+    elseif isleftzeroflux(mesh) || isleftdirichlet(mesh)
         getZFindex(A,idx...)
     else
         error("To be implemented.")
@@ -171,7 +174,7 @@ cell values of variable `A` to the right of `edge` in `mesh`.
     checkbounds(Bool, A, idx...) && return A[idx...]
     if isrightperiodic(mesh)
         getPeriodicIndex(A, idx...)
-    elseif isrightzeroflux(mesh)
+    elseif isrightzeroflux(mesh) || isrightdirichlet(mesh)
         getZFindex(A,idx...)
     else
         error("To be implemented.")

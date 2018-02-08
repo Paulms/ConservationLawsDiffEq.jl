@@ -33,7 +33,9 @@ At the momento only Cartesian 1D uniform mesh available, using `Uniform1DFVMesh(
 
 `a,b` = start and end coordinates.
 
-`left_boundary`,`right_boundary` = boundary type (`:ZERO_FLUX` (default), `:PERIODIC`)
+`left_boundary`,`right_boundary` = boundary type (`:ZERO_FLUX` (default), `:PERIODIC`, `:DIRICHLET` )
+
+*Note:* Dirichlet boundary values are defined by initial condition.
 
 * Problem types: System of Conservation Laws without (`ConservationLawsProblem`) and with degenerate diffusion term (`ConservationLawsWithDiffusionProblem`).
 
