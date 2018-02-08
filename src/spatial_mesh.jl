@@ -136,11 +136,11 @@ end
     checkbounds(Bool, A, idx...) && return A[idx...]
     if (minimum(idx[1]) < 1) && isleftperiodic(mesh)
         getPeriodicIndex(A, idx...)
-    elseif (minimum(idx[1]) < 1) && (isleftzeroflux(mesh) || is leftdirichlet(mesh))
+    elseif (minimum(idx[1]) < 1) && (isleftzeroflux(mesh) || isleftdirichlet(mesh))
         getZFindex(A,idx...)
     elseif (maximum(idx[1]) > numcells(mesh)) && isrightperiodic(mesh)
         getPeriodicIndex(A, idx...)
-    elseif (maximum(idx[1]) > numcells(mesh)) && (isrightzeroflux(mesh) || is rightdirichlet(mesh))
+    elseif (maximum(idx[1]) > numcells(mesh)) && (isrightzeroflux(mesh) || isrightdirichlet(mesh))
         getZFindex(A,idx...)
     else
         error("To be implemented.")
