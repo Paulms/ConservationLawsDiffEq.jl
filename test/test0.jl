@@ -6,8 +6,8 @@ include("burgers.jl")
 
 const CFL = 0.5
 const Tend = 1.0
-const ul = 0.0
-const ur = 1.0
+const ul = 1.0
+const ur = 0.0
 const x0 = 0.0
 const xl = -3.0
 const xr = 3.0
@@ -28,7 +28,7 @@ function u0_func(xx)
 end
 
 function get_problem(N)
-  mesh = Uniform1DFVMesh(N,xl,xr,:PERIODIC, :PERIODIC)
+  mesh = Uniform1DFVMesh(N,xl,xr,:DIRICHLET, :DIRICHLET)
   u0 = u0_func(cell_centers(mesh))
   ConservationLawsProblem(u0,f,CFL,Tend,mesh)
 end

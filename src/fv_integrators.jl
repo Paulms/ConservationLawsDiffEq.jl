@@ -50,6 +50,8 @@ function (fv::FVIntegrator)(du, u, p, t)
   if isrightzeroflux(mesh);fluxes[numedges(mesh),:] = 0.0;end
   compute_du!(du, fluxes, mesh, Val{use_threads})
   nothing
+  if isleftdirichlet(mesh);du[1,:] = 0.0; end
+  if isrightdirichlet(mesh);fluxes[numcells(mesh),:] = 0.0;end
 end
 
 """
@@ -70,6 +72,8 @@ function (fv::FVDiffIntegrator)(du, u, p, t)
   if isleftzeroflux(mesh);fluxes[1,:] = 0.0; end
   if isrightzeroflux(mesh);fluxes[numedges(mesh),:] = 0.0;end
   compute_du!(du, fluxes, mesh, Val{use_threads})
+  if isleftdirichlet(mesh);du[1,:] = 0.0; end
+  if isrightdirichlet(mesh);fluxes[numcells(mesh),:] = 0.0;end
   nothing
 end
 
