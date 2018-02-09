@@ -1,34 +1,39 @@
-function get_L1_errors(sol::FVSolution, ref::Function; nvar = 0)
+#Compute approximate errors at tend with analytical solution
+function get_L1_errors(ref::Function, sol::AbstractFVSolution)
     x = cell_centers(sol.prob.mesh)
-    @unpack tspan = sol.prob
-    uexact = ref(x, tspan[end])
-    N = numcells(sol.prob.mesh)
-    if nvar == 0
-      return(1/N*sum(abs,sol.u[end] - uexact))
-    else
-      return(1/N*sum(abs,sol.u[end][:,nvar] - uexact[:,nvar]))
+    tspan = sol.prob.tspan
+    uexact = zeros(sol.u[end])
+    for i in 1:numcells(sol.prob.mesh)
+        uexact[i,:] = ref(x[i], tspan[end])
     end
+    sum(abs,sol.u[end] - uexact)*sol.prob.mesh.Δx
 end
 
-function approx_L1_error(uref, uu; nvar = 1)
-  Nr = numcells(uref.prob.mesh)
-  Ns = numcells(uu.prob.mesh)
-  Ms = size(uu.u[end],2)
-  R = Int(round(Nr/Ns))
-  uexact = zeros(Ns,Ms)
-  for i = 1:Ns
-      uexact[i,:] = 1.0/R*sum(uref.u[end][R*(i-1)+1:R*i, :],1)
-  end
-  1.0/Ns*sum(abs,uu.u[end] - uexact)
+function get_relative_L1_error(ref::Function, sol::AbstractFVSolution)
+    x = cell_centers(sol.prob.mesh)
+    tspan = sol.prob.tspan
+    uexact = zeros(sol.u[end])
+    for i in 1:numcells(sol.prob.mesh)
+        uexact[i,:] = ref(x[i], tspan[end])
+    end
+    UrefL1norm = sum(abs, uexact)*sol.prob.mesh.Δx
+    100.0*sum(abs,sol.u[end] - uexact)*sol.prob.mesh.Δx/UrefL1norm
 end
 
-function estimate_L1_error(reference, M, uu,N)
-  uexact = zeros(N)
+"Compute aproximate L1 errors with numerical reference solution"
+function get_L1_error_num(reference,M, uu,N,dx)
+  uexact = zeros(uu)
   R = Int(round(M/N))
   for i = 1:N
-      uexact[i] = 1.0/R*sum(reference[R*(i-1)+1:R*i])
+      uexact[i,:] = 1.0/R*sum(reference[R*(i-1)+1:R*i,:],1)
   end
-  sum(1.0/N*abs(uu - uexact))
+  sum(dx*abs.(uu - uexact))
+end
+
+function approx_L1_error(sol_ref::AbstractFVSolution, sol::AbstractFVSolution)
+    M = numcells(sol_ref.prob.mesh)
+    N = numcells(sol.prob.mesh)
+    return get_L1_error_num(sol_ref.u[end],M, sol.u[end],N,sol.prob.mesh.Δx)
 end
 
 function estimate_error_cubic(reference,M, xx,uu,N)
@@ -37,15 +42,4 @@ function estimate_error_cubic(reference,M, xx,uu,N)
   i = (M-1)/(reference[M,1]-reference[1,1])*(xx - reference[1,1])+1
   uexact = itp[i]
   sum(1.0/N*abs(uu - uexact))
-end
-
-#Compute approximate errors at tend for 1D 1 Variable problems
-function get_L1_errors(uana, unum::AbstractFVSolution, tend, xl, xr)
-    N = numcells(unum.prob.mesh)
-    xk = cell_centers(unum.prob.mesh)
-    uexact = zeros(N)
-    for (i,x) = enumerate(xk)
-        uexact[i] = uana(tend, x)
-    end
-    1.0/N*sum(abs,(unum.u[end] - uexact))
 end

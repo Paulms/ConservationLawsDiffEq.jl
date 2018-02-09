@@ -50,7 +50,7 @@ end
     BurgersRiemannSolution{T,T1}
 The solution of a Riemann problem `prob` for Burgers' equation.
 """
-struct BurgersRiemannSolution{T,T1}
+struct BurgersRiemannSolution{T,T1} <: Function
   prob::RiemannProblem{Burgers{T,1},T,T1}
   σ⁻::T
   σ⁺::T

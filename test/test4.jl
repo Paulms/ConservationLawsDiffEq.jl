@@ -63,30 +63,30 @@ prob = get_problem(10)
 sol = solve(prob, FVSKTAlgorithm();progress=false, save_everystep = false)
 #Get numerical reference
 prob = get_problem(200)
-sol = solve(prob, FVSKTAlgorithm();progress=false, save_everystep = false)
+solref = solve(prob, FVSKTAlgorithm();progress=false, save_everystep = false)
 # Compute errors
 prob = get_problem(100)
-@time sol1 = fast_solve(prob, FVSKTAlgorithm();progress=false, save_everystep = false, use_threads=false)
-@test approx_L1_error(sol, sol1) < 5e-3
+@time sol = fast_solve(prob, FVSKTAlgorithm();progress=false, save_everystep = false, use_threads=false)
+@test approx_L1_error(solref, sol) < 0.046
 @time sol1 = fast_solve(prob, FVSKTAlgorithm();progress=false, save_everystep = false, use_threads=true)
-@test approx_L1_error(sol, sol1) < 5e-3
-@time sol2 = solve(prob, LI_IMEX_RK_Algorithm();progress=false, save_everystep = false, use_threads=false)
-@test approx_L1_error(sol, sol2) < 3e-2 #TODO: Too high
-@time sol2 = solve(prob, LI_IMEX_RK_Algorithm();progress=false, save_everystep = false, use_threads=true)
-@test approx_L1_error(sol, sol2) < 3e-2 #TODO: Too high
-@time sol3 = solve(prob, FVCUAlgorithm();progress=false, save_everystep = false, use_threads=false)
-@test approx_L1_error(sol, sol3) < 4e-3
-@time sol3 = solve(prob, FVCUAlgorithm();progress=false, save_everystep = false, use_threads=true)
-@test approx_L1_error(sol, sol3) < 4e-3
-@time sol4 = solve(prob, FVDRCUAlgorithm();progress=false, save_everystep = false, use_threads=false)
-@test approx_L1_error(sol, sol4) < 4e-3
-@time sol4 = solve(prob, FVDRCUAlgorithm();progress=false, save_everystep = false, use_threads=true)
-@test approx_L1_error(sol, sol4) < 4e-3
-@time sol5 = solve(prob, FVDRCU5Algorithm();progress=false, save_everystep = false, use_threads=false)
-@test approx_L1_error(sol, sol5) < 6.1e-3
-@time sol5 = solve(prob, FVDRCU5Algorithm();progress=false, save_everystep = false, use_threads=true)
-@test approx_L1_error(sol, sol5) < 6.1e-3
-@time sol6 = solve(prob, COMP_GLF_Diff_Algorithm();progress=false, save_everystep = false, use_threads=false)
-@test approx_L1_error(sol, sol6) < 2e-3
-@time sol6 = solve(prob, COMP_GLF_Diff_Algorithm();progress=false, save_everystep = false, use_threads=true)
-@test approx_L1_error(sol, sol6) < 2e-3
+@test approx_L1_error(solref, sol1) ≈ approx_L1_error(solref, sol)
+@time sol = solve(prob, LI_IMEX_RK_Algorithm();progress=false, save_everystep = false, use_threads=false)
+@test approx_L1_error(solref, sol) < 0.28 #TODO: Too high
+@time sol1 = solve(prob, LI_IMEX_RK_Algorithm();progress=false, save_everystep = false, use_threads=true)
+@test approx_L1_error(solref, sol1) ≈ approx_L1_error(solref, sol)
+@time sol = solve(prob, FVCUAlgorithm();progress=false, save_everystep = false, use_threads=false)
+@test approx_L1_error(solref, sol) < 0.037
+@time sol1 = solve(prob, FVCUAlgorithm();progress=false, save_everystep = false, use_threads=true)
+@test approx_L1_error(solref, sol1) ≈ approx_L1_error(solref, sol)
+@time sol = solve(prob, FVDRCUAlgorithm();progress=false, save_everystep = false, use_threads=false)
+@test approx_L1_error(solref, sol) < 0.037
+@time sol1 = solve(prob, FVDRCUAlgorithm();progress=false, save_everystep = false, use_threads=true)
+@test approx_L1_error(solref, sol1) ≈ approx_L1_error(solref, sol)
+@time sol = solve(prob, FVDRCU5Algorithm();progress=false, save_everystep = false, use_threads=false)
+@test approx_L1_error(solref, sol) < 0.06
+@time sol1 = solve(prob, FVDRCU5Algorithm();progress=false, save_everystep = false, use_threads=true)
+@test approx_L1_error(solref, sol1) ≈ approx_L1_error(solref, sol)
+@time sol = solve(prob, COMP_GLF_Diff_Algorithm();progress=false, save_everystep = false, use_threads=false)
+@test approx_L1_error(solref, sol) < 0.015
+@time sol1 = solve(prob, COMP_GLF_Diff_Algorithm();progress=false, save_everystep = false, use_threads=true)
+@test approx_L1_error(solref, sol1) ≈ approx_L1_error(solref, sol)

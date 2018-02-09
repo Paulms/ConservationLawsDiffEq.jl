@@ -38,6 +38,7 @@ end
 @inline numcells(mesh::Uniform1DFVMesh) = mesh.N
 @inline cell_indices(mesh::Uniform1DFVMesh) = 1:numcells(mesh)
 @inline cell_centers(mesh::Uniform1DFVMesh) = mesh.cell_centers
+@inline cell_faces(mesh::Uniform1DFVMesh) = mesh.cell_faces
 @inline volume(cell::Int, mesh::Uniform1DFVMesh) = mesh.Δx
 
 function getPeriodicIndex(A::AbstractArray{T,2}, I...) where {T}

@@ -17,7 +17,7 @@ function u0_func(xx)
 end
 
 Nflux(ϕl::Vector, ϕr::Vector) = 0.5*(f(ϕl)+f(ϕr))
-exact_sol(x::Vector, t::Float64) = hcat(0.5*(sin.(4*π*(-t+x))+sin.(4*π*(t+x))),
+exact_sol(x::Float64, t::Float64) = hcat(0.5*(sin.(4*π*(-t+x))+sin.(4*π*(t+x))),
 0.5*(sin.(4*π*(-t+x))-sin.(4*π*(t+x))))
 
 function get_problem(N)
@@ -29,36 +29,36 @@ end
 prob = get_problem(20)
 
 @time sol = fast_solve(prob, FVSKTAlgorithm();progress=true, use_threads=false)
-@test get_L1_errors(sol, exact_sol; nvar = 1) < 0.611
-@time sol = fast_solve(prob, FVSKTAlgorithm();progress=true, use_threads=true)
-@test get_L1_errors(sol, exact_sol; nvar = 1) < 0.611
+@test get_L1_errors(exact_sol, sol) < 1.3
+@time sol1 = fast_solve(prob, FVSKTAlgorithm();progress=true, use_threads=true)
+@test get_L1_errors(exact_sol, sol1) ≈ get_L1_errors(exact_sol, sol)
 @time sol = solve(prob, FVSKTAlgorithm();progress=true, use_threads=false)
-@test get_L1_errors(sol, exact_sol; nvar = 1) < 0.61
-@time sol = solve(prob, FVSKTAlgorithm();progress=true, use_threads=true)
-@test get_L1_errors(sol, exact_sol; nvar = 1) < 0.61
-@time sol2 = solve(prob, FVTecnoAlgorithm(Nflux;order=3);progress=true, use_threads=false)
-@test get_L1_errors(sol2, exact_sol; nvar = 1) < 0.61
+@test get_L1_errors(exact_sol, sol) < 1.3
+@time sol1 = solve(prob, FVSKTAlgorithm();progress=true, use_threads=true)
+@test get_L1_errors(exact_sol, sol1) ≈ get_L1_errors(exact_sol, sol)
+@time sol = solve(prob, FVTecnoAlgorithm(Nflux;order=3);progress=true, use_threads=false)
+@test get_L1_errors(exact_sol, sol) < 1.3
 println("No threaded version of TECNO scheme")
-@time sol3 = solve(prob, FVCompWENOAlgorithm();progress=true, use_threads=false)
-@test get_L1_errors(sol3, exact_sol; nvar = 1) < 0.43
-@time sol3 = solve(prob, FVCompWENOAlgorithm();progress=true, use_threads=true)
-@test get_L1_errors(sol3, exact_sol; nvar = 1) < 0.43
-@time sol4 = solve(prob, FVCompMWENOAlgorithm();progress=true, use_threads=false)
-@test get_L1_errors(sol4, exact_sol; nvar = 1) < 0.32
-@time sol4 = solve(prob, FVCompMWENOAlgorithm();progress=true, use_threads=true)
-@test get_L1_errors(sol4, exact_sol; nvar = 1) < 0.32
-@time sol5 = solve(prob, FVSpecMWENOAlgorithm();progress=true, use_threads=false)
-@test get_L1_errors(sol5, exact_sol; nvar = 1) < 0.32
+@time sol = solve(prob, FVCompWENOAlgorithm();progress=true, use_threads=false)
+@test get_L1_errors(exact_sol, sol) < 1.01
+@time sol1 = solve(prob, FVCompWENOAlgorithm();progress=true, use_threads=true)
+@test get_L1_errors(exact_sol, sol1) ≈ get_L1_errors(exact_sol, sol)
+@time sol = solve(prob, FVCompMWENOAlgorithm();progress=true, use_threads=false)
+@test get_L1_errors(exact_sol, sol) < 0.72
+@time sol1 = solve(prob, FVCompMWENOAlgorithm();progress=true, use_threads=true)
+@test get_L1_errors(exact_sol, sol1) ≈ get_L1_errors(exact_sol, sol)
+@time sol = solve(prob, FVSpecMWENOAlgorithm();progress=true, use_threads=false)
+@test get_L1_errors(exact_sol, sol) < 0.72
 println("No threaded version of FVSpecMWENOAlgorithm")
-@time sol6 = solve(prob, FVCUAlgorithm(); use_threads = false, save_everystep = false)
-@test get_L1_errors(sol6, exact_sol; nvar = 1) < 0.61
-@time sol6 = solve(prob, FVCUAlgorithm(); use_threads = true, save_everystep = false)
-@test get_L1_errors(sol6, exact_sol; nvar = 1) < 0.61
-@time sol7 = solve(prob, FVDRCUAlgorithm(); use_threads = false, save_everystep = false)
-@test get_L1_errors(sol7, exact_sol; nvar = 1) < 0.6
-@time sol7 = solve(prob, FVDRCUAlgorithm(); use_threads = true, save_everystep = false)
-@test get_L1_errors(sol7, exact_sol; nvar = 1) < 0.6
-@time sol8 = solve(prob, FVDRCU5Algorithm(); use_threads = false, save_everystep = false)
-@test get_L1_errors(sol8, exact_sol; nvar = 1) < 0.6
-@time sol8 = solve(prob, FVDRCU5Algorithm(); use_threads = true, save_everystep = false)
-@test get_L1_errors(sol8, exact_sol; nvar = 1) < 0.6
+@time sol = solve(prob, FVCUAlgorithm(); use_threads = false, save_everystep = false)
+@test get_L1_errors(exact_sol, sol) < 1.3
+@time sol1 = solve(prob, FVCUAlgorithm(); use_threads = true, save_everystep = false)
+@test get_L1_errors(exact_sol, sol1) ≈ get_L1_errors(exact_sol, sol)
+@time sol = solve(prob, FVDRCUAlgorithm(); use_threads = false, save_everystep = false)
+@test get_L1_errors(exact_sol, sol) < 1.3
+@time sol1 = solve(prob, FVDRCUAlgorithm(); use_threads = true, save_everystep = false)
+@test get_L1_errors(exact_sol, sol1) ≈ get_L1_errors(exact_sol, sol)
+@time sol = solve(prob, FVDRCU5Algorithm(); use_threads = false, save_everystep = false)
+@test get_L1_errors(exact_sol, sol) < 0.51
+@time sol1 = solve(prob, FVDRCU5Algorithm(); use_threads = true, save_everystep = false)
+@test get_L1_errors(exact_sol, sol1) ≈ get_L1_errors(exact_sol, sol)
