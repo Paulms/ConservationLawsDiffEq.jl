@@ -43,7 +43,7 @@ At the momento only Cartesian 1D uniform mesh available, using `Uniform1DFVMesh(
 
 The algorithms follow the method of lines, so first we compute a semidiscretization in space and time integration is performed using ODE solvers.
 
-* Lax-Friedrichs method (`LaxFriedrichsAlgorithm()`), Global/Local L-F Scheme (`GlobalLaxFriedrichsAlgorithm()`, `LocalLaxFriedrichsAlgorithm()`), Ritchmeyer Two-step Lax-Wendroff Method (`LaxWendroff2sAlgorithm()`)
+* Lax-Friedrichs method (`LaxFriedrichsAlgorithm()`), Global/Local L-F Scheme (`GlobalLaxFriedrichsAlgorithm()`, `LocalLaxFriedrichsAlgorithm()`), Second order Law-Wendroff Scheme (`LaxWendroffAlgorithm()`), Ritchmeyer Two-step Lax-Wendroff Method (`LaxWendroff2sAlgorithm()`)
 
 R. LeVeque. Finite Volume Methods for Hyperbolic Problems.Cambridge University Press. New York 2002
 

@@ -6,7 +6,7 @@ module ConservationLawsDiffEq
 
   using Parameters, Compat, Juno
   using ForwardDiff, Interpolations, IterativeSolvers
-  using RecipesBase, LaTeXStrings
+  using RecipesBase, LaTeXStrings, FastGaussQuadrature
 
   # Interfaces
   import DiffEqBase: solve, @def, has_jac, LinSolveFactorize, LinearInterpolation
@@ -58,6 +58,8 @@ module ConservationLawsDiffEq
   export get_L1_errors, minmod, approx_L1_error, get_L1_error_num
   export FVCUAlgorithm, FVDRCUAlgorithm, FVSKTAlgorithm
   export FVDRCU5Algorithm
+  export cell_faces
   export cell_centers, get_semidiscretization, volume, cell_indices, numcells
   export get_total_u, get_relative_L1_error
+  export num_integrate
 end

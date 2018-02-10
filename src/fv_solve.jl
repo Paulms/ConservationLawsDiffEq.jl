@@ -1,7 +1,7 @@
 function solve(
   prob::AbstractConservationLawProblem,
   alg::AbstractFVAlgorithm;
-  TimeAlgorithm::OrdinaryDiffEqAlgorithm = SSPRK22(),use_threads = false, kwargs...)
+  TimeIntegrator::OrdinaryDiffEqAlgorithm = SSPRK22(),use_threads = false, kwargs...)
 
   #Unroll some important constants
   @unpack tspan,f,u0 = prob
@@ -14,8 +14,11 @@ function solve(
   ode_prob = ODEProblem(ode_fv, u0, tspan)
   # Check CFL condition
   ode_fv.dt = update_dt(u0, ode_fv)
-  timeIntegrator = init(ode_prob, TimeAlgorithm;dt=ode_fv.dt,kwargs...)
+  timeIntegrator = init(ode_prob, TimeIntegrator;dt=ode_fv.dt,kwargs...)
+  stp = 0
   @inbounds for i in timeIntegrator
+     stp = stp + 1
+     println("step: ", stp)
     ode_fv.dt = update_dt(timeIntegrator.u, ode_fv)
     set_proposed_dt!(timeIntegrator, ode_fv.dt)
   end
@@ -42,8 +45,6 @@ end
   progress && (prog = Juno.ProgressBar(name=progressbar_name))
   percentage = 0
   limit = tend/10.0
-  timeStep = tend/timeseries_steps
-  timeLimit = timeStep
 end
 
 @def fv_postamble begin
@@ -55,11 +56,10 @@ end
 end
 
 @def fv_footer begin
-  if save_everystep && t>timeLimit
-     push!(timeseries,copy(u))
-     push!(ts,t)
-     timeLimit = timeLimit + timeStep
-  end
+    if save_everystep
+       push!(timeseries,copy(u))
+       push!(ts,t)
+    end
   if progress && t>limit
     percentage = percentage + 10
     limit = limit +tend/10.0
@@ -148,7 +148,6 @@ end
 function fast_solve(
   prob::AbstractConservationLawProblem,
   alg::AbstractFVAlgorithm;
-  timeseries_steps::Int = 100,
   save_everystep::Bool = false,
   iterations=1000000,
   TimeIntegrator=:SSPRK22,

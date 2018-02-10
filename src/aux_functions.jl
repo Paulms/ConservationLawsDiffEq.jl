@@ -1,3 +1,9 @@
+function num_integrate(f,a,b;order=5, method = gausslegendre)
+    nodes, weights = method(order);
+    t_nodes = 0.5*(b-a)*nodes+0.5(b+a)
+    return 0.5*(b-a)*dot(f.(t_nodes),weights)
+end
+
 function inner_slopes_loop!(∇u,j,u,mesh,θ,M)
     ul = cellval_at_left(j,u,mesh)
     ur = cellval_at_right(j+1,u,mesh)

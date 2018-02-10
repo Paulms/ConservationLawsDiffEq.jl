@@ -54,13 +54,13 @@ println("No threaded version of LLF")
 @time sol1 = solve(prob, GlobalLaxFriedrichsAlgorithm();use_threads = true, save_everystep = false)
 @test get_L1_errors(sol_ana, sol1) ≈ get_L1_errors(sol_ana, sol)
 #@time sol5 = solve(prob, LaxWendroff2sAlgorithm();progress=true, save_everystep = false)
-@time sol = solve(prob, FVCompWENOAlgorithm();use_threads = false, TimeAlgorithm = SSPRK33(), save_everystep = false)
+@time sol = solve(prob, FVCompWENOAlgorithm();use_threads = false, TimeIntegrator = SSPRK33(), save_everystep = false)
 @test get_L1_errors(sol_ana, sol) < 1.5
-@time sol1 = solve(prob, FVCompWENOAlgorithm();use_threads = true, TimeAlgorithm = SSPRK33(), save_everystep = false)
+@time sol1 = solve(prob, FVCompWENOAlgorithm();use_threads = true, TimeIntegrator = SSPRK33(), save_everystep = false)
 @test get_L1_errors(sol_ana, sol1) ≈ get_L1_errors(sol_ana, sol)
-@time sol = solve(prob, FVCompMWENOAlgorithm();use_threads = false, TimeAlgorithm = SSPRK33(), save_everystep = false)
+@time sol = solve(prob, FVCompMWENOAlgorithm();use_threads = false, TimeIntegrator = SSPRK33(), save_everystep = false)
 @test get_L1_errors(sol_ana, sol) < 1.5
-@time sol1 = solve(prob, FVCompMWENOAlgorithm();use_threads = true, TimeAlgorithm = SSPRK33(), save_everystep = false)
+@time sol1 = solve(prob, FVCompMWENOAlgorithm();use_threads = true, TimeIntegrator = SSPRK33(), save_everystep = false)
 @test get_L1_errors(sol_ana, sol1) ≈ get_L1_errors(sol_ana, sol)
 @time sol = solve(prob, FVSpecMWENOAlgorithm();use_threads = false, save_everystep = false)
 @test get_L1_errors(sol_ana, sol) < 1.5

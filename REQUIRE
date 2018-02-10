@@ -11,3 +11,4 @@ Compat 0.19.0
 RecipesBase 0.1.0
 Interpolations 0.6.1
 LaTeXStrings  0.2.0
+FastGaussQuadrature 0.3.0
