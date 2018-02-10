@@ -15,10 +15,7 @@ function solve(
   # Check CFL condition
   ode_fv.dt = update_dt(u0, ode_fv)
   timeIntegrator = init(ode_prob, TimeIntegrator;dt=ode_fv.dt,kwargs...)
-  stp = 0
   @inbounds for i in timeIntegrator
-     stp = stp + 1
-     println("step: ", stp)
     ode_fv.dt = update_dt(timeIntegrator.u, ode_fv)
     set_proposed_dt!(timeIntegrator, ode_fv.dt)
   end
