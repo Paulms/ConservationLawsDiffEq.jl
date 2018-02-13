@@ -18,3 +18,13 @@
     end
     sol.prob.mesh.cell_centers, yvector
 end
+
+@recipe function f(ooc::FVOOCTable)
+    seriestype  :=  :path
+    xguide --> "M"
+    yguide --> "error"
+    xscale --> :log
+    yscale --> :log
+    lab --> ooc.alg_name
+    ooc.h, ooc.errors
+end

@@ -40,6 +40,11 @@ function update_dt(alg::AbstractFVAlgorithm,u::AbstractArray{T,2},Flux,
   CFL/(1/mesh.Δx*maxρ+1/(2*mesh.Δx^2)*maxρB)
 end
 
+function scheme_short_name(alg::AbstractFVAlgorithm)
+    b = string(typeof(alg))
+    replace(b[search(b, ".")[1]+1:end], r"(Algorithm)", s"")
+end
+
 function update_dt(alg::AbstractFVAlgorithm,u::AbstractArray{T,2},Flux,
     CFL,mesh::Uniform1DFVMesh) where {T}
   maxρ = 0

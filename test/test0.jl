@@ -35,49 +35,49 @@ end
 
 prob = get_problem(50)
 @time sol = solve(prob, FVSKTAlgorithm(); use_threads = false, save_everystep = false)
-@test get_L1_errors(sol_ana, sol) < 1.5
+@test get_L1_error(sol_ana, sol) < 1.5
 @time sol1 = solve(prob, FVSKTAlgorithm(); use_threads = true, save_everystep = false)
-@test get_L1_errors(sol_ana, sol1) ≈ get_L1_errors(sol_ana, sol)
+@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = fast_solve(prob, FVSKTAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_errors(sol_ana, sol) < 1.5
+@test get_L1_error(sol_ana, sol) < 1.5
 @time sol1 = fast_solve(prob, FVSKTAlgorithm();use_threads = true, save_everystep = false)
-@test get_L1_errors(sol_ana, sol1) ≈ get_L1_errors(sol_ana, sol)
+@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, LaxFriedrichsAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_errors(sol_ana, sol) < 1.5
+@test get_L1_error(sol_ana, sol) < 1.5
 @time sol1 = solve(prob, LaxFriedrichsAlgorithm();use_threads = true, save_everystep = false)
-@test get_L1_errors(sol_ana, sol1) ≈ get_L1_errors(sol_ana, sol)
+@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, LocalLaxFriedrichsAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_errors(sol_ana, sol) < 1.5
+@test get_L1_error(sol_ana, sol) < 1.5
 println("No threaded version of LLF")
 @time sol = solve(prob, GlobalLaxFriedrichsAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_errors(sol_ana, sol) < 1.5
+@test get_L1_error(sol_ana, sol) < 1.5
 @time sol1 = solve(prob, GlobalLaxFriedrichsAlgorithm();use_threads = true, save_everystep = false)
-@test get_L1_errors(sol_ana, sol1) ≈ get_L1_errors(sol_ana, sol)
+@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 #@time sol5 = solve(prob, LaxWendroff2sAlgorithm();progress=true, save_everystep = false)
 @time sol = solve(prob, FVCompWENOAlgorithm();use_threads = false, TimeIntegrator = SSPRK33(), save_everystep = false)
-@test get_L1_errors(sol_ana, sol) < 1.5
+@test get_L1_error(sol_ana, sol) < 1.5
 @time sol1 = solve(prob, FVCompWENOAlgorithm();use_threads = true, TimeIntegrator = SSPRK33(), save_everystep = false)
-@test get_L1_errors(sol_ana, sol1) ≈ get_L1_errors(sol_ana, sol)
+@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, FVCompMWENOAlgorithm();use_threads = false, TimeIntegrator = SSPRK33(), save_everystep = false)
-@test get_L1_errors(sol_ana, sol) < 1.5
+@test get_L1_error(sol_ana, sol) < 1.5
 @time sol1 = solve(prob, FVCompMWENOAlgorithm();use_threads = true, TimeIntegrator = SSPRK33(), save_everystep = false)
-@test get_L1_errors(sol_ana, sol1) ≈ get_L1_errors(sol_ana, sol)
+@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, FVSpecMWENOAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_errors(sol_ana, sol) < 1.5
+@test get_L1_error(sol_ana, sol) < 1.5
 println("No threaded version of FVSpecMWENOAlgorithm")
 @time sol = solve(prob, FVCUAlgorithm(); use_threads = false, save_everystep = false)
-@test get_L1_errors(sol_ana, sol) < 1.5
+@test get_L1_error(sol_ana, sol) < 1.5
 @time sol1 = solve(prob, FVCUAlgorithm(); use_threads = true, save_everystep = false)
-@test get_L1_errors(sol_ana, sol1) ≈ get_L1_errors(sol_ana, sol)
+@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, FVDRCUAlgorithm(); use_threads = false, save_everystep = false)
-@test get_L1_errors(sol_ana, sol) < 1.5
+@test get_L1_error(sol_ana, sol) < 1.5
 @time sol1 = solve(prob, FVDRCUAlgorithm(); use_threads = true, save_everystep = false)
-@test get_L1_errors(sol_ana, sol1) ≈ get_L1_errors(sol_ana, sol)
+@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, FVDRCU5Algorithm(); use_threads = false, save_everystep = false)
-@test get_L1_errors(sol_ana, sol) < 1.5
+@test get_L1_error(sol_ana, sol) < 1.5
 @time sol1 = solve(prob, FVDRCU5Algorithm(); use_threads = true, save_everystep = false)
-@test get_L1_errors(sol_ana, sol1) ≈ get_L1_errors(sol_ana, sol)
+@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, LaxWendroffAlgorithm(); use_threads = false, save_everystep = false)
-@test get_L1_errors(sol_ana, sol) < 1.5
+@test get_L1_error(sol_ana, sol) < 1.5
 @time sol1 = solve(prob, LaxWendroffAlgorithm(); use_threads = true, save_everystep = false)
-@test get_L1_errors(sol_ana, sol1) ≈ get_L1_errors(sol_ana, sol)
+@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)

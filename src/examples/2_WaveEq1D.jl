@@ -35,11 +35,11 @@ prob = get_problem(500)
 @time sol4 = solve(prob, FVCompMWENOAlgorithm();progress=true)
 @time sol5 = solve(prob, FVSpecMWENOAlgorithm();progress=true)
 
-get_L1_errors(sol, exact_sol; nvar = 1) #3.3281897e-3
-get_L1_errors(sol2, exact_sol; nvar = 1) #1.58081746e-4
-get_L1_errors(sol3, exact_sol; nvar = 1) #1.08984086e-5
-get_L1_errors(sol4, exact_sol; nvar = 1) #1.11552929e-5
-get_L1_errors(sol5, exact_sol; nvar = 1) #1.11552929e-5
+get_L1_error(sol, exact_sol; nvar = 1) #3.3281897e-3
+get_L1_error(sol2, exact_sol; nvar = 1) #1.58081746e-4
+get_L1_error(sol3, exact_sol; nvar = 1) #1.08984086e-5
+get_L1_error(sol4, exact_sol; nvar = 1) #1.11552929e-5
+get_L1_error(sol5, exact_sol; nvar = 1) #1.11552929e-5
 #Plot
 using Plots;pyplot();
 plot(sol, tidx=1, vars=1, lab="yo",line=(:dot,2))

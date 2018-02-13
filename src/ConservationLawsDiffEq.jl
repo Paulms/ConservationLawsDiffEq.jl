@@ -10,6 +10,8 @@ module ConservationLawsDiffEq
 
   # Interfaces
   import DiffEqBase: solve, @def, has_jac, LinSolveFactorize, LinearInterpolation
+  import Base: show
+  import Base.Markdown
 
   #Solutions
   @compat abstract type AbstractFVSolution{T,N} <: AbstractTimeseriesSolution{T,N} end
@@ -55,11 +57,12 @@ module ConservationLawsDiffEq
   export LaxFriedrichsAlgorithm, LaxWendroff2sAlgorithm, LaxWendroffAlgorithm
   export LocalLaxFriedrichsAlgorithm, GlobalLaxFriedrichsAlgorithm
   export COMP_GLF_Diff_Algorithm
-  export get_L1_errors, minmod, approx_L1_error, get_L1_error_num
+  export minmod, scheme_short_name
   export FVCUAlgorithm, FVDRCUAlgorithm, FVSKTAlgorithm
   export FVDRCU5Algorithm
   export cell_faces
   export cell_centers, get_semidiscretization, volume, cell_indices, numcells
-  export get_total_u, get_relative_L1_error
+  export get_total_u, get_relative_L1_error, get_L1_error, approx_L1_error, approx_relative, L1_error
   export num_integrate
+  export  FVOOCTable, get_conv_order_table, mesh_norm, get_LP_error, get_num_LP_error
 end
