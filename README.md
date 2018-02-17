@@ -85,7 +85,7 @@ S. Boscarino, R. Bürger, P. Mulet, G. Russo, L. Villada, *Linearly implicit IME
 
 * Discontinuos Galerkin Scheme (`DiscontinuousGalerkinScheme(basis, num_flux; max_w_speed)`)
 
-`basis` Polynomial base for the discrete functional space, `legendre_basis(k)` is the only base available at the moment.
+`basis` Polynomial basis for the discrete functional space, only `legendre_basis(k)` are available at the moment.
 
 `num_flux` Function of the form `f(ul, ur)`, defines numerical flux for the cell interfaces.
 
