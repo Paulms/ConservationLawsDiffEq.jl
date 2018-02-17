@@ -90,12 +90,16 @@ function solve(
   TimeAlgorithm = :H_CN_222,use_threads = false,
   timeseries_steps = 1, iterations = 1000000,
   progressbar_name="LI-IMEX-RK",progress=false,
+  average_initial_data = true,
   save_everystep = false,kwargs...)
 
   #Unroll some important constants
-  @unpack tspan,f,u0, DiffMat, CFL, numvars, mesh = prob
+  @unpack tspan,f,f0, DiffMat, CFL, numvars, mesh = prob
   M = numvars; dx = mesh.Δx
   N = numcells(mesh); Flux = f
+  #Compute initial data
+  u0 = zeros(mesh.N, prob.numvars)
+  compute_initial_data!(u0, average_initial_data, mesh, Val{use_threads})
   if !has_jac(f)
     f(::Type{Val{:jac}},x) = x -> ForwardDiff.jacobian(f,x)
   end

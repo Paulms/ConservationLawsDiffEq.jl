@@ -12,19 +12,7 @@ function f(::Type{Val{:jac}},u::Vector)
   F
 end
 f(u::Vector) = [u[2];u[2]^2/u[1]+0.5*gr*u[1]^2]
-
-function u0_func(xx)
-  N = size(xx,1)
-  uinit = zeros(N, 2)
-  for i = 1:N
-    if xx[i] < 0.0
-      uinit[i,1] = 2.0
-    else
-     uinit[i,1] = 1.0
-   end
-  end
-  return uinit
-end
+f0(x) = x < 0.0 ? 2.0 : 1.0
 
 function Nflux(ϕl::Vector, ϕr::Vector)
   hl = ϕl[1]; hr = ϕr[1]
@@ -37,8 +25,7 @@ ve(u::Vector) = [gr*u[1]-0.5*(u[2]/u[1])^2;u[2]/u[1]]
 
 function get_problem(N)
   mesh = Uniform1DFVMesh(N,-5.0,5.0,:PERIODIC, :PERIODIC)
-  u0 = u0_func(cell_centers(mesh))
-  prob = ConservationLawsProblem(u0,f,CFL,Tend,mesh)
+  prob = ConservationLawsProblem(f0,f,CFL,Tend,mesh)
 end
 #Compile
 prob = get_problem(10)

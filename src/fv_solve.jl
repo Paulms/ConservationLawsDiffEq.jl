@@ -1,10 +1,16 @@
 function solve(
   prob::AbstractConservationLawProblem,
   alg::AbstractFVAlgorithm;
-  TimeIntegrator::OrdinaryDiffEqAlgorithm = SSPRK22(),use_threads = false, kwargs...)
+  TimeIntegrator::OrdinaryDiffEqAlgorithm = SSPRK22(),
+  average_initial_data = true, use_threads = false, kwargs...)
 
   #Unroll some important constants
-  @unpack tspan,f,u0 = prob
+  @unpack tspan,f,f0, mesh = prob
+  #Compute initial data
+  N = numcells(mesh)
+  u0 = zeros(mesh.N, prob.numvars)
+  compute_initial_data!(u0, average_initial_data, mesh, Val{use_threads})
+
   if !has_jac(f)
     f(::Type{Val{:jac}},x) = x -> ForwardDiff.jacobian(f,x)
   end
@@ -23,18 +29,85 @@ function solve(
   timeIntegrator.sol.retcode,timeIntegrator.sol.interp;dense = timeIntegrator.sol.dense))
 end
 
+function initial_data_inner_loop!(u0, average_initial_data, faces, centers, mesh, i)
+    if average_initial_data
+        u0[i,:] = num_integrate(f0,faces[i], faces[i+1])/volume(i, mesh)
+    else
+        u0[i,:] = f0(centers[i])
+    end
+end
+function compute_initial_data!(u0, average_initial_data, mesh, ::Type{Val{true}})
+    faces = cell_faces(mesh)
+    centers = cell_centers(mesh)
+    Threads.@threads for i in 1:numcells(mesh)
+        initial_data_inner_loop!(u0, average_initial_data, faces, centers, mesh, i)
+    end
+end
+function compute_initial_data!(u0, average_initial_data, mesh, ::Type{Val{false}})
+    faces = cell_faces(mesh)
+    centers = cell_centers(mesh)
+    for i in 1:numcells(mesh)
+        initial_data_inner_loop!(u0, average_initial_data, faces, centers, mesh, i)
+    end
+end
+
 function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsProblem;use_threads=false)
-    @unpack f,CFL,numvars,mesh,u0 = prob
-    fluxes = zeros(eltype(u0),numedges(mesh),numvars)
+    @unpack f0, f,CFL,numvars,mesh = prob
+    fluxes = zeros(eltype(f0(cell_faces(mesh)[1])),numedges(mesh),numvars)
     dt = 0.0
     FVIntegrator(alg,mesh,f,CFL,numvars, fluxes, dt, use_threads)
 end
 
 function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsWithDiffusionProblem;use_threads=false)
-    @unpack f,CFL,numvars,mesh,u0, DiffMat = prob
-    fluxes = zeros(eltype(u0),numedges(mesh),numvars)
+    @unpack f0,f,CFL,numvars,mesh, DiffMat = prob
+    fluxes = zeros(eltype(f0(cell_faces(mesh)[1])),numedges(mesh),numvars)
     dt = 0.0
     FVDiffIntegrator(alg,mesh,f,DiffMat,CFL,numvars, fluxes, dt, use_threads)
+end
+##############Solve method for DG scheme ##################
+"Solve scalar 1D conservation laws problems with DG Scheme"
+function solve(
+  prob::AbstractConservationLawProblem,
+  alg::AbstractFEAlgorithm;
+  TimeIntegrator::OrdinaryDiffEqAlgorithm = SSPRK22(),use_threads = false, kwargs...)
+
+  # Unpack some useful variables
+  @unpack basis, riemann_solver = alg
+  #Unroll some important constants
+  @unpack tspan,f,f0, mesh = prob
+
+  N = mesh.N
+  NC = prob.numvars
+  NN = basis.order+1
+  #Assign Initial values (u0 = φₕ⋅u0ₘ)
+  u0ₘ = zeros(NN*NC, N)
+  for i = 1:N
+    for j = 1:NC
+      value = project_function(f0,basis,(mesh.cell_faces[i],mesh.cell_faces[i+1]); component = j)
+      u0ₘ[(j-1)*NN+1:NN*j,i] = value.param
+    end
+  end
+
+  #build inverse of mass matrix
+  M_inv = get_local_inv_mass_matrix(basis, mesh)
+
+  #Time loop
+  #First dt
+  u0ₕ = reconstruct_u(u0ₘ, basis.φₕ, NC)
+  dt = update_dt(alg, u0ₕ, f, prob.CFL, mesh)
+  # Setup time integrator
+  semidiscretef(du,u,p,t) = residual!(du, u, basis, mesh, f, riemann_solver, M_inv,NC)
+  ode_prob = ODEProblem(semidiscretef, u0ₘ, prob.tspan)
+  timeIntegrator = init(ode_prob, TimeIntegrator;dt=dt, kwargs...)
+  @inbounds for i in timeIntegrator
+    uₕ = reconstruct_u(timeIntegrator.u, basis.φₕ, NC)
+    dt = update_dt(alg, uₕ, f, prob.CFL, mesh)
+    set_proposed_dt!(timeIntegrator, dt)
+  end
+  if timeIntegrator.sol.t[end] != prob.tspan[end]
+    savevalues!(timeIntegrator)
+  end
+  return build_solution(timeIntegrator.sol,basis,prob, NC)
 end
 
 ######### Legacy solve method (easy to debug)
@@ -145,14 +218,21 @@ end
 function fast_solve(
   prob::AbstractConservationLawProblem,
   alg::AbstractFVAlgorithm;
-  save_everystep::Bool = false,
+  average_initial_data = true,
+  save_everystep = false,
   iterations=1000000,
   TimeIntegrator=:SSPRK22,
   progress::Bool=false,progressbar_name="FV",
   use_threads = false, kwargs...)
 
   #Unroll some important constants
-  @unpack tspan,f,u0 = prob
+  @unpack tspan,f,f0, mesh = prob
+
+  #Compute initial data
+  N = numcells(mesh)
+  u0 = zeros(mesh.N, prob.numvars)
+  compute_initial_data!(u0, average_initial_data, mesh, Val{use_threads})
+
   if !has_jac(f)
     f(::Type{Val{:jac}},x) = x -> ForwardDiff.jacobian(f,x)
   end

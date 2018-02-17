@@ -46,15 +46,8 @@ function BB(ϕ::AbstractArray)
     B = β(sum(ϕ))*eye(M)
     B
 end
+f0(x) = x < L/2 ? 1.0 : 0.0
 
-function u0_func(xx)
-   N = size(xx,1)
-   uinit = zeros(N, M)
-   for (i,x) in enumerate(xx[1:floor(Int,N/2)])
-       uinit[i,:] = 1.0
-   end
-   return uinit
- end
  ######################### COMP-GLF Scheme ###################
  function αf(u,f)
      α = zero(eltype(u))
@@ -111,8 +104,7 @@ end
 
 function get_problem(N, CFL=0.3, Tend=300.0)
   mesh = Uniform1DFVMesh(N,0.0,L,:ZERO_FLUX,:ZERO_FLUX)
-  u0 = u0_func(cell_centers(mesh))
-  return ConservationLawsWithDiffusionProblem(u0,f,BB,CFL,Tend,mesh)
+  return ConservationLawsWithDiffusionProblem(f0,f,BB,CFL,Tend,mesh)
 end
 function run_test(prob;α=1.0e-13, ses = false, ut = false)
   ϵ = α*prob.mesh.Δx

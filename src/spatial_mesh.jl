@@ -40,6 +40,7 @@ end
 @inline cell_centers(mesh::Uniform1DFVMesh) = mesh.cell_centers
 @inline cell_faces(mesh::Uniform1DFVMesh) = mesh.cell_faces
 @inline volume(cell::Int, mesh::Uniform1DFVMesh) = mesh.Δx
+@inline cell_volumes(mesh::Uniform1DFVMesh) = mesh.Δx * ones(mesh.N)
 
 function getPeriodicIndex(A::AbstractArray{T,2}, I...) where {T}
     checkbounds(Bool, A, I...) && return A[I...]

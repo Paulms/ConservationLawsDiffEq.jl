@@ -18,19 +18,11 @@ sol_ana  = get_solution(prob1)
 f(::Type{Val{:jac}},u::Vector) = diagm(u)
 f(u::Vector) = u.^2/2
 
-function u0_func(xx)
-  N = size(xx,1)
-  uinit = zeros(N, 1)
-  for (i,x) in enumerate(xx)
-      uinit[i,1] = (x < x0) ? ul : ur
-  end
-  return uinit
-end
+f0(x) = (x < x0) ? ul : ur
 
 function get_problem(N)
   mesh = Uniform1DFVMesh(N,xl,xr,:DIRICHLET, :DIRICHLET)
-  u0 = u0_func(cell_centers(mesh))
-  ConservationLawsProblem(u0,f,CFL,Tend,mesh)
+  ConservationLawsProblem(f0,f,CFL,Tend,mesh)
 end
 
 prob = get_problem(50)
