@@ -84,13 +84,17 @@ R. Bürger, R. Donat, P. Mulet, C. Vega, *On the implementation of WENO schemes 
 S. Boscarino, R. Bürger, P. Mulet, G. Russo, L. Villada, *Linearly implicit IMEX Runge Kutta methods for a class of degenerate convection difussion problems*, SIAM J. Sci. Comput., 37(2), B305–B331
 
 * Discontinuos Galerkin Scheme (`DiscontinuousGalerkinScheme(basis, num_flux; max_w_speed)`)
+
 `basis` Polynomial base for the discrete functional space, `legendre_basis(k)` is the only base available at the moment.
+
 'num_flux' Function of the form `f(ul, ur)`. Numerical flux for the cell interfaces.
+
 `max_w_speed` Optional function used to compute maximum wave speed
+
 *Note: * Limiters can be added through the stage_limiter! option of `SSPRKXX` ODE integration algorithms.
 For an example see `5_Advection1D.jl`
 
-Bernard, Cockburn., and Shu,C.W. (1998). “The local discontinuous Galerkin method for convection diffusion problems”. SIAM Journal of numerical analysis, vol. 35, no. 6, pp. 2440-2463. 
+Bernard, Cockburn., and Shu,C.W. (1998). “The local discontinuous Galerkin method for convection diffusion problems”. SIAM Journal of numerical analysis, vol. 35, no. 6, pp. 2440-2463.
 
 ### Time integration methods:
 
@@ -125,7 +129,7 @@ end
 f(u::Vector) = [u[2];u[2]^2/u[1]+0.5*gr*u[1]^2]
 
 #Initial Condition:
-f0(x) = x < 0.0 ? 2.0 : 1.0
+f0(x) = x < 0.0 ? [2.0,0.0] : [1.0,0.0]
 
 # Setup Mesh
 N = 100
