@@ -87,11 +87,11 @@ S. Boscarino, R. Bürger, P. Mulet, G. Russo, L. Villada, *Linearly implicit IME
 
 `basis` Polynomial base for the discrete functional space, `legendre_basis(k)` is the only base available at the moment.
 
-'num_flux' Function of the form `f(ul, ur)`. Numerical flux for the cell interfaces.
+`num_flux` Function of the form `f(ul, ur)`, defines numerical flux for the cell interfaces.
 
 `max_w_speed` Optional function used to compute maximum wave speed
 
-*Note: * Limiters can be added through the stage_limiter! option of `SSPRKXX` ODE integration algorithms.
+*Note:* Limiters can be added through the stage_limiter! option of `SSPRKXX` ODE integration algorithms.
 For an example see `5_Advection1D.jl`
 
 Bernard, Cockburn., and Shu,C.W. (1998). “The local discontinuous Galerkin method for convection diffusion problems”. SIAM Journal of numerical analysis, vol. 35, no. 6, pp. 2440-2463.
