@@ -83,7 +83,7 @@ function solve(
   u0ₘ = zeros(NN*NC, N)
   for i = 1:N
     for j = 1:NC
-      value = project_function(f0,basis,(mesh.cell_faces[i],mesh.cell_faces[i+1]); component = j)
+      value = project_function(f0,basis,(cell_faces(mesh)[i],cell_faces(mesh)[i+1]); component = j)
       u0ₘ[(j-1)*NN+1:NN*j,i] = value.param
     end
   end

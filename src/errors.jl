@@ -10,6 +10,17 @@ function mesh_norm(u, dx::Real, p)
         (sum(abs,(u).^p)*dx)^(1/p)
     end
 end
+
+function dg_norm(u, basis::PolynomialBasis, p)
+    @assert p > 0.0 "p must be a positive number"
+    if p == Inf
+        maximum(abs.(u))
+    else
+        k =  basis.order + 1
+        N = size(u,1)
+        sum([(abs(u[i:(i+k-1),:]).^p)'*basis.weights for i in 1:k:N])[1]
+    end
+end
 function get_LP_error(ref::Function, sol::AbstractFVSolution; relative = true, p = 1.0)
     x = cell_centers(sol.prob.mesh)
     tspan = sol.prob.tspan
@@ -20,6 +31,16 @@ function get_LP_error(ref::Function, sol::AbstractFVSolution; relative = true, p
     relative ? 100*mesh_norm((sol.u[end] - uexact), sol.prob.mesh, p)/mesh_norm(uexact, sol.prob.mesh, p) : mesh_norm((sol.u[end] - uexact), sol.prob.mesh, p)
 end
 
+function get_LP_error(ref::Function, sol::DGSolution; relative = true, p = 1.0)
+    x = sol.nodes
+    tspan = sol.prob.tspan
+    uexact = zeros(sol.u[end])
+    for i in 1:size(x,1)
+        uexact[i,:] = ref(x[i], tspan[end])
+    end
+    relative ? 100*dg_norm((sol.u[end] - uexact), sol.basis, p)/dg_norm(uexact, sol.basis, p) : dg_norm((sol.u[end] - uexact), sol.basis, p)
+end
+
 function get_L1_error(ref::Function, sol::AbstractFVSolution)
     get_LP_error(ref, sol; relative = false)
 end
@@ -28,6 +49,15 @@ function get_relative_L1_error(ref::Function, sol::AbstractFVSolution)
     get_LP_error(ref, sol)
 end
 
+function get_L1_error(ref::Function, sol::DGSolution)
+    get_LP_error(ref, sol; relative = false)
+end
+
+function get_relative_L1_error(ref::Function, sol::DGSolution)
+    get_LP_error(ref, sol)
+end
+
+#TODO: Estimate approx numerical errors when DG is used
 "Compute aproximate L1 errors with numerical reference solution"
 function get_num_LP_error(reference,M, uu,N,dx; relative = true, p = 1.0)
     uexact = zeros(uu)

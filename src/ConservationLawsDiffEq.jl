@@ -26,15 +26,14 @@ module ConservationLawsDiffEq
   # abstract algorithms types
   @compat abstract type AbstractFVAlgorithm <: DEAlgorithm end
   @compat abstract type AbstractFEAlgorithm <: DEAlgorithm end
+  @compat abstract type AbstractDGLimiter end
 
   include("spatial_mesh.jl")
   include("ConservationLawsProblems.jl")
   include("fv_integrators.jl")
   include("aux_functions.jl")
   include("solutions.jl")
-  include("errors.jl")
-  include("plotRecipe.jl")
-  include("fv_solve.jl")
+   include("fv_solve.jl")
 
   #Algoritms
   include("ENO_WENO.jl")
@@ -52,6 +51,10 @@ module ConservationLawsDiffEq
   include("DiscontinuousGalerkin_scheme.jl")
   include("NumericalFluxes.jl")
   include("limiters.jl")
+
+  # Other
+  include("errors.jl")
+  include("plotRecipe.jl")
 
   #Exports
   export solve, fast_solve
@@ -75,5 +78,6 @@ module ConservationLawsDiffEq
   export num_integrate
   export  FVOOCTable, get_conv_order_table, mesh_norm, get_LP_error, get_num_LP_error
   export advection_num_flux, rusanov_euler_num_flux
-  export DGDefaultLimiter
+  export DGLimiter, Linear_MUSCL_Limiter
+  export fluxρ
 end

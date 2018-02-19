@@ -89,7 +89,7 @@ end
     (sol::BurgersRiemannSolution)(t::Real, x::Real)
 Evaluate the solution `sol` at the time and space coordinates `t` and `x`.
 """
-function (sol::BurgersRiemannSolution)(t::Real, x::Real)
+function (sol::BurgersRiemannSolution)(x::Real, t::Real)
   @unpack x₀, t₀ = sol.prob
 
   sol((x-x₀)/(t-t₀))

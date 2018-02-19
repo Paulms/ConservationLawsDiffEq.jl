@@ -30,7 +30,7 @@ end
 "Update dt based on CFL condition"
 function update_dt(alg::DiscontinuousGalerkinScheme,u::AbstractArray{T2,2},Flux,
     CFL,mesh::Uniform1DFVMesh) where {T2}
-    ν = alg.max_w_speed(u)
+    ν = alg.max_w_speed(u, Flux)
     dx = maximum(cell_volumes(mesh))
     dx * CFL / (ν * (2 * alg.basis.order + 1))
 end
@@ -70,7 +70,7 @@ end
               F is the interior flux"
 @def scalar_1D_residual_common begin
   #Add ghost cells
-  uₘ = hcat(zeros(u[:,1]),u,zeros(u[:,1]))
+  uₘ = hcat(zeros(u[:,1]),u,zeros(u[:,end]))
 
   #Apply boundary conditions TODO: Other boundary types
   apply_boundary(uₘ, mesh)
@@ -110,7 +110,8 @@ function residual!(H, u, basis::PolynomialBasis, mesh::AbstractFVMesh1D, f, riem
   for k in 1:mesh.N
     H[:,k] = myblock(M_inv[k],NC)*H[:,k]
   end
-  H
+  if isleftdirichlet(mesh); H[:,1] = 0.0; end
+  if isrightdirichlet(mesh); H[:,end] = 0.0; end
 end
 
 "Efficient residual computation for uniform problems"
@@ -118,4 +119,6 @@ function residual!(H, u, basis::PolynomialBasis, mesh::Uniform1DFVMesh, f, riema
   @scalar_1D_residual_common
   #Calculate residual
   A_mul_B!(H,myblock(M_inv,NC),F[:,2:(end-1)]-Q[:,2:(end-1)])
+  if isleftdirichlet(mesh); H[:,1] = 0.0; end
+  if isrightdirichlet(mesh); H[:,end] = 0.0; end
 end

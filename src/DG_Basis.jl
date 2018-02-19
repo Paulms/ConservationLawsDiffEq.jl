@@ -1,16 +1,18 @@
 #################### Basis for Polynomial Space ####################3
 struct PolynomialBasis{T}
   order::Int
-  nodes::Vector{T}
-  weights::Vector{T}
+  nodes::Vector{T}      #Gauss-Legendre nodes for numerical integration
+  weights::Vector{T}    #Gauss-Legendre weights for numerical integration
   polynomials::Vector{Poly}
-  φₕ::Matrix{T}
-  ψₕ::Matrix{T}
+  φₕ::Matrix{T}     #basis polynomials evaluated on G-L nodes
+  ψₕ::Matrix{T}     #basis polynomials evaluated on faces (-1,1)
   dφₕ::Matrix{T}
-  L2M::Matrix{T}
-  M2L::Matrix{T}
+  invφ::Matrix{T}   #inverse of Gen. Vandermonde matrix
+  L2M::Matrix{T}    #Legendre to monomial transform matrix
+  M2L::Matrix{T}    #Monomial to legendre transform matrix
 end
 
+"""Recursion algorithm to compute Legendre polynomials coefficients"""
 function legendre{T<:Number}(n, ::Type{T}=Float64, var=:x)
     if n==0
         return Poly{T}([one(T)], var)
@@ -26,6 +28,10 @@ function legendre{T<:Number}(n, ::Type{T}=Float64, var=:x)
         p1 = p2
     end
     return p1
+end
+
+function legendre_to_monomials(u, basis::PolynomialBasis{T}) where {T}
+    basis.L2M*u ./ [factorial(i) for i in 0:basis.order]
 end
 
 function legendre_basis{T<:Number}(order, ::Type{T}=Float64)
@@ -45,13 +51,14 @@ function legendre_basis{T<:Number}(order, ::Type{T}=Float64)
     # Eval faces nodes
     ψₕ[:,n+1] = polyval(p, [-1.0,1.0])
   end
+  invφ = inv(φₕ)
   V = [nodes[i+1]^j/factorial(j) for i=0:order, j=0:order]
   L2M = inv(V)*φₕ
   M2L = inv(L2M)
-  PolynomialBasis{T}(order,nodes,weights,polynomials,φₕ,ψₕ,dφₕ,L2M,M2L)
+  PolynomialBasis{T}(order,nodes,weights,polynomials,φₕ,ψₕ,dφₕ,invφ,L2M,M2L)
 end
 
-"Maps reference coordinates (ξ) to interval coordinates (x)"
+"Maps reference coordinates (ξ ∈ [-1,1]) to interval coordinates (x)"
 function reference_to_interval(ξ,a::Tuple)
    0.5*(a[2]-a[1])*ξ + 0.5*(a[2]+a[1])
 end

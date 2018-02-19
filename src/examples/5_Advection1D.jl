@@ -8,7 +8,7 @@ f(::Type{Val{:jac}},u::Vector) = eye(size(u,1))
 f(u::Vector) = u
 
 #define max wave speed
-max_w_speed(u) = 1
+max_w_speed(u, f) = 1
 
 f0(x) = sin(2*π*x)
 

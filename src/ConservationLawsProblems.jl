@@ -18,7 +18,6 @@ struct ConservationLawsWithDiffusionProblem{islinear,isstochastic,MeshType,F,F3,
 end
 
 isinplace{islinear,isstochastic,MeshType}(prob::AbstractConservationLawProblem{islinear,isstochastic,MeshType}) = false
-Base.summary(prob::AbstractConservationLawProblem) = string(typeof(prob)," with uType ",typeof(prob.u0)," and tType ",typeof(prob.tspan[1]),". In-place: ",isinplace(prob))
 
 function ConservationLawsProblem(f0,f,CFL,tend,mesh)
  numvars = size(f0(cell_faces(mesh)[1]),1)
