@@ -78,6 +78,7 @@ module ConservationLawsDiffEq
   export num_integrate
   export  FVOOCTable, get_conv_order_table, mesh_norm, get_LP_error, get_num_LP_error
   export advection_num_flux, rusanov_euler_num_flux
+  export legendre_basis, PolynomialBasis
   export DGLimiter, Linear_MUSCL_Limiter
   export fluxρ
 end

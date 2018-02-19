@@ -18,7 +18,7 @@ function dg_norm(u, basis::PolynomialBasis, p)
     else
         k =  basis.order + 1
         N = size(u,1)
-        sum([(abs(u[i:(i+k-1),:]).^p)'*basis.weights for i in 1:k:N])[1]
+        sum([(abs.(u[i:(i+k-1),:]).^p)'*basis.weights for i in 1:k:N])[1]
     end
 end
 function get_LP_error(ref::Function, sol::AbstractFVSolution; relative = true, p = 1.0)
