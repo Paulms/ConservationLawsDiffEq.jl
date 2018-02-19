@@ -99,7 +99,7 @@ function solve(
   N = numcells(mesh); Flux = f
   #Compute initial data
   u0 = zeros(mesh.N, prob.numvars)
-  compute_initial_data!(u0, average_initial_data, mesh, Val{use_threads})
+  compute_initial_data!(u0, f0, average_initial_data, mesh, Val{use_threads})
   if !has_jac(f)
     f(::Type{Val{:jac}},x) = x -> ForwardDiff.jacobian(f,x)
   end
