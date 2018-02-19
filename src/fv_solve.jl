@@ -9,7 +9,7 @@ function solve(
   #Compute initial data
   N = numcells(mesh)
   u0 = zeros(mesh.N, prob.numvars)
-  compute_initial_data!(u0, average_initial_data, mesh, Val{use_threads})
+  compute_initial_data!(u0, f0, average_initial_data, mesh, Val{use_threads})
 
   if !has_jac(f)
     f(::Type{Val{:jac}},x) = x -> ForwardDiff.jacobian(f,x)
@@ -29,25 +29,25 @@ function solve(
   timeIntegrator.sol.retcode,timeIntegrator.sol.interp;dense = timeIntegrator.sol.dense))
 end
 
-function initial_data_inner_loop!(u0, average_initial_data, faces, centers, mesh, i)
+function initial_data_inner_loop!(u0, f0, average_initial_data, faces, centers, mesh, i)
     if average_initial_data
         u0[i,:] = num_integrate(f0,faces[i], faces[i+1])/volume(i, mesh)
     else
         u0[i,:] = f0(centers[i])
     end
 end
-function compute_initial_data!(u0, average_initial_data, mesh, ::Type{Val{true}})
+function compute_initial_data!(u0, f0, average_initial_data, mesh, ::Type{Val{true}})
     faces = cell_faces(mesh)
     centers = cell_centers(mesh)
     Threads.@threads for i in 1:numcells(mesh)
-        initial_data_inner_loop!(u0, average_initial_data, faces, centers, mesh, i)
+        initial_data_inner_loop!(u0, f0, average_initial_data, faces, centers, mesh, i)
     end
 end
-function compute_initial_data!(u0, average_initial_data, mesh, ::Type{Val{false}})
+function compute_initial_data!(u0, f0, average_initial_data, mesh, ::Type{Val{false}})
     faces = cell_faces(mesh)
     centers = cell_centers(mesh)
     for i in 1:numcells(mesh)
-        initial_data_inner_loop!(u0, average_initial_data, faces, centers, mesh, i)
+        initial_data_inner_loop!(u0, f0, average_initial_data, faces, centers, mesh, i)
     end
 end
 
@@ -231,7 +231,7 @@ function fast_solve(
   #Compute initial data
   N = numcells(mesh)
   u0 = zeros(mesh.N, prob.numvars)
-  compute_initial_data!(u0, average_initial_data, mesh, Val{use_threads})
+  compute_initial_data!(u0, f0, average_initial_data, mesh, Val{use_threads})
 
   if !has_jac(f)
     f(::Type{Val{:jac}},x) = x -> ForwardDiff.jacobian(f,x)
