@@ -8,18 +8,11 @@ const Tend = 1.0
 
 f(::Type{Val{:jac}},u::Vector) = diagm(u)
 f(u::Vector) = u.^2/2
-
-function u0_func(xx)
-  N = size(xx,1)
-  uinit = zeros(N, 1)
-  uinit[:,1] = sin.(2*π*xx)
-  return uinit
-end
+f0(x) = sin(2*π*x)
 
 function get_problem(N)
   mesh = Uniform1DFVMesh(N,0.0,1.0,:PERIODIC,:PERIODIC)
-  u0 = u0_func(cell_centers(mesh))
-  ConservationLawsProblem(u0,f,CFL,Tend,mesh)
+  ConservationLawsProblem(f0,f,CFL,Tend,mesh)
 end
 #Compile
 prob = get_problem(10)
@@ -35,10 +28,18 @@ prob = get_problem(200)
 @time sol6 = solve(prob, FVCompMWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33())
 @time sol7 = solve(prob, FVSpecMWENOAlgorithm();progress=true, save_everystep = false)
 
+function llf_num_flux(ul, ur)
+    αl = fluxρ(ul, f)
+    αr = fluxρ(ur, f)
+    αk = max(αl, αr)
+    return 0.5*(f(ul)+f(ur))-αk*(ur-ul)
+end
+basis=legendre_basis(3)
+limiter! = DGLimiter(prob.mesh, basis, Linear_MUSCL_Limiter())
+@time sol8 = solve(prob, DiscontinuousGalerkinScheme(basis, llf_num_flux); TimeIntegrator = SSPRK22(limiter!))
 
 #Plot
-using Plots;
-pyplot()
+using Plots
 plot(sol,tidx = 1,lab="uo",line=(:dot,2))
 plot!(sol,lab="KT u")
 plot!(sol2,lab="L-F h")
@@ -47,3 +48,4 @@ plot!(sol4,lab="GLF h")
 plot!(sol5,lab="Comp WENO5 h")
 plot!(sol6,lab="Comp MWENO5 h")
 plot!(sol7,lab="Spec MWENO5 h")
+plot!(sol8, label="DG k=3")

@@ -7,6 +7,8 @@ module ConservationLawsDiffEq
   using Parameters, Compat, Juno
   using ForwardDiff, Interpolations, IterativeSolvers
   using RecipesBase, LaTeXStrings, FastGaussQuadrature
+  using LsqFit
+  using Polynomials
 
   # Interfaces
   import DiffEqBase: solve, @def, has_jac, LinSolveFactorize, LinearInterpolation
@@ -21,17 +23,17 @@ module ConservationLawsDiffEq
   # Problems
   #@compat abstract type PDEProblem <: DEProblem end
   @compat abstract type AbstractConservationLawProblem{islinear,isstochastic,MeshType} <: DEProblem end
-  # algorithms
+  # abstract algorithms types
   @compat abstract type AbstractFVAlgorithm <: DEAlgorithm end
+  @compat abstract type AbstractFEAlgorithm <: DEAlgorithm end
+  @compat abstract type AbstractDGLimiter end
 
   include("spatial_mesh.jl")
   include("ConservationLawsProblems.jl")
   include("fv_integrators.jl")
   include("aux_functions.jl")
   include("solutions.jl")
-  include("fv_solve.jl")
-  include("errors.jl")
-  include("plotRecipe.jl")
+   include("fv_solve.jl")
 
   #Algoritms
   include("ENO_WENO.jl")
@@ -45,17 +47,27 @@ module ConservationLawsDiffEq
   include("DRCU_scheme.jl")
   include("DRCU5_scheme.jl")
   include("SKT_scheme.jl")
+  include("DG_Basis.jl")
+  include("DiscontinuousGalerkin_scheme.jl")
+  include("NumericalFluxes.jl")
+  include("limiters.jl")
 
+  # Other
+  include("errors.jl")
+  include("plotRecipe.jl")
+
+  #Exports
   export solve, fast_solve
   export AbstractFVAlgorithm
   export Uniform1DFVMesh, AbstractFVMesh1D
-  export FVSolution, save_csv
+  export FVSolution, DGSolution, save_csv
   export ConservationLawsProblem, ConservationLawsWithDiffusionProblem
   export FVTecnoAlgorithm, FVESJPAlgorithm
   export FVCompWENOAlgorithm, FVCompMWENOAlgorithm, FVSpecMWENOAlgorithm
   export RKTable, LI_IMEX_RK_Algorithm
   export LaxFriedrichsAlgorithm, LaxWendroff2sAlgorithm, LaxWendroffAlgorithm
   export LocalLaxFriedrichsAlgorithm, GlobalLaxFriedrichsAlgorithm
+  export DiscontinuousGalerkinScheme
   export COMP_GLF_Diff_Algorithm
   export minmod, scheme_short_name
   export FVCUAlgorithm, FVDRCUAlgorithm, FVSKTAlgorithm
@@ -65,4 +77,7 @@ module ConservationLawsDiffEq
   export get_total_u, get_relative_L1_error, get_L1_error, approx_L1_error, approx_relative, L1_error
   export num_integrate
   export  FVOOCTable, get_conv_order_table, mesh_norm, get_LP_error, get_num_LP_error
+  export advection_num_flux, rusanov_euler_num_flux
+  export DGLimiter, Linear_MUSCL_Limiter
+  export fluxρ
 end

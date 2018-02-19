@@ -44,19 +44,11 @@ function BB(ϕ::AbstractArray)
   end
 end
 
-function u0_func(xx)
-  N = size(xx,1)
-  uinit = zeros(N, M)
-  for (i,x) in enumerate(xx)
-      uinit[i,:] = 0.5*exp.(-(x-3)^2)*[0.2,0.3,0.2,0.3]
-  end
-  return uinit
-end
+f0(x) = 0.5*exp.(-(x-3)^2)*[0.2,0.3,0.2,0.3]
 
 function get_problem(N)
   mesh = Uniform1DFVMesh(N,0.0,10.0,:PERIODIC, :PERIODIC)
-  u0 = u0_func(cell_centers(mesh))
-  ConservationLawsWithDiffusionProblem(u0,f,BB,CFL,Tend,mesh)
+  ConservationLawsWithDiffusionProblem(f0,f,BB,CFL,Tend,mesh)
 end
 #Compile
 prob = get_problem(10)

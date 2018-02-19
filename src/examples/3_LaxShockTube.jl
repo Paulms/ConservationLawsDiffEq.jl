@@ -20,21 +20,12 @@ function f(u::Vector)
   [u[2];u[2]^2/u[1]+p;(ϵ+p)*v]
 end
 
-function u0_func(xx)
-  N = size(xx,1)
-  uinit = zeros(N, 3)
-  for i = 1:N
-    if xx[i] < 0.0
-      uinit[i,1] = 0.445
-      uinit[i,2] = 0.445*0.698
-      uinit[i,3] = 3.528/(1-γ)+0.5*0.445*0.698^2
+function f0(x)
+    if x < 0.0
+        return [0.445, 0.445*0.698, 3.528/(1-γ)+0.5*0.445*0.698^2]
     else
-      uinit[i,1] = 0.5
-      uinit[i,2] = 0.0
-      uinit[i,3] = 0.571/(1-γ)
+        return [0.5, 0.0, 0.571/(1-γ)]
    end
-  end
-  return uinit
 end
 
 function Nflux(ul::Vector, ur::Vector)
@@ -61,8 +52,7 @@ end
 
 function get_problem(N)
     mesh = Uniform1DFVMesh(N,-5.0,5.0,:PERIODIC, :PERIODIC)
-    u0 = u0_func(cellcenters(mesh.x))
-    ConservationLawsProblem(u0,f,CFL,Tend,mesh)
+    ConservationLawsProblem(f0,f,CFL,Tend,mesh)
 end
 prob = get_problem(10)
 prob = get_problem(100)

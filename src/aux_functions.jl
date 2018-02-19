@@ -1,7 +1,13 @@
 function num_integrate(f,a,b;order=5, method = gausslegendre)
     nodes, weights = method(order);
     t_nodes = 0.5*(b-a)*nodes+0.5(b+a)
-    return 0.5*(b-a)*dot(f.(t_nodes),weights)
+    M = size(f(a),1)
+    tmp = zeros(M)
+    for i in 1:M
+        g(x) = f(x)[i]
+        tmp[i] = 0.5*(b-a)*dot(g.(t_nodes),weights)
+    end
+    return tmp
 end
 
 function inner_slopes_loop!(∇u,j,u,mesh,θ,M)
@@ -66,18 +72,4 @@ end
 
 @inline function fluxρ(uj::Vector,f)
   maximum(abs,eigvals(f(Val{:jac}, uj)))
-end
-
-function minmod(a,b,c)
-  if (a > 0 && b > 0 && c > 0)
-    min(a,b,c)
-  elseif (a < 0 && b < 0 && c < 0)
-    max(a,b,c)
-  else
-    zero(a)
-  end
-end
-
-function minmod(a,b)
-  0.5*(sign(a)+sign(b))*min(abs(a),abs(b))
 end
