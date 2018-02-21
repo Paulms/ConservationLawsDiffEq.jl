@@ -8,7 +8,7 @@ function solve(
   @unpack tspan,f,f0, mesh = prob
   #Compute initial data
   N = numcells(mesh)
-  u0 = zeros(mesh.N, prob.numvars)
+  u0 = zeros(eltype(f0(cell_faces(mesh)[1])), mesh.N, prob.numvars)
   compute_initial_data!(u0, f0, average_initial_data, mesh, Val{use_threads})
 
   if !has_jac(f)
@@ -29,25 +29,23 @@ function solve(
   timeIntegrator.sol.retcode,timeIntegrator.sol.interp;dense = timeIntegrator.sol.dense))
 end
 
-function initial_data_inner_loop!(u0, f0, average_initial_data, faces, centers, mesh, i)
+function initial_data_inner_loop!(u0, f0, average_initial_data, mesh, i)
     if average_initial_data
+        faces = cell_faces(mesh)
         u0[i,:] = num_integrate(f0,faces[i], faces[i+1])/volume(i, mesh)
     else
+        centers = cell_centers(mesh)
         u0[i,:] = f0(centers[i])
     end
 end
 function compute_initial_data!(u0, f0, average_initial_data, mesh, ::Type{Val{true}})
-    faces = cell_faces(mesh)
-    centers = cell_centers(mesh)
     Threads.@threads for i in 1:numcells(mesh)
-        initial_data_inner_loop!(u0, f0, average_initial_data, faces, centers, mesh, i)
+        initial_data_inner_loop!(u0, f0, average_initial_data, mesh, i)
     end
 end
 function compute_initial_data!(u0, f0, average_initial_data, mesh, ::Type{Val{false}})
-    faces = cell_faces(mesh)
-    centers = cell_centers(mesh)
     for i in 1:numcells(mesh)
-        initial_data_inner_loop!(u0, f0, average_initial_data, faces, centers, mesh, i)
+        initial_data_inner_loop!(u0, f0, average_initial_data, mesh, i)
     end
 end
 
@@ -76,11 +74,11 @@ function solve(
   #Unroll some important constants
   @unpack tspan,f,f0, mesh = prob
 
-  N = mesh.N
+  N = numcells(mesh)
   NC = prob.numvars
   NN = basis.order+1
   #Assign Initial values (u0 = φₕ⋅u0ₘ)
-  u0ₘ = zeros(NN*NC, N)
+  u0ₘ = zeros(eltype(f0(cell_faces(mesh)[1])),NN*NC, N)
   for i = 1:N
     for j = 1:NC
       value = project_function(f0,basis,(cell_faces(mesh)[i],cell_faces(mesh)[i+1]); component = j)
@@ -230,7 +228,7 @@ function fast_solve(
 
   #Compute initial data
   N = numcells(mesh)
-  u0 = zeros(mesh.N, prob.numvars)
+  u0 = zeros(eltype(f0(cell_faces(mesh)[1])), mesh.N, prob.numvars)
   compute_initial_data!(u0, f0, average_initial_data, mesh, Val{use_threads})
 
   if !has_jac(f)
