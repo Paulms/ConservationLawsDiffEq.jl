@@ -34,7 +34,7 @@ end
 """
     (fv::FVIntegrator)(t, u, du)
 
-Apply a finite volume semidiscretisation.
+Apply a finite volume semidiscretization.
 """
 function (fv::FVIntegrator)(du, u, p, t)
   @boundscheck begin
@@ -49,15 +49,15 @@ function (fv::FVIntegrator)(du, u, p, t)
   if isleftzeroflux(mesh);fluxes[1,:] = 0.0; end
   if isrightzeroflux(mesh);fluxes[numedges(mesh),:] = 0.0;end
   compute_du!(du, fluxes, mesh, Val{use_threads})
-  nothing
   if isleftdirichlet(mesh);du[1,:] = 0.0; end
   if isrightdirichlet(mesh);fluxes[numcells(mesh),:] = 0.0;end
+  nothing
 end
 
 """
     (fv::FVDiffIntegrator)(t, u, du)
 
-Apply a finite volume semidiscretisation.
+Apply a finite volume semidiscretization.
 """
 function (fv::FVDiffIntegrator)(du, u, p, t)
   @boundscheck begin
@@ -82,7 +82,7 @@ function compute_du!(du, fluxes, mesh::AbstractFVMesh1D, ::Type{Val{true}})
     Threads.@threads for cell in cell_indices(mesh)
         @inbounds left = left_edge(cell, mesh)
         @inbounds right = right_edge(cell, mesh)
-        @inbounds du[cell,:] = -( fluxes[right,:] - fluxes[left,:] ) / volume(cell, mesh)
+        @inbounds du[cell,:] = -( fluxes[right,:] - fluxes[left,:] ) / cell_volume(cell, mesh)
     end
 end
 
@@ -90,6 +90,6 @@ function compute_du!(du, fluxes, mesh::AbstractFVMesh1D, ::Type{Val{false}})
     for cell in cell_indices(mesh)
         @inbounds left = left_edge(cell, mesh)
         @inbounds right = right_edge(cell, mesh)
-        @inbounds du[cell,:] = -( fluxes[right,:] - fluxes[left,:] ) / volume(cell, mesh)
+        @inbounds du[cell,:] = -( fluxes[right,:] - fluxes[left,:] ) / cell_volume(cell, mesh)
     end
 end

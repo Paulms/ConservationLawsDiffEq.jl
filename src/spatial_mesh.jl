@@ -3,9 +3,20 @@ An abstract mesh in one space dimension.
 """
 abstract type AbstractFVMesh1D <: AbstractFVMesh end
 
-
+# AbstractFVMesh1D API
 @inline numedges(mesh::AbstractFVMesh1D) = numcells(mesh)+1
 @inline edge_indices(mesh::AbstractFVMesh1D) = 1:numedges(mesh)
+# REMARK: Dirichlet condition values are given by initial conditions.
+@inline isleftperiodic(mesh::AbstractFVMesh1D) = (mesh.left_boundary == :PERIODIC)
+@inline isrightperiodic(mesh::AbstractFVMesh1D) = (mesh.right_boundary == :PERIODIC)
+@inline isleftzeroflux(mesh::AbstractFVMesh1D) = (mesh.left_boundary == :ZERO_FLUX)
+@inline isrightzeroflux(mesh::AbstractFVMesh1D) = (mesh.right_boundary == :ZERO_FLUX)
+@inline isleftdirichlet(mesh::AbstractFVMesh1D) = (mesh.left_boundary == :DIRICHLET)
+@inline isrightdirichlet(mesh::AbstractFVMesh1D) = (mesh.right_boundary == :DIRICHLET)
+@inline numcells(mesh::AbstractFVMesh1D) = mesh.N
+@inline cell_indices(mesh::AbstractFVMesh1D) = 1:numcells(mesh)
+@inline cell_centers(mesh::AbstractFVMesh1D) = mesh.cell_centers
+@inline cell_faces(mesh::AbstractFVMesh1D) = mesh.cell_faces
 
 """
 A uniform mesh in one space dimension of `N` cells
@@ -19,14 +30,6 @@ struct Uniform1DFVMesh{T} <: AbstractFVMesh1D
   right_boundary::Symbol
 end
 
-# REMARK: Dirichlet condition values are given by initial conditions.
-isleftperiodic(mesh::AbstractFVMesh1D) = (mesh.left_boundary == :PERIODIC)
-isrightperiodic(mesh::AbstractFVMesh1D) = (mesh.right_boundary == :PERIODIC)
-isleftzeroflux(mesh::AbstractFVMesh1D) = (mesh.left_boundary == :ZERO_FLUX)
-isrightzeroflux(mesh::AbstractFVMesh1D) = (mesh.right_boundary == :ZERO_FLUX)
-isleftdirichlet(mesh::AbstractFVMesh1D) = (mesh.left_boundary == :DIRICHLET)
-isrightdirichlet(mesh::AbstractFVMesh1D) = (mesh.right_boundary == :DIRICHLET)
-
 function Uniform1DFVMesh(N::Int,xinit::Real,xend::Real,leftbdtype=:ZERO_FLUX,rightbdtype=:ZERO_FLUX)
     L = xend - xinit
     dx = L/N
@@ -35,13 +38,10 @@ function Uniform1DFVMesh(N::Int,xinit::Real,xend::Real,leftbdtype=:ZERO_FLUX,rig
     Uniform1DFVMesh(N,dx,xx,faces,leftbdtype,rightbdtype)
 end
 
-@inline numcells(mesh::Uniform1DFVMesh) = mesh.N
-@inline cell_indices(mesh::Uniform1DFVMesh) = 1:numcells(mesh)
-@inline cell_centers(mesh::Uniform1DFVMesh) = mesh.cell_centers
-@inline cell_faces(mesh::Uniform1DFVMesh) = mesh.cell_faces
-@inline volume(cell::Int, mesh::Uniform1DFVMesh) = mesh.Δx
+@inline cell_volume(cell::Int, mesh::Uniform1DFVMesh) = mesh.Δx
 @inline cell_volumes(mesh::Uniform1DFVMesh) = mesh.Δx * ones(mesh.N)
 
+### Boundary helper functions
 function getPeriodicIndex(A::AbstractArray{T,2}, I...) where {T}
     checkbounds(Bool, A, I...) && return A[I...]
     if typeof(I[1]) <: Int

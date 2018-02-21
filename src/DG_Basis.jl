@@ -101,7 +101,7 @@ function get_local_inv_mass_matrix{T}(basis::PolynomialBasis{T}, mesh::AbstractF
   M_inv = Vector{Matrix{T}}(mesh.N)
   M = diagm(diagnal)
   for k in 1:mesh.N
-    M_inv[k] = 2.0./volume(k, mesh)*M
+    M_inv[k] = 2.0./cell_volume(k, mesh)*M
   end
   return M_inv
 end

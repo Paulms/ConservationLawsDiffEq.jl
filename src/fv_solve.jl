@@ -32,7 +32,7 @@ end
 function initial_data_inner_loop!(u0, f0, average_initial_data, mesh, i)
     if average_initial_data
         faces = cell_faces(mesh)
-        u0[i,:] = num_integrate(f0,faces[i], faces[i+1])/volume(i, mesh)
+        u0[i,:] = num_integrate(f0,faces[i], faces[i+1])/cell_volume(i, mesh)
     else
         centers = cell_centers(mesh)
         u0[i,:] = f0(centers[i])

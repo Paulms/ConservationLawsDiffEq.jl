@@ -29,7 +29,7 @@ function save_csv(sol::FVSolution, file_name::String; idx = -1)
   end
 end
 
-function get_total_u(sol)
+function get_total_u(sol::FVSolution)
     masa = zeros(size(sol.u))
     for (i,u) in enumerate(sol.u)
         masa[i] = sum(u*sol.prob.mesh.Δx)

@@ -17,10 +17,10 @@ function DiscontinuousGalerkinScheme(basis, riemann_solver;max_w_speed = nothing
 end
 
 "Reconstruc solution from basis space"
-function reconstruct_u(u::Matrix, φ::Matrix, NC::Int)
+function reconstruct_u(u::AbstractArray{T,2}, φ::AbstractArray{T2,2}, NC::Int) where {T, T2}
   uh = myblock(φ,NC)*u
   NN = size(φ,1); Nx = size(u,2)
-  uₕ = zeros(eltype(u), NN*Nx,NC)
+  uₕ = zeros(T, NN*Nx,NC)
   for j in 1:NC
     uₕ[:,j] = uh[(j-1)*NN+1:j*NN,:][:]
   end
@@ -36,7 +36,7 @@ function update_dt(alg::DiscontinuousGalerkinScheme,u::AbstractArray{T2,2},Flux,
 end
 
 "Apply boundary conditions on scalar problems"
-function apply_boundary(u, mesh)
+function apply_boundary(u::AbstractArray{T,2}, mesh::AbstractFVMesh1D) where {T}
   if isleftperiodic(mesh)
       u[:,1] = u[:,end-1]
   elseif  isleftzeroflux(mesh)
@@ -50,10 +50,10 @@ function apply_boundary(u, mesh)
 end
 
 "build a block diagonal matrix by repeating a matrix N times"
-function myblock(A::Matrix,N::Int)
+function myblock(A::AbstractArray{T,2},N::Int) where {T}
   M = size(A,1)
   Q = size(A,2)
-  B = zeros(eltype(A),M*N,Q*N)
+  B = zeros(T,M*N,Q*N)
   for i = 1:N
     B[(i-1)*M+1:i*M,(i-1)*Q+1:i*Q] = A
   end
@@ -96,7 +96,6 @@ end
     q[:,i] = riemann_solver(ul,ur)
   end
   Q = zeros(F)
-  NN = size(basis.φₕ,2)
   for l in 1:NN
     for j in 1:NC
       Q[(j-1)*NN+l,2:end-1] = q[j,2:end] + (-1)^l*q[j,1:end-1]

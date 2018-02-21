@@ -1,3 +1,10 @@
+"""
+num_integrate(f,a,b;order=5, method = gausslegendre)
+
+Numerical integration helper function.
+    Integrates function f on interval [a, b], using quadrature rule given by
+        `method` of order `order`
+"""
 function num_integrate(f,a,b;order=5, method = gausslegendre)
     nodes, weights = method(order);
     t_nodes = 0.5*(b-a)*nodes+0.5(b+a)
@@ -18,6 +25,18 @@ function inner_slopes_loop!(∇u,j,u,mesh,θ,M)
     end
 end
 
+"""
+function compute_slopes(u, mesh, θ, N, M, ::Type{Val{true}})
+    Estimate slopes of the discretization of function u,
+        using a generalized minmod limiter
+    inputs:
+    `u` discrete approx of function u
+    `N` number of cells
+    `M` number of variables
+    `θ` parameter of generalized minmod limiter
+    `mesh` problem mesh
+    `Type{Val}` bool to choose threaded version
+"""
 function compute_slopes(u, mesh, θ, N, M, ::Type{Val{true}})
     ∇u = zeros(u)
     Threads.@threads for j = 1:N
@@ -36,8 +55,8 @@ end
 
 function update_dt(alg::AbstractFVAlgorithm,u::AbstractArray{T,2},Flux,
     DiffMat, CFL,mesh::Uniform1DFVMesh) where {T}
-  maxρ = 0
-  maxρB = 0
+  maxρ = zero(T)
+  maxρB = zero(T)
   N = numcells(mesh)
   for i in 1:N
     maxρ = max(maxρ, fluxρ(u[i,:], Flux))
@@ -53,7 +72,7 @@ end
 
 function update_dt(alg::AbstractFVAlgorithm,u::AbstractArray{T,2},Flux,
     CFL,mesh::Uniform1DFVMesh) where {T}
-  maxρ = 0
+  maxρ = zero(T)
   N = numcells(mesh)
   for i in 1:N
     maxρ = max(maxρ, fluxρ(u[i,:], Flux))
@@ -61,8 +80,8 @@ function update_dt(alg::AbstractFVAlgorithm,u::AbstractArray{T,2},Flux,
   CFL/(1/mesh.Δx*maxρ)
 end
 
-@inline function maxfluxρ(u::AbstractArray,f)
-    maxρ = zero(eltype(u))
+@inline function maxfluxρ(u::AbstractArray{T,2},f) where {T}
+    maxρ = zero(T)
     N = size(u,1)
     for i in 1:N
       maxρ = max(maxρ, fluxρ(u[i,:],f))
