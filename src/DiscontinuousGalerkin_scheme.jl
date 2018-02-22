@@ -69,10 +69,8 @@ function residual!(H, u, basis::PolynomialBasis, mesh::Uniform1DFVMesh, alg::Dis
     NN = basis.order + 1
 
     us = get_dg_face_values(u, basis.order, NC)
-    #Add ghost cells
-    us = hcat(zeros(us[:,1]),us,zeros(us[:,end]))
     #Apply boundary conditions TODO: Other boundary types
-    apply_boundary(us, mesh)
+    us = apply_boundary(us, mesh)
     q = zeros(u)
     F = zeros(u)
     ur=us[1:2:end,:]
@@ -97,25 +95,17 @@ end
 
 "Apply boundary conditions on scalar problems"
 function apply_boundary(u::AbstractArray{T,2}, mesh::AbstractFVMesh1D) where {T}
+  #Add ghost cells
+  uh = hcat(u[:,1],u,u[:,end])
   if isleftperiodic(mesh)
-      u[:,1] = u[:,end-1]
+      uh[:,1] = uh[:,end-1]
   elseif  isleftzeroflux(mesh)
-      u[:,1] = u[:,2]
+      uh[:,1] = uh[:,2]
   end
   if isrightperiodic(mesh)
-      u[:,end] = u[:,2]
+      uh[:,end] = uh[:,2]
   elseif  isrightzeroflux(mesh)
-      u[:,end] = u[:,end-1]
+      uh[:,end] = uh[:,end-1]
   end
-end
-
-"build a block diagonal matrix by repeating a matrix N times"
-function myblock(A::AbstractArray{T,2},N::Int) where {T}
-  M = size(A,1)
-  Q = size(A,2)
-  B = zeros(T,M*N,Q*N)
-  for i = 1:N
-    B[(i-1)*M+1:i*M,(i-1)*Q+1:i*Q] = A
-  end
-  B
+  return uh
 end

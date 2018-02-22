@@ -92,3 +92,14 @@ end
 @inline function fluxρ(uj::Vector,f)
   maximum(abs,eigvals(f(Val{:jac}, uj)))
 end
+
+"build a block diagonal matrix by repeating a matrix N times"
+function myblock(A::AbstractArray{T,2},N::Int) where {T}
+  M = size(A,1)
+  Q = size(A,2)
+  B = zeros(T,M*N,Q*N)
+  for i = 1:N
+    B[(i-1)*M+1:i*M,(i-1)*Q+1:i*Q] = A
+  end
+  B
+end
