@@ -77,7 +77,7 @@ function solve(
   N = numcells(mesh)
   NC = prob.numvars
   NN = basis.order+1
-  #Assign Initial values (u0 = φₕ⋅u0ₘ)
+  #Assign Initial values (u0 = φ⋅u0ₘ)
   u0ₘ = zeros(eltype(f0(cell_faces(mesh)[1])),NN*NC, N)
   for i = 1:N
     for j = 1:NC
@@ -91,14 +91,14 @@ function solve(
 
   #Time loop
   #First dt
-  u0ₕ = reconstruct_u(u0ₘ, basis.φₕ, NC)
+  u0ₕ = reconstruct_u(u0ₘ, basis.φ, NC)
   dt = update_dt(alg, u0ₕ, f, prob.CFL, mesh)
   # Setup time integrator
   semidiscretef(du,u,p,t) = residual!(du, u, basis, mesh, f, riemann_solver, M_inv,NC)
   ode_prob = ODEProblem(semidiscretef, u0ₘ, prob.tspan)
   timeIntegrator = init(ode_prob, TimeIntegrator;dt=dt, kwargs...)
   @inbounds for i in timeIntegrator
-    uₕ = reconstruct_u(timeIntegrator.u, basis.φₕ, NC)
+    uₕ = reconstruct_u(timeIntegrator.u, basis.φ, NC)
     dt = update_dt(alg, uₕ, f, prob.CFL, mesh)
     set_proposed_dt!(timeIntegrator, dt)
   end

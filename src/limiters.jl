@@ -36,7 +36,7 @@ function apply_limiter!(u,f,t,mesh, basis, limiter::Linear_MUSCL_Limiter)
     ul = u[:,:]; ul[3:end,:] = 0.0
 
     # Compute cell averages
-    uavg = [basis.φₕ[1,1]*u[1,i] for i in 1:size(u,2)]
+    uavg = [basis.φ[1,1]*u[1,i] for i in 1:size(u,2)]
     #compute nodes in real coordinates
     x1 = zeros(basis.order+1,numcells(mesh))
     for k in 1:numcells(mesh)
@@ -45,7 +45,7 @@ function apply_limiter!(u,f,t,mesh, basis, limiter::Linear_MUSCL_Limiter)
     x0 = cell_centers(mesh)
     # Compute derivative
     h = cell_volumes(mesh)
-    ux = 2*(1./h)'.*(basis.dφₕ*ul)
+    ux = 2*(1./h)'.*(basis.dφ*ul)
 
     uavgp1 = [uavg[2:end]...,uavg[end]]
     uavgm1 = [uavg[1],uavg[1:end-1]...]
@@ -68,7 +68,7 @@ end
 #
 # function apply_limiter(u,f,t,mesh, basis, limiter::MUSCLV2Limiter)
 #     # Compute cell averages
-#     ̄ū = [0.5*dot(basis.φₕ*u[:,i], basis.weights) for i in 1:size(u,2)]
+#     ̄ū = [0.5*dot(basis.φ*u[:,i], basis.weights) for i in 1:size(u,2)]
 #
 #     # find end values of each element
 #     ue1 = u[1,:];ue2=u[end,:]
@@ -88,7 +88,7 @@ end
 #         x1[:,k] = reference_to_interval(basis.nodes, (cell_faces(mesh)[k],cell_faces(mesh)[k+1]))
 #       end
 #       x0 = cell_centers(mesh)
-#       ux = 0.5*h2.*((basis.dφₕ*u)'*basis.weights)
+#       ux = 0.5*h2.*((basis.dφ*u)'*basis.weights)
 #       #println("idx: ", idx)
 #       for j in 1:size(u,1)
 #         u[j,idx] = vk[idx]+(x1[j,idx]-x0[idx]).*

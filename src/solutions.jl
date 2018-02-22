@@ -66,22 +66,22 @@ rateType,P,A,IType}(
   mesh = problem.mesh
   #Use first value to infere types
   k = 1
-  NN = size(basis.φₕ,1)
-  NM = size(basis.ψₕ,1)
+  NN = size(basis.φ,1)
+  NM = size(basis.ψ,1)
   Nx = size(ode_sol.u[k],2)
-  uₕ = reconstruct_u(ode_sol.u[k], basis.φₕ, NC)
+  uₕ = reconstruct_u(ode_sol.u[k], basis.φ, NC)
   u = Vector{typeof(uₕ)}(0)
   push!(u, copy(uₕ))
 
-  uf = reconstruct_u(ode_sol.u[k], basis.ψₕ, NC)
+  uf = reconstruct_u(ode_sol.u[k], basis.ψ, NC)
   uₛ = Vector{typeof(uf)}(0)
   push!(uₛ, copy(uf))
 
   # Save the rest of the iterations
   for k in 2:size(ode_sol.u,1)
-    uₕ = reconstruct_u(ode_sol.u[k], basis.φₕ, NC)
+    uₕ = reconstruct_u(ode_sol.u[k], basis.φ, NC)
     push!(u, copy(uₕ))
-    uf = reconstruct_u(ode_sol.u[k], basis.ψₕ, NC)
+    uf = reconstruct_u(ode_sol.u[k], basis.ψ, NC)
     push!(uₛ, copy(uf))
   end
   xg = zeros(NN,Nx)
@@ -100,16 +100,16 @@ rateType,P,A,IType}(
 end
 
 function interp_common(sol, uₘ)
-  NN = size(sol.basis.φₕ,1)
+  NN = size(sol.basis.φ,1)
   if typeof(uₘ) <: Vector
     u = Vector{Matrix{eltype(uₘ[1])}}(0)
     for M in uₘ
-      uₕ = reconstruct_u(M, sol.basis.φₕ, sol.NC)
+      uₕ = reconstruct_u(M, sol.basis.φ, sol.NC)
       push!(u, copy(uₕ))
     end
     return u
   else
-    uₕ = reconstruct_u(uₘ, sol.basis.φₕ, sol.NC)
+    uₕ = reconstruct_u(uₘ, sol.basis.φ, sol.NC)
     return uₕ
   end
 end

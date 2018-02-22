@@ -76,7 +76,7 @@ end
   apply_boundary(uₘ, mesh)
 
   #Reconstruct u in finite space: uₕ(ξ)
-  uₕ = myblock(basis.φₕ,NC)*uₘ
+  uₕ = myblock(basis.φ,NC)*uₘ
   F = zeros(uₕ)
   Fₕ = zeros(uₕ)
   NN = basis.order+1
@@ -86,10 +86,10 @@ end
     end
   end
   # Integrate interior fluxes ∫f(uₕ)φ'(ξ)dξ
-  F = A_mul_B!(F,myblock(basis.dφₕ.*basis.weights,NC)',Fₕ)
+  F = A_mul_B!(F,myblock(basis.dφ.*basis.weights,NC)',Fₕ)
 
   # Evaluate edge fluxes
-  uₛ = myblock(basis.ψₕ,NC)*uₘ
+  uₛ = myblock(basis.ψ,NC)*uₘ
   q = zeros(eltype(u),NC,size(uₛ,2)-1)
   for i = 1:(size(uₛ,2)-1)
     ul = uₛ[2:2:size(uₛ,1),i]; ur = uₛ[1:2:size(uₛ,1),i+1]
