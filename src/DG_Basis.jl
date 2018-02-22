@@ -5,11 +5,8 @@ struct PolynomialBasis{T}
   weights::Vector{T}    #Quadrature weights for numerical integration
   polynomials::Vector{Poly}
   φ::Matrix{T}     #Vandermonde matrix: basis polynomials evaluated on G-L nodes
-  ψ::Matrix{T}     #basis polynomials evaluated on faces (-1,1)
   dφ::Matrix{T}
   invφ::Matrix{T}   #inverse of Gen. Vandermonde matrix
-  L2M::Matrix{T}    #Legendre to monomial transform matrix
-  M2L::Matrix{T}    #Monomial to legendre transform matrix
 end
 
 """compute Legendre polynomials coefficients, normalized to be orthonormal"""
@@ -42,16 +39,10 @@ function poly_jacobi{T<:Number}(n, a, b, ::Type{T}=Float64, var=:x)
     return p1
 end
 
-function legendre_to_monomials(u, basis::PolynomialBasis{T}) where {T}
-    basis.L2M*u ./ [factorial(i) for i in 0:basis.order]
-end
-
-function legendre_basis{T<:Number}(order, ::Type{T}=Float64; quad_rule = gausslobatto)
-  nodes, weights = quad_rule(order+1)
+function legendre_basis{T<:Number}(order, ::Type{T}=Float64)
+  nodes, weights = gausslobatto(order+1)
   φ = zeros(T,order+1,order+1)
   dφ = zeros(T,order+1,order+1)
-  # TODO: # of faces depend on dimensions
-  ψ = zeros(T,2,order+1)
   polynomials = Vector{Poly}(order+1)
   for n = 0:order
     p = poly_legendre(n, T)
@@ -60,14 +51,9 @@ function legendre_basis{T<:Number}(order, ::Type{T}=Float64; quad_rule = gausslo
     # Eval interior nodes
     φ[:,n+1] = polyval(p, nodes)
     dφ[:,n+1] = polyval(dp, nodes)
-    # Eval faces nodes
-    ψ[:,n+1] = polyval(p, [-1.0,1.0])
   end
   invφ = inv(φ)
-  V = [nodes[i+1]^j/factorial(j) for i=0:order, j=0:order]
-  L2M = inv(V)*φ
-  M2L = inv(L2M)
-  PolynomialBasis{T}(order,nodes,weights,polynomials,φ,ψ,dφ,invφ,L2M,M2L)
+  PolynomialBasis{T}(order,nodes,weights,polynomials,φ,dφ,invφ)
 end
 
 "Maps reference coordinates (ξ ∈ [-1,1]) to interval coordinates (x)"
@@ -91,37 +77,4 @@ function project_function(f, basis, interval::Tuple; component=1)
   end
   p0 = zeros(eltype(basis.nodes),basis.order+1)
   curve_fit(model, basis.nodes, f_val, p0)
-end
-
-#TODO: Dispatch on different basis types
-"Get mass matrix: (2l+1)/Δx for legendre polynomials"
-function get_local_mass_matrix{T}(basis::PolynomialBasis{T}, mesh)
-  diagnal = zeros(T, basis.order+1)
-  diagnal[:] = 2.0/(2*(0:basis.order)+1)
-  M = Vector{T}(mesh.N)
-  m = diagm(diagnal)
-  for k in 1:mesh.N
-    M[k] = mesh.cell_dx[k]/2.0*m
-  end
-  return M
-end
-
-"Get mass matrix inverse: Δx/(2l+1) for legendre polynomials"
-function get_local_inv_mass_matrix{T}(basis::PolynomialBasis{T}, mesh::AbstractFVMesh1D)
-  diagnal = zeros(T, basis.order+1)
-  diagnal[:] = (2*(0:basis.order)+1) / 2.0
-  M_inv = Vector{Matrix{T}}(mesh.N)
-  M = diagm(diagnal)
-  for k in 1:mesh.N
-    M_inv[k] = 2.0./cell_volume(k, mesh)*M
-  end
-  return M_inv
-end
-
-"compute local inverse matrix on 1D uniform problems"
-function get_local_inv_mass_matrix{T}(basis::PolynomialBasis{T}, mesh::Uniform1DFVMesh)
-  diagnal = zeros(T, basis.order+1)
-  diagnal[:] = (2*(0:basis.order)+1) / 2.0
-  M_inv = Vector{Matrix{T}}(mesh.N)
-  return 2.0/mesh.Δx*diagm(diagnal)
 end

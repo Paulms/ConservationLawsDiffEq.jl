@@ -28,15 +28,9 @@ prob = get_problem(200)
 @time sol6 = solve(prob, FVCompMWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33())
 @time sol7 = solve(prob, FVSpecMWENOAlgorithm();progress=true, save_everystep = false)
 
-function llf_num_flux(ul, ur)
-    αl = fluxρ(ul, f)
-    αr = fluxρ(ur, f)
-    αk = max(αl, αr)
-    return 0.5*(f(ul)+f(ur))-αk*(ur-ul)
-end
 basis=legendre_basis(3)
 limiter! = DGLimiter(prob.mesh, basis, Linear_MUSCL_Limiter())
-@time sol8 = solve(prob, DiscontinuousGalerkinScheme(basis, llf_num_flux); TimeIntegrator = SSPRK22(limiter!))
+@time sol8 = solve(prob, DiscontinuousGalerkinScheme(basis, glf_num_flux); TimeIntegrator = SSPRK22(limiter!))
 
 #Plot
 using Plots

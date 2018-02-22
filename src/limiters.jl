@@ -32,11 +32,14 @@ immutable Linear_MUSCL_Limiter <: AbstractDGLimiter end
 
 """ apply_linear receives u in modal coefficients """
 function apply_limiter!(u,f,t,mesh, basis, limiter::Linear_MUSCL_Limiter)
+    # Compute modal coefficients
+    uh = basis.invφ*u
+
     #Extract linear polynomial
-    ul = u[:,:]; ul[3:end,:] = 0.0
+    ul = uh[:,:]; ul[3:end,:] = 0.0
 
     # Compute cell averages
-    uavg = [basis.φ[1,1]*u[1,i] for i in 1:size(u,2)]
+    uavg = [basis.φ[1,1]*uh[1,i] for i in 1:size(uh,2)]
     #compute nodes in real coordinates
     x1 = zeros(basis.order+1,numcells(mesh))
     for k in 1:numcells(mesh)
@@ -58,8 +61,6 @@ function apply_limiter!(u,f,t,mesh, basis, limiter::Linear_MUSCL_Limiter)
           minmod(ux[j,i],(uavgp1[i]-uavg[i])/h[i],(uavg[i]-uavgm1[i])/h[i])
       end
     end
-    # convert back to modal values
-    u[:,:]  = basis.invφ*u
 end
 
 

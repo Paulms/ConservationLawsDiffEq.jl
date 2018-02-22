@@ -27,10 +27,8 @@ end
       push!(labels,"u$i")
     end
     yvector = sol.u[tidx]
-    ysvector = sol.uₛ[tidx]
     if vars != nothing
       yvector = sol.u[tidx][:,vars]
-      ysvector = sol.uₛ[tidx][:,vars]
       labels = labels[vars]
     end
     if typeof(labels) <: String
@@ -41,10 +39,6 @@ end
     @series begin
       seriestype  :=  :path
       sol.nodes, yvector
-    end
-    @series begin
-      seriestype  :=  :scatter
-      sol.face_nodes, ysvector
     end
 end
 

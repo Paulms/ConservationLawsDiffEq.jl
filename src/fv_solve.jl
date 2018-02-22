@@ -77,35 +77,36 @@ function solve(
   N = numcells(mesh)
   NC = prob.numvars
   NN = basis.order+1
-  #Assign Initial values (u0 = φ⋅u0ₘ)
-  u0ₘ = zeros(eltype(f0(cell_faces(mesh)[1])),NN*NC, N)
-  for i = 1:N
-    for j = 1:NC
-      value = project_function(f0,basis,(cell_faces(mesh)[i],cell_faces(mesh)[i+1]); component = j)
-      u0ₘ[(j-1)*NN+1:NN*j,i] = value.param
-    end
+  #Assign Initial values
+  xg = zeros(NN,N)
+  for i in 1:N
+    b = cell_faces(mesh)[i+1]; a=cell_faces(mesh)[i]
+    xg[:,i] = reference_to_interval(basis.nodes,(a,b))
   end
 
-  #build inverse of mass matrix
-  M_inv = get_local_inv_mass_matrix(basis, mesh)
-
+  u0 = zeros(eltype(f0(cell_faces(mesh)[1])),NN*NC, N)
+  for i = 1:N
+      for k = 1:NN
+        u0[k:NN:NN*NC,i] = f0(xg[k,i])
+      end
+  end
   #Time loop
   #First dt
-  u0ₕ = reconstruct_u(u0ₘ, basis.φ, NC)
+  u0ₕ = flat_u(u0, basis.order, NC)
   dt = update_dt(alg, u0ₕ, f, prob.CFL, mesh)
   # Setup time integrator
-  semidiscretef(du,u,p,t) = residual!(du, u, basis, mesh, f, riemann_solver, M_inv,NC)
-  ode_prob = ODEProblem(semidiscretef, u0ₘ, prob.tspan)
+  semidiscretef(du,u,p,t) = residual!(du, u, basis, mesh, alg, f, riemann_solver, NC, Val{use_threads})
+  ode_prob = ODEProblem(semidiscretef, u0, prob.tspan)
   timeIntegrator = init(ode_prob, TimeIntegrator;dt=dt, kwargs...)
   @inbounds for i in timeIntegrator
-    uₕ = reconstruct_u(timeIntegrator.u, basis.φ, NC)
+    uₕ = flat_u(timeIntegrator.u, basis.order,NC)
     dt = update_dt(alg, uₕ, f, prob.CFL, mesh)
     set_proposed_dt!(timeIntegrator, dt)
   end
   if timeIntegrator.sol.t[end] != prob.tspan[end]
     savevalues!(timeIntegrator)
   end
-  return build_solution(timeIntegrator.sol,basis,prob, NC)
+  return build_solution(timeIntegrator.sol,xg,basis,prob, NC)
 end
 
 ######### Legacy solve method (easy to debug)

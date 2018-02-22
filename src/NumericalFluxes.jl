@@ -1,12 +1,17 @@
+"Global Lax Friedrichs Flux"
+function glf_num_flux(ul, ur, α)
+    return 0.5*(f(ul)+f(ur))-α/2*(ur-ul)
+end
+
 "Flux for advection equation (simple upwinding)"
-advection_num_flux(ul, ur) = ul
+advection_num_flux(ul, ur, α) = ul
 
 """
 Returns the Rusanov interface flux for the Euler equations
 V. V. Rusanov, Calculation of Interaction of Non-Steady Shock Waves with
 Obstacles, J. Comput. Math. Phys. USSR, 1, pp. 267-279, 1961.
 """
-function rusanov_euler_num_flux(ul, ur)
+function rusanov_euler_num_flux(ul, ur, α)
   @assert(size(ul,1) == size(ur,1),
   "ul and ur vector have different number of components")
   F = zeros(ul)

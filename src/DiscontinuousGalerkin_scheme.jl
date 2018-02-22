@@ -2,10 +2,14 @@
 # Based on:
 #
 
-struct DiscontinuousGalerkinScheme <: AbstractFEAlgorithm
+mutable struct DiscontinuousGalerkinScheme{T,vType} <: AbstractFEAlgorithm
   basis::PolynomialBasis
   riemann_solver::Function
   max_w_speed :: Function
+  D::AbstractArray{T,2}
+  Ma::AbstractArray{T,2}    #Mass Matrix on reference element
+  S::AbstractArray{T,2}     #Stiffness matrix on reference element
+  ν::vType                  #Max wave speed
 end
 
 "DiscontinuousGalerkinScheme constructor"
@@ -13,7 +17,9 @@ function DiscontinuousGalerkinScheme(basis, riemann_solver;max_w_speed = nothing
     if max_w_speed == nothing
         max_w_speed = maxfluxρ
     end
-  DiscontinuousGalerkinScheme(basis, riemann_solver, max_w_speed)
+    D = basis.dφ*basis.invφ
+    Ma = inv(basis.φ*basis.φ')
+  DiscontinuousGalerkinScheme(basis, riemann_solver, max_w_speed, D, Ma, Ma*D, 0.0)
 end
 
 "Reconstruc solution from basis space"
@@ -27,12 +33,66 @@ function reconstruct_u(u::AbstractArray{T,2}, φ::AbstractArray{T2,2}, NC::Int) 
   return uₕ
 end
 
+"Flat x nodes on u matrix"
+function flat_u(u::AbstractArray{T,2}, order::Int, NC::Int) where {T}
+  NN = order + 1
+  uh = zeros(T, size(u,2)*NN, NC)
+  for j in 1:NC
+    uh[:,j] = u[(j-1)*NN+1:j*NN,:][:]
+  end
+  return uh
+end
+
+"Get cell face values for each variable"
+function get_dg_face_values(u::AbstractArray{T,2}, order::Int, NC::Int) where {T}
+    NN = order + 1
+    #TODO: number of faces depend on dimension
+    us = zeros(T, 2*NC, size(u,2))
+    for j in 1:size(u,2)
+      for k in 1:NC
+          us[(2*k-1):k*2,j] = u[[1+NN*(k-1),NN+NN*(k-1)],j]
+      end
+    end
+    return us
+end
+
 "Update dt based on CFL condition"
 function update_dt(alg::DiscontinuousGalerkinScheme,u::AbstractArray{T2,2},Flux,
     CFL,mesh::Uniform1DFVMesh) where {T2}
-    ν = alg.max_w_speed(u, Flux)
+    alg.ν = alg.max_w_speed(u, Flux)
     dx = maximum(cell_volumes(mesh))
-    dx * CFL / (ν * (2 * alg.basis.order + 1))
+    dx * CFL*min(abs(basis.nodes[1]-basis.nodes[2])) / alg.ν
+end
+
+"Compute right hand side for time integration"
+function residual!(H, u, basis::PolynomialBasis, mesh::Uniform1DFVMesh, alg::DiscontinuousGalerkinScheme, f, riemann_solver, NC, ::Type{Val{false}})
+    NN = basis.order + 1
+
+    us = get_dg_face_values(u, basis.order, NC)
+    #Add ghost cells
+    us = hcat(zeros(us[:,1]),us,zeros(us[:,end]))
+    #Apply boundary conditions TODO: Other boundary types
+    apply_boundary(us, mesh)
+    q = zeros(u)
+    F = zeros(u)
+    ur=us[1:2:end,:]
+    ul=us[2:2:end,:]
+    for i = 1:numcells(mesh)
+        # Evaluate edge fluxes
+        q[NN:NN:end,i] = riemann_solver(ul[:,i+1],ur[:,i+2], alg.ν)
+        q[1:NN:end,i] = -riemann_solver(ul[:,i],ur[:,i+1], alg.ν)
+        # Integrate interior fluxes ∫f(uₕ)φ'(ξ)dξ
+        for k = 1:NN
+            F[k:NN:end,i] = f(u[k:NN:end,i])
+        end
+    end
+
+    # Compute right hand size
+    ru = myblock(alg.S',NC)*F - q
+    h = maximum(cell_volumes(mesh))
+    H[:,:] = (h/2*myblock(alg.Ma,NC))\ru;
+    if isleftdirichlet(mesh); H[:,1] = 0.0; end
+   if isrightdirichlet(mesh); H[:,end] = 0.0; end
 end
 
 "Apply boundary conditions on scalar problems"
@@ -58,66 +118,4 @@ function myblock(A::AbstractArray{T,2},N::Int) where {T}
     B[(i-1)*M+1:i*M,(i-1)*Q+1:i*Q] = A
   end
   B
-end
-
-"Calculates residual for DG method
-  Inputs:
-    H = matrix used to store residuals
-    u = coefficients of current finite solution approx.
-  residual = M_inv*(Q+F)
-         where M_inv is the inverse mass matrix
-              Q is the edge fluxes
-              F is the interior flux"
-@def scalar_1D_residual_common begin
-  #Add ghost cells
-  uₘ = hcat(zeros(u[:,1]),u,zeros(u[:,end]))
-
-  #Apply boundary conditions TODO: Other boundary types
-  apply_boundary(uₘ, mesh)
-
-  #Reconstruct u in finite space: uₕ(ξ)
-  uₕ = myblock(basis.φ,NC)*uₘ
-  F = zeros(uₕ)
-  Fₕ = zeros(uₕ)
-  NN = basis.order+1
-  for k in 1:size(uₕ,2)
-    for j in 1:NN
-      Fₕ[j:NN:size(uₕ,1),k] = f(uₕ[j:NN:size(uₕ,1),k])
-    end
-  end
-  # Integrate interior fluxes ∫f(uₕ)φ'(ξ)dξ
-  F = A_mul_B!(F,myblock(basis.dφ.*basis.weights,NC)',Fₕ)
-
-  # Evaluate edge fluxes
-  uₛ = myblock(basis.ψ,NC)*uₘ
-  q = zeros(eltype(u),NC,size(uₛ,2)-1)
-  for i = 1:(size(uₛ,2)-1)
-    ul = uₛ[2:2:size(uₛ,1),i]; ur = uₛ[1:2:size(uₛ,1),i+1]
-    q[:,i] = riemann_solver(ul,ur)
-  end
-  Q = zeros(F)
-  for l in 1:NN
-    for j in 1:NC
-      Q[(j-1)*NN+l,2:end-1] = q[j,2:end] + (-1)^l*q[j,1:end-1]
-    end
-  end
-end
-function residual!(H, u, basis::PolynomialBasis, mesh::AbstractFVMesh1D, f, riemann_solver, M_inv,NC)
-  @scalar_1D_residual_common
-  H[:,:] = F[:,2:(end-1)]-Q[:,2:(end-1)]
-  #Calculate residual
-  for k in 1:mesh.N
-    H[:,k] = myblock(M_inv[k],NC)*H[:,k]
-  end
-  if isleftdirichlet(mesh); H[:,1] = 0.0; end
-  if isrightdirichlet(mesh); H[:,end] = 0.0; end
-end
-
-"Efficient residual computation for uniform problems"
-function residual!(H, u, basis::PolynomialBasis, mesh::Uniform1DFVMesh, f, riemann_solver, M_inv,NC)
-  @scalar_1D_residual_common
-  #Calculate residual
-  A_mul_B!(H,myblock(M_inv,NC),F[:,2:(end-1)]-Q[:,2:(end-1)])
-  if isleftdirichlet(mesh); H[:,1] = 0.0; end
-  if isrightdirichlet(mesh); H[:,end] = 0.0; end
 end

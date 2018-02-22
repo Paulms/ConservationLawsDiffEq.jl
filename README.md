@@ -45,31 +45,31 @@ At the momento only Cartesian 1D uniform mesh available, using `Uniform1DFVMesh(
 
 The algorithms follow the method of lines, so first we compute a semidiscretization in space and time integration is performed using ODE solvers.
 
-#### Lax-Friedrichs method 
+#### Lax-Friedrichs method
 
 (`LaxFriedrichsAlgorithm()`), Global/Local L-F Scheme (`GlobalLaxFriedrichsAlgorithm()`, `LocalLaxFriedrichsAlgorithm()`), Second order Law-Wendroff Scheme (`LaxWendroffAlgorithm()`), Ritchmeyer Two-step Lax-Wendroff Method (`LaxWendroff2sAlgorithm()`)
 
 * R. LeVeque. Finite Volume Methods for Hyperbolic Problems.Cambridge University Press. New York 2002
 
-#### TECNO Schemes 
+#### TECNO Schemes
 
 (`FVTecnoAlgorithm(Nflux;ve, order)`)
 
 * U. Fjordholm, S. Mishra, E. Tadmor, *Arbitrarly high-order accurate entropy stable essentially nonoscillatory schemes for systems of conservation laws*. 2012. SIAM. vol. 50. No 2. pp. 544-573
 
-#### High-Resolution Central Schemes 
+#### High-Resolution Central Schemes
 
 (`FVSKTAlgorithm()`)
 
 Kurganov, Tadmor, *New High-Resolution Central Schemes for Nonlinear Conservation Laws and Convection–Diffusion Equations*, Journal of Computational Physics, Vol 160, issue 1, 1 May 2000, Pages 241-282
 
-#### Second-Order upwind central scheme 
+#### Second-Order upwind central scheme
 
 (`FVCUAlgorithm`)
 
 * Kurganov A., Noelle S., Petrova G., Semidiscrete Central-Upwind schemes for hyperbolic Conservation Laws and Hamilton-Jacobi Equations. SIAM. Sci Comput, Vol 23, No 3m pp 707-740. 2001
 
-#### Dissipation Reduced Central upwind Scheme: 
+#### Dissipation Reduced Central upwind Scheme:
 
 Second-Order (`FVDRCUAlgorithm`), fifth-order (`FVDRCU5Algorithm`)
 
@@ -81,23 +81,23 @@ Second-Order (`FVDRCUAlgorithm`), fifth-order (`FVDRCU5Algorithm`)
 
 * C.-W. Shu, *High order weighted essentially non-oscillatory schemes for convection dominated problems*, SIAM Review, 51:82-126, (2009).
 
-#### Component Wise Mapped WENO Scheme 
+#### Component Wise Mapped WENO Scheme
 
 (`FVCompMWENOAlgorithm(;order)`)
 
 * A. Henrick, T. Aslam, J. Powers, *Mapped weighted essentially non-oscillatory schemes: Achiving optimal order near critical points*. Journal of Computational Physics. Vol 207. 2005. Pages 542-567
 
-#### Component Wise Global Lax-Friedrichs Scheme 
+#### Component Wise Global Lax-Friedrichs Scheme
 
-(`COMP_GLF_Diff_Algorithm()`) 
+(`COMP_GLF_Diff_Algorithm()`)
 
-#### Characteristic Wise WENO (Spectral) Scheme 
+#### Characteristic Wise WENO (Spectral) Scheme
 
 (`FVSpecMWENOAlgorithm(;order)`)
 
 * R. Bürger, R. Donat, P. Mulet, C. Vega, *On the implementation of WENO schemes for a class of polydisperse sedimentation models*. Journal of Computational Physics, Volume 230, Issue 6, 20 March 2011, Pages 2322-2344
 
-#### Linearly implicit IMEX Runge-Kutta schemes 
+#### Linearly implicit IMEX Runge-Kutta schemes
 
 (`LI_IMEX_RK_Algorithm(;scheme, linsolve)`) (not working for zero_flux boundary conditions)
 
@@ -105,7 +105,7 @@ Second-Order (`FVDRCUAlgorithm`), fifth-order (`FVDRCU5Algorithm`)
 
 * S. Boscarino, R. Bürger, P. Mulet, G. Russo, L. Villada, *Linearly implicit IMEX Runge Kutta methods for a class of degenerate convection diffusion problems*, SIAM J. Sci. Comput., 37(2), B305–B331
 
-#### Discontinuos Galerkin Scheme 
+#### Discontinuos Galerkin Scheme
 
 (`DiscontinuousGalerkinScheme(basis, num_flux; max_w_speed)`)
 
@@ -113,7 +113,7 @@ Second-Order (`FVDRCUAlgorithm`), fifth-order (`FVDRCU5Algorithm`)
 
 `basis` Polynomial basis for the discrete functional space, only `legendre_basis(k)` are available at the moment.
 
-`num_flux` Function of the form `f(ul, ur)`, defines numerical flux for the cell interfaces.
+`num_flux` Function of the form `f(ul, ur, α)`, defines numerical flux for the cell interfaces. (α is the maximum wave speed)
 
 `max_w_speed` Optional function used to compute maximum wave speed
 
