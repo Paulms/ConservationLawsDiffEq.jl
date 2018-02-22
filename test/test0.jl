@@ -74,7 +74,7 @@ println("No threaded version of FVSpecMWENOAlgorithm")
 @time sol1 = solve(prob, LaxWendroffAlgorithm(); use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 basis=legendre_basis(3)
-limiter! = DGLimiter(prob.mesh, basis, Linear_MUSCL_Limiter())
+limiter! = DGLimiter(prob, basis, Linear_MUSCL_Limiter())
 @time sol = solve(prob, DiscontinuousGalerkinScheme(basis, glf_num_flux); TimeIntegrator = SSPRK22(limiter!))
 @test get_L1_error(sol_ana, sol) < 1.3
 println("No threaded version of DG Scheme")

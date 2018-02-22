@@ -29,7 +29,7 @@ prob = get_problem(200)
 @time sol7 = solve(prob, FVSpecMWENOAlgorithm();progress=true, save_everystep = false)
 
 basis=legendre_basis(3)
-limiter! = DGLimiter(prob.mesh, basis, Linear_MUSCL_Limiter())
+limiter! = DGLimiter(prob, basis, Linear_MUSCL_Limiter())
 @time sol8 = solve(prob, DiscontinuousGalerkinScheme(basis, glf_num_flux); TimeIntegrator = SSPRK22(limiter!))
 
 #Plot

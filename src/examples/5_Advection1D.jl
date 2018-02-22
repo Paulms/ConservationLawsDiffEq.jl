@@ -26,7 +26,7 @@ prob = get_problem(200)
 basis=legendre_basis(3)
 
 #Optional dgLimiter
-#limiter! = DGDefaultLimiter(prob.mesh, basis)
+#limiter! = DGDefaultLimiter(prob, basis)
 
 #Solve problem
 @time u = solve(prob, DiscontinuousGalerkinScheme(basis, advection_num_flux; max_w_speed = max_w_speed); TimeIntegrator = SSPRK22())
