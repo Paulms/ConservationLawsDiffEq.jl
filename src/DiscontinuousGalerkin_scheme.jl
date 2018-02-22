@@ -79,8 +79,8 @@ function residual!(H, u, basis::PolynomialBasis, mesh::Uniform1DFVMesh, alg::Dis
     ul=us[2:2:end,:]
     for i = 1:numcells(mesh)
         # Evaluate edge fluxes
-        q[NN:NN:end,i] = riemann_solver(ul[:,i+1],ur[:,i+2], alg.ν)
-        q[1:NN:end,i] = -riemann_solver(ul[:,i],ur[:,i+1], alg.ν)
+        q[NN:NN:end,i] = riemann_solver(ul[:,i+1],ur[:,i+2], f, alg.ν)
+        q[1:NN:end,i] = -riemann_solver(ul[:,i],ur[:,i+1], f, alg.ν)
         # Integrate interior fluxes ∫f(uₕ)φ'(ξ)dξ
         for k = 1:NN
             F[k:NN:end,i] = f(u[k:NN:end,i])

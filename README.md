@@ -113,7 +113,7 @@ Second-Order (`FVDRCUAlgorithm`), fifth-order (`FVDRCU5Algorithm`)
 
 `basis` Polynomial basis for the discrete functional space, only `legendre_basis(k)` are available at the moment.
 
-`num_flux` Function of the form `f(ul, ur, α)`, defines numerical flux for the cell interfaces. (α is the maximum wave speed)
+`num_flux` Function of the form `F(ul, ur, f, α)`, defines numerical flux for the cell interfaces. (α is the maximum wave speed, f: flux function)
 
 `max_w_speed` Optional function used to compute maximum wave speed
 
