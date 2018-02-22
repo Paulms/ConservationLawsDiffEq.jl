@@ -61,7 +61,7 @@ function update_dt(alg::DiscontinuousGalerkinScheme,u::AbstractArray{T2,2},Flux,
     CFL,mesh::Uniform1DFVMesh) where {T2}
     alg.ν = alg.max_w_speed(u, Flux)
     dx = maximum(cell_volumes(mesh))
-    dx * CFL*min(abs(basis.nodes[1]-basis.nodes[2])) / alg.ν
+    dx * CFL*min(abs(alg.basis.nodes[1]-alg.basis.nodes[2])) / alg.ν
 end
 
 "Compute right hand side for time integration"
