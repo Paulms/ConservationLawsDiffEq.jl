@@ -135,7 +135,7 @@ end
     Juno.msg(prog,"dt="*string(dt))
     Juno.progress(prog,percentage/100.0)
   end
-  if (t>tend)
+  if (t>=tend)
     break
   end
 end
@@ -254,6 +254,7 @@ function fast_solve(
   @fv_generalpreamble
   @inbounds for i=1:iterations
     ode_fv.dt = update_dt(u, ode_fv)
+    if t + ode_fv.dt > tend; ode_fv.dt = tend - t; end  
     t += ode_fv.dt
     @fv_deterministicloop
     @fv_footer
