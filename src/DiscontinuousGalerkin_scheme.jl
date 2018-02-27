@@ -1,6 +1,6 @@
 # DiscontinuousGalerkinScheme
 # Based on:
-#
+# Hesthaven, Warburton, Nodal Discontinuous Galerkin Methods Algorithms, Analysis and applications
 
 mutable struct DiscontinuousGalerkinScheme{T,vType} <: AbstractFEAlgorithm
   basis::PolynomialBasis
@@ -13,7 +13,7 @@ mutable struct DiscontinuousGalerkinScheme{T,vType} <: AbstractFEAlgorithm
 end
 
 "DiscontinuousGalerkinScheme constructor"
-function DiscontinuousGalerkinScheme(basis, riemann_solver;max_w_speed = nothing)
+function DiscontinuousGalerkinScheme(basis::PolynomialBasis, riemann_solver;max_w_speed = nothing)
     if max_w_speed == nothing
         max_w_speed = maxfluxρ
     end
@@ -65,14 +65,14 @@ function update_dt(alg::DiscontinuousGalerkinScheme,u::AbstractArray{T2,2},Flux,
 end
 
 "Compute right hand side for time integration"
-function residual!(H, u, basis::PolynomialBasis, mesh::Uniform1DFVMesh, alg::DiscontinuousGalerkinScheme, f, riemann_solver, NC, ::Type{Val{false}})
+function residual!(H::AbstractArray{T,2}, u::AbstractArray{T,2}, basis::PolynomialBasis, mesh::Uniform1DFVMesh, alg::DiscontinuousGalerkinScheme, f, riemann_solver, NC, ::Type{Val{false}}) where {T}
     NN = basis.order + 1
 
     us = get_dg_face_values(u, basis.order, NC)
     #Apply boundary conditions TODO: Other boundary types
     us = apply_boundary(us, mesh)
-    q = zeros(u)
-    F = zeros(u)
+    q = zeros(T, u)
+    F = zeros(T, u)
     ur=us[1:2:end,:]
     ul=us[2:2:end,:]
     for i = 1:numcells(mesh)

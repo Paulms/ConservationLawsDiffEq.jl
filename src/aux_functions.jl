@@ -37,7 +37,7 @@ function compute_slopes(u, mesh, θ, N, M, ::Type{Val{true}})
     `mesh` problem mesh
     `Type{Val}` bool to choose threaded version
 """
-function compute_slopes(u, mesh, θ, N, M, ::Type{Val{true}})
+function compute_slopes(u::AbstractArray, mesh::AbstractFVMesh1D, θ, N::Int, M::Int, ::Type{Val{true}})
     ∇u = zeros(u)
     Threads.@threads for j = 1:N
         inner_slopes_loop!(∇u,j,u,mesh,θ,M)
@@ -45,7 +45,7 @@ function compute_slopes(u, mesh, θ, N, M, ::Type{Val{true}})
     ∇u
 end
 
-function compute_slopes(u, mesh, θ, N, M, ::Type{Val{false}})
+function compute_slopes(u::AbstractArray, mesh::AbstractFVMesh1D, θ, N::Int, M::Int, ::Type{Val{false}})
     ∇u = zeros(u)
     for j = 1:N
         inner_slopes_loop!(∇u,j,u,mesh,θ,M)

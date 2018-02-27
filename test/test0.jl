@@ -31,7 +31,7 @@ prob = get_problem(50)
 @time sol1 = solve(prob, FVSKTAlgorithm(); use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = fast_solve(prob, FVSKTAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.066
+@test get_L1_error(sol_ana, sol) < 0.062
 @time sol1 = fast_solve(prob, FVSKTAlgorithm();use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, LaxFriedrichsAlgorithm();use_threads = false, save_everystep = false)

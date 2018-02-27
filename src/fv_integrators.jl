@@ -36,7 +36,7 @@ end
 
 Apply a finite volume semidiscretization.
 """
-function (fv::FVIntegrator)(du, u, p, t)
+function (fv::FVIntegrator)(du::AbstractArray{T,2}, u::AbstractArray{T,2}, p, t) where {T}
   @boundscheck begin
     if length(u) != length(du)
       error("length(u) = $(length(u)) != $(length(du)) = length(du)")
@@ -46,11 +46,11 @@ function (fv::FVIntegrator)(du, u, p, t)
 
   @unpack mesh, alg, Flux, M, fluxes, dt, use_threads = fv
   compute_fluxes!(fluxes, Flux, u, mesh, dt, M, alg, Val{use_threads})
-  if isleftzeroflux(mesh);fluxes[1,:] = 0.0; end
-  if isrightzeroflux(mesh);fluxes[numedges(mesh),:] = 0.0;end
+  if isleftzeroflux(mesh);fluxes[1,:] = zero(T); end
+  if isrightzeroflux(mesh);fluxes[numedges(mesh),:] = zero(T);end
   compute_du!(du, fluxes, mesh, Val{use_threads})
-  if isleftdirichlet(mesh);du[1,:] = 0.0; end
-  if isrightdirichlet(mesh);fluxes[numcells(mesh),:] = 0.0;end
+  if isleftdirichlet(mesh);du[1,:] = zero(T); end
+  if isrightdirichlet(mesh);fluxes[numcells(mesh),:] = zero(T);end
   nothing
 end
 
@@ -59,7 +59,7 @@ end
 
 Apply a finite volume semidiscretization.
 """
-function (fv::FVDiffIntegrator)(du, u, p, t)
+function (fv::FVDiffIntegrator)(du::AbstractArray{T,2}, u::AbstractArray{T,2}, p, t) where {T}
   @boundscheck begin
     if length(u) != length(du)
       error("length(u) = $(length(u)) != $(length(du)) = length(du)")
@@ -69,11 +69,11 @@ function (fv::FVDiffIntegrator)(du, u, p, t)
 
   @unpack mesh, alg, Flux, M, fluxes, DiffMat, dt, use_threads = fv
   compute_Dfluxes!(fluxes, Flux, DiffMat, u, mesh, dt, M, alg, Val{use_threads})
-  if isleftzeroflux(mesh);fluxes[1,:] = 0.0; end
-  if isrightzeroflux(mesh);fluxes[numedges(mesh),:] = 0.0;end
+  if isleftzeroflux(mesh);fluxes[1,:] = zero(T); end
+  if isrightzeroflux(mesh);fluxes[numedges(mesh),:] = zero(T);end
   compute_du!(du, fluxes, mesh, Val{use_threads})
-  if isleftdirichlet(mesh);du[1,:] = 0.0; end
-  if isrightdirichlet(mesh);fluxes[numcells(mesh),:] = 0.0;end
+  if isleftdirichlet(mesh);du[1,:] = zero(T); end
+  if isrightdirichlet(mesh);fluxes[numcells(mesh),:] = zero(T);end
   nothing
 end
 

@@ -2,7 +2,7 @@ function solve(
   prob::AbstractConservationLawProblem,
   alg::AbstractFVAlgorithm;
   TimeIntegrator::OrdinaryDiffEqAlgorithm = SSPRK22(),
-  average_initial_data = true, use_threads = false, kwargs...)
+  average_initial_data::Bool = true, use_threads::Bool = false, kwargs...)
 
   #Unroll some important constants
   @unpack tspan,f,f0, mesh = prob
@@ -49,17 +49,17 @@ function compute_initial_data!(u0, f0, average_initial_data, mesh, ::Type{Val{fa
     end
 end
 
-function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsProblem;use_threads=false)
-    @unpack f0, f,CFL,numvars,mesh = prob
+function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsProblem;use_threads::Bool=false)
+    @unpack f0, f,CFL,numvars,mesh,tspan = prob
     fluxes = zeros(eltype(f0(cell_faces(mesh)[1])),numedges(mesh),numvars)
-    dt = 0.0
+    dt = zero(eltype(tspan))
     FVIntegrator(alg,mesh,f,CFL,numvars, fluxes, dt, use_threads)
 end
 
-function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsWithDiffusionProblem;use_threads=false)
-    @unpack f0,f,CFL,numvars,mesh, DiffMat = prob
+function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsWithDiffusionProblem;use_threads::Bool=false)
+    @unpack f0,f,CFL,numvars,mesh,DiffMat,tspan = prob
     fluxes = zeros(eltype(f0(cell_faces(mesh)[1])),numedges(mesh),numvars)
-    dt = 0.0
+    dt = zero(eltype(tspan))
     FVDiffIntegrator(alg,mesh,f,DiffMat,CFL,numvars, fluxes, dt, use_threads)
 end
 ##############Solve method for DG scheme ##################
@@ -217,12 +217,12 @@ end
 function fast_solve(
   prob::AbstractConservationLawProblem,
   alg::AbstractFVAlgorithm;
-  average_initial_data = true,
-  save_everystep = false,
-  iterations=1000000,
+  average_initial_data::Bool = true,
+  save_everystep::Bool = false,
+  iterations::Int=1000000,
   TimeIntegrator=:SSPRK22,
   progress::Bool=false,progressbar_name="FV",
-  use_threads = false, kwargs...)
+  use_threads::Bool = false, kwargs...)
 
   #Unroll some important constants
   @unpack tspan,f,f0, mesh = prob
@@ -254,7 +254,7 @@ function fast_solve(
   @fv_generalpreamble
   @inbounds for i=1:iterations
     ode_fv.dt = update_dt(u, ode_fv)
-    if t + ode_fv.dt > tend; ode_fv.dt = tend - t; end  
+    if t + ode_fv.dt > tend; ode_fv.dt = tend - t; end
     t += ode_fv.dt
     @fv_deterministicloop
     @fv_footer
