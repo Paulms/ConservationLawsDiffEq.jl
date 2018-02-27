@@ -71,8 +71,8 @@ function residual!(H::AbstractArray{T,2}, u::AbstractArray{T,2}, basis::Polynomi
     us = get_dg_face_values(u, basis.order, NC)
     #Apply boundary conditions TODO: Other boundary types
     us = apply_boundary(us, mesh)
-    q = zeros(T, u)
-    F = zeros(T, u)
+    q = zeros(u)
+    F = zeros(u)
     ur=us[1:2:end,:]
     ul=us[2:2:end,:]
     for i = 1:numcells(mesh)
