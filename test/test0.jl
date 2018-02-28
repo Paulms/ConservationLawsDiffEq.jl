@@ -27,54 +27,54 @@ end
 
 prob = get_problem(50)
 @time sol = solve(prob, FVSKTAlgorithm(); use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.062
+@test get_L1_error(sol_ana, sol) < 0.048
 @time sol1 = solve(prob, FVSKTAlgorithm(); use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = fast_solve(prob, FVSKTAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.062
+@test get_L1_error(sol_ana, sol) < 0.048
 @time sol1 = fast_solve(prob, FVSKTAlgorithm();use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, LaxFriedrichsAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.26
+@test get_L1_error(sol_ana, sol) < 0.24
 @time sol1 = solve(prob, LaxFriedrichsAlgorithm();use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, LocalLaxFriedrichsAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.18
+@test get_L1_error(sol_ana, sol) < 0.17
 println("No threaded version of LLF")
 @time sol = solve(prob, GlobalLaxFriedrichsAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.26
+@test get_L1_error(sol_ana, sol) < 0.24
 @time sol1 = solve(prob, GlobalLaxFriedrichsAlgorithm();use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 #@time sol5 = solve(prob, LaxWendroff2sAlgorithm();progress=true, save_everystep = false)
 @time sol = solve(prob, FVCompWENOAlgorithm();use_threads = false, TimeIntegrator = SSPRK33(), save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.055
+@test get_L1_error(sol_ana, sol) < 0.041
 @time sol1 = solve(prob, FVCompWENOAlgorithm();use_threads = true, TimeIntegrator = SSPRK33(), save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, FVCompMWENOAlgorithm();use_threads = false, TimeIntegrator = SSPRK33(), save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.051
+@test get_L1_error(sol_ana, sol) < 0.037
 @time sol1 = solve(prob, FVCompMWENOAlgorithm();use_threads = true, TimeIntegrator = SSPRK33(), save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, FVSpecMWENOAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.043
+@test get_L1_error(sol_ana, sol) < 0.028
 println("No threaded version of FVSpecMWENOAlgorithm")
 @time sol = solve(prob, FVCUAlgorithm(); use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.053
+@test get_L1_error(sol_ana, sol) < 0.039
 @time sol1 = solve(prob, FVCUAlgorithm(); use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, FVDRCUAlgorithm(); use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.053
+@test get_L1_error(sol_ana, sol) < 0.039
 @time sol1 = solve(prob, FVDRCUAlgorithm(); use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, FVDRCU5Algorithm(); use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.065
+@test get_L1_error(sol_ana, sol) < 0.051
 @time sol1 = solve(prob, FVDRCU5Algorithm(); use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, LaxWendroffAlgorithm(); use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.057
+@test get_L1_error(sol_ana, sol) < 0.043
 @time sol1 = solve(prob, LaxWendroffAlgorithm(); use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 basis=legendre_basis(3)
 limiter! = DGLimiter(prob, basis, Linear_MUSCL_Limiter())
 @time sol = solve(prob, DiscontinuousGalerkinScheme(basis, glf_num_flux); TimeIntegrator = SSPRK22(limiter!))
-@test get_L1_error(sol_ana, sol) < 1.3
+@test get_L1_error(sol_ana, sol) < 1.28
 println("No threaded version of DG Scheme")

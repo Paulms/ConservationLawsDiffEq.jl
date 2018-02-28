@@ -21,17 +21,31 @@ function dg_norm(u, basis::PolynomialBasis, p)
         sum([(abs.(u[i:(i+k-1),:]).^p)'*basis.weights for i in 1:k:N])[1]
     end
 end
-function get_LP_error(ref::Function, sol::AbstractFVSolution; relative = true, p = 1.0)
+
+"""
+function get_LP_error(ref::Function, sol::AbstractFVSolution; relative = true, p = 1.0, pointwise::Bool = false)
+    Compute Lp errores of FVSolution `sol` against reference solution `ref`.
+    Additional options:
+    `relative`: default true. Compute relative or absolute error
+    `p`: parameter to define Lp norm
+    `poitwise` default false. Compute errors against pointwise values of reference solution or cell averages
+"""
+function get_LP_error(ref::Function, sol::AbstractFVSolution; relative::Bool = true, p = 1.0, pointwise::Bool = false)
     x = cell_centers(sol.prob.mesh)
     tspan = sol.prob.tspan
     uexact = zeros(sol.u[end])
+    faces = cell_faces(sol.prob.mesh)
     for i in 1:numcells(sol.prob.mesh)
-        uexact[i,:] = ref(x[i], tspan[end])
+        if pointwise
+            uexact[i,:] = ref(x[i], tspan[end])
+        else
+            uexact[i,:] = num_integrate(x->ref(x, tspan[end]),faces[i], faces[i+1])/cell_volume(i, sol.prob.mesh)
+        end
     end
     relative ? 100*mesh_norm((sol.u[end] - uexact), sol.prob.mesh, p)/mesh_norm(uexact, sol.prob.mesh, p) : mesh_norm((sol.u[end] - uexact), sol.prob.mesh, p)
 end
 
-function get_LP_error(ref::Function, sol::DGSolution; relative = true, p = 1.0)
+function get_LP_error(ref::Function, sol::DGSolution; relative::Bool = true, p = 1.0)
     x = sol.nodes
     tspan = sol.prob.tspan
     uexact = zeros(sol.u[end])
@@ -59,7 +73,7 @@ end
 
 #TODO: Estimate approx numerical errors when DG is used
 "Compute aproximate L1 errors with numerical reference solution"
-function get_num_LP_error(reference,M, uu,N,dx; relative = true, p = 1.0)
+function get_num_LP_error(reference,M, uu,N,dx; relative::Bool = true, p = 1.0)
     uexact = zeros(uu)
     R = Int(round(M/N))
     for i = 1:N
@@ -119,7 +133,7 @@ by solving a Conservations Laws problem in a sequence of meshes of cell size giv
 `get_problem` is a function that returns a ConservationLawsProblem given a number of cells `N`
 `kwargs` extra arguments are passed to `solve` function
 """
-function get_conv_order_table(alg, get_problem, u_exact::Function, mesh_ncells; relative = true, kwargs...)
+function get_conv_order_table(alg, get_problem, u_exact::Function, mesh_ncells; relative::Bool = true, kwargs...)
     errors = zeros(Float64,size(mesh_ncells,1),2)
     @assert size(mesh_ncells,1) > 2 "mesh_sizes must have at least two elements"
     for (i,N) in enumerate(mesh_ncells)
@@ -131,7 +145,7 @@ function get_conv_order_table(alg, get_problem, u_exact::Function, mesh_ncells; 
     return FVOOCTable(mesh_ncells,errors[:,1],errors[:,2],scheme_short_name(alg))
 end
 
-function get_conv_order_table(alg, get_problem, u_exact::AbstractFVSolution, mesh_ncells; relative = true, kwargs...)
+function get_conv_order_table(alg, get_problem, u_exact::AbstractFVSolution, mesh_ncells; relative::Bool = true, kwargs...)
     errors = zeros(Float64,size(mesh_ncells,1),2)
     @assert size(mesh_ncells,1) > 2 "mesh_sizes must have at least two elements"
     for (i,N) in enumerate(mesh_ncells)

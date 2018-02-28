@@ -8,7 +8,7 @@ Numerical integration helper function.
 function num_integrate(f,a,b;order=5, method = gausslegendre)
     nodes, weights = method(order);
     t_nodes = 0.5*(b-a)*nodes+0.5(b+a)
-    M = size(f(a),1)
+    M = length(f(a))
     tmp = zeros(M)
     for i in 1:M
         g(x) = f(x)[i]
