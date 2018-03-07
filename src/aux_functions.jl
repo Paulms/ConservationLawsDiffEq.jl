@@ -26,28 +26,27 @@ function inner_slopes_loop!(∇u,j,u,mesh,θ,M)
 end
 
 """
-function compute_slopes(u, mesh, θ, N, M, ::Type{Val{true}})
+function compute_slopes(u, mesh, θ, M, ::Type{Val{true}})
     Estimate slopes of the discretization of function u,
         using a generalized minmod limiter
     inputs:
     `u` discrete approx of function u
-    `N` number of cells
     `M` number of variables
     `θ` parameter of generalized minmod limiter
     `mesh` problem mesh
     `Type{Val}` bool to choose threaded version
 """
-function compute_slopes(u::AbstractArray, mesh::AbstractFVMesh1D, θ, N::Int, M::Int, ::Type{Val{true}})
-    ∇u = zeros(u)
-    Threads.@threads for j = 1:N
+function compute_slopes(u::AbstractArray, mesh::AbstractFVMesh1D, θ, M::Int, ::Type{Val{true}})
+    ∇u = similar(u)
+    Threads.@threads for j in cell_indices(mesh)
         inner_slopes_loop!(∇u,j,u,mesh,θ,M)
     end
     ∇u
 end
 
-function compute_slopes(u::AbstractArray, mesh::AbstractFVMesh1D, θ, N::Int, M::Int, ::Type{Val{false}})
+function compute_slopes(u::AbstractArray, mesh::AbstractFVMesh1D, θ, M::Int, ::Type{Val{false}})
     ∇u = zeros(u)
-    for j = 1:N
+    for j in cell_indices(mesh)
         inner_slopes_loop!(∇u,j,u,mesh,θ,M)
     end
     ∇u
@@ -57,8 +56,7 @@ function update_dt(alg::AbstractFVAlgorithm,u::AbstractArray{T,2},Flux,
     DiffMat, CFL,mesh::Uniform1DFVMesh) where {T}
   maxρ = zero(T)
   maxρB = zero(T)
-  N = numcells(mesh)
-  for i in 1:N
+  for i in cell_indices(mesh)
     maxρ = max(maxρ, fluxρ(u[i,:], Flux))
     maxρB = max(maxρB, maximum(abs,eigvals(DiffMat(u[i,:]))))
   end
@@ -73,8 +71,7 @@ end
 function update_dt(alg::AbstractFVAlgorithm,u::AbstractArray{T,2},Flux,
     CFL,mesh::Uniform1DFVMesh) where {T}
   maxρ = zero(T)
-  N = numcells(mesh)
-  for i in 1:N
+  for i in cell_indices(mesh)
     maxρ = max(maxρ, fluxρ(u[i,:], Flux))
   end
   CFL/(1/mesh.Δx*maxρ)

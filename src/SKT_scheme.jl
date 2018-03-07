@@ -32,7 +32,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{V
     N = numcells(mesh)
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, N, M, Val{true})
+    ∇u = compute_slopes(u, mesh, θ, M, Val{true})
 
     Threads.@threads for j in edge_indices(mesh)
         inner_loop!(hh,j,u,∇u,mesh,Flux, alg)
@@ -45,7 +45,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{V
     N = numcells(mesh)
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, N, M, Val{false})
+    ∇u = compute_slopes(u, mesh, θ, M, Val{false})
 
     for j in edge_indices(mesh)
         inner_loop!(hh,j,u,∇u,mesh,Flux, alg)
@@ -69,7 +69,7 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVSKTAlgorithm
     N = numcells(mesh)
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, N, M, Val{true})
+    ∇u = compute_slopes(u, mesh, θ, M, Val{true})
 
     Threads.@threads for j in edge_indices(mesh)
         inner_loop!(hh,j,u,∇u,mesh,Flux, DiffMat, alg)
@@ -82,7 +82,7 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVSKTAlgorithm
     N = numcells(mesh)
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, N, M, Val{false})
+    ∇u = compute_slopes(u, mesh, θ, M, Val{false})
 
     for j in edge_indices(mesh)
         inner_loop!(hh,j,u,∇u,mesh,Flux, DiffMat, alg)

@@ -8,7 +8,7 @@ function solve(
   @unpack tspan,f,f0, mesh = prob
   #Compute initial data
   N = numcells(mesh)
-  u0 = zeros(eltype(f0(cell_faces(mesh)[1])), mesh.N, prob.numvars)
+  u0 = Array{eltype(f0(cell_faces(mesh)[1]))}(mesh.N, prob.numvars)
   compute_initial_data!(u0, f0, average_initial_data, mesh, Val{use_threads})
 
   if !has_jac(f)
@@ -51,7 +51,7 @@ end
 
 function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsProblem;use_threads::Bool=false)
     @unpack f0, f,CFL,numvars,mesh,tspan = prob
-    fluxes = zeros(eltype(f0(cell_faces(mesh)[1])),numedges(mesh),numvars)
+    fluxes = Array{eltype(f0(cell_faces(mesh)[1]))}(numedges(mesh),numvars)
     dt = zero(eltype(tspan))
     FVIntegrator(alg,mesh,f,CFL,numvars, fluxes, dt, use_threads)
 end

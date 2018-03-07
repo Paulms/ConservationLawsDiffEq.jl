@@ -35,7 +35,7 @@ function get_LP_error(ref::Function, sol::AbstractFVSolution; relative::Bool = t
     tspan = sol.prob.tspan
     uexact = zeros(sol.u[end])
     faces = cell_faces(sol.prob.mesh)
-    for i in 1:numcells(sol.prob.mesh)
+    for i in cell_indices(sol.prob.mesh)
         if pointwise
             uexact[i,:] = ref(x[i], tspan[end])
         else

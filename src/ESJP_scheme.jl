@@ -26,8 +26,7 @@ function update_dt(alg::FVESJPeAlgorithm,u::AbstractArray{T,2},Flux,
     DiffMat, CFL,mesh::Uniform1DFVMesh) where {T}
   maxρ = 0
   maxρB = 0
-  N = numcells(mesh)
-  for i in 1:N
+  for i in cell_indices(mesh)
     maxρ = max(maxρ, fluxρ(u[i,:], Flux))
     maxρB = max(maxρB, maximum(abs,eigvals(DiffMat(u[i,:]))))
   end

@@ -16,7 +16,6 @@ compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxWendroff2sAlgorithm, ::Type{Va
 Numerical flux of second order lax Wendroff scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxWendroffAlgorithm, ::Type{Val{true}})
-    N = numcells(mesh)
     dx = mesh.Δx
     #update vector
     Threads.@threads for j in edge_indices(mesh)
@@ -53,7 +52,6 @@ compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxWendroff2sAlgorithm, ::Type{Va
 Numerical flux of second order lax Wendroff scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxWendroff2sAlgorithm, ::Type{Val{true}})
-    N = numcells(mesh)
     dx = mesh.Δx
     #update vector
     Threads.@threads for j in edge_indices(mesh)
@@ -62,7 +60,6 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxWendroff2sAlgorithm, 
 end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxWendroff2sAlgorithm, ::Type{Val{false}})
-    N = numcells(mesh)
     dx = mesh.Δx
     #update vector
     for j in edge_indices(mesh)

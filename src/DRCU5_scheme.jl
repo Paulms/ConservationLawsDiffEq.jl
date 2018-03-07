@@ -103,7 +103,7 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCU5Algorit
     @unpack θ = alg
     N = numcells(mesh)
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, N, M, Val{true})
+    ∇u = compute_slopes(u, mesh, θ, M, Val{true})
     #update vector
     Threads.@threads for j in edge_indices(mesh)
         inner_loop!(hh,j,u,∇u,mesh,θ,Flux, DiffMat, alg)
@@ -114,7 +114,7 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCU5Algorit
     @unpack θ = alg
     N = numcells(mesh)
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, N, M, Val{true})
+    ∇u = compute_slopes(u, mesh, θ, M, Val{true})
     #update vector
     for j in edge_indices(mesh)
         inner_loop!(hh,j,u,∇u,mesh,θ,Flux, DiffMat, alg)

@@ -86,7 +86,7 @@ function glf_splt_inner_loop!(fminus, fplus, j, u, α, Flux)
 end
 function glf_splitting(u, α, Flux, N, ::Type{Val{true}})
   # Lax Friedrichs flux splitting
-  fminus = zeros(u); fplus = zeros(u)
+  fminus = similar(u); fplus = similar(u)
   Threads.@threads for j = 1:N
       glf_splt_inner_loop!(fminus, fplus, j, u, α, Flux)
   end
@@ -95,7 +95,7 @@ end
 
 function glf_splitting(u, α, Flux, N, ::Type{Val{false}})
   # Lax Friedrichs flux splitting
-  fminus = zeros(u); fplus = zeros(u)
+  fminus = similar(u); fplus = similar(u)
   for j = 1:N
       glf_splt_inner_loop!(fminus, fplus, j, u, α, Flux)
   end
@@ -104,12 +104,11 @@ end
 
 function llf_splitting(u, mesh, Flux)
   # Lax Friedrichs flux splitting
-  N = numcells(mesh)
-  fminus = zeros(u); fplus = zeros(u)
+  fminus = similar(u); fplus = similar(u)
   ul=cellval_at_left(1,u,mesh)
   αl = fluxρ(ul, Flux)
   αr = zero(αl)
-  for j = 1:N
+  for j = cell_indices(mesh)
     ur=cellval_at_right(j,u,mesh)
     αr = fluxρ(ur, Flux)
     αk = max(αl, αr)

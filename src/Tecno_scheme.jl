@@ -44,7 +44,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVTecnoAlgorithm, ::Type
     end
     vminus = zeros(N,M); vplus = zeros(N,M)
     wminus = zeros(N,M); wplus = zeros(N,M)
-    for j = 1:N
+    for j in cell_indices(mesh)
       for i = 1:M
         v_eno = get_cellvals(v,mesh,(j-k:j+k,i)...)
         vminus[j,i],vplus[j,i] = ENO_urec(dx,v_eno,order,weights)
