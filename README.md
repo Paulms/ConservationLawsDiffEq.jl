@@ -5,27 +5,27 @@
 [![Coverage Status](https://coveralls.io/repos/Paulms/ConservationLawsDiffEq.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/Paulms/ConservationLawsDiffEq.jl?branch=master)
 [![codecov.io](http://codecov.io/github/Paulms/ConservationLawsDiffEq.jl/coverage.svg?branch=master)](http://codecov.io/github/Paulms/ConservationLawsDiffEq.jl?branch=master)
 
-Collection of numerical schemes for the approximation of Systems of Conservations Laws (finite volume methods and Discontinuous Galerkin). Implementation is influenced by [DifferentialEquations API](http://docs.juliadiffeq.org/latest/).
+Collection of numerical schemes for solving systems of Conservations Laws (finite volume methods/Discontinuous Galerkin + method of lines). Implementation is influenced by [DifferentialEquations API](http://docs.juliadiffeq.org/latest/).
 
-These PDEs are of the form
+Each scheme return a semidiscretization (discretization in space) that represents a ODE system. Time integration is performed then using [OrdinaryDiffEq](https://github.com/JuliaDiffEq/OrdinaryDiffEq.jl) algorithms.
 
-<a href="https://www.codecogs.com/eqnedit.php?latex=u_{t}&plus;f(u)_{x}&=0,\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{&plus;}\\u(x,0)&=u_{0}(x),\qquad\forall&space;x\in\mathbb{R}^{n}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?u_{t}&plus;f(u)_{x}&=0,\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{&plus;}\\u(x,0)&=u_{0}(x),\qquad\forall&space;x\in\mathbb{R}^{n}" title="u_{t}+f(u)_{x}&=0,\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{+}\\u(x,0)&=u_{0}(x),\qquad\forall x\in\mathbb{R}^{n}" /></a>
+The general conservation law problem is represented by the following PDE,
 
-We also consider degenerate convection-diffusion systems (degenerate parabolic-hyperbolic equations) of the form:
+<a href="https://www.codecogs.com/eqnedit.php?latex=\frac{\partial}{\partial&space;t}u&space;&plus;&space;\nabla&space;\cdot&space;f(u)=&space;0,\quad&space;\forall&space;(x,t)\in&space;\mathbb{R}^{n}\times\mathbb{R}_{&plus;}&space;\\&space;u(x,0)&space;=&space;u_{0}(x)\quad&space;\forall&space;x&space;\in&space;\mathbb{R}^{n}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\frac{\partial}{\partial&space;t}u&space;&plus;&space;\nabla&space;\cdot&space;f(u)=&space;0,\quad&space;\forall&space;(x,t)\in&space;\mathbb{R}^{n}\times\mathbb{R}&space;\\&space;u(x,0)&space;=&space;u_{0}(x)\quad&space;\forall&space;x&space;\in&space;\mathbb{R}^{n}" title="\frac{\partial}{\partial t}u + \nabla \cdot f(u)= 0,\quad \forall (x,t)\in \mathbb{R}^{n}\times\mathbb{R} \\ u(x,0) = u_{0}(x)\quad \forall x \in \mathbb{R}^{n}" /></a>
 
-<a href="https://www.codecogs.com/eqnedit.php?latex=u_{t}&plus;f(u)_{x}&=(B(u)u_{x})_{x},\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{&plus;}\\u(x,0)&=u_{0}(x),\qquad\forall&space;x\in\mathbb{R}^{n}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?u_{t}&plus;f(u)_{x}&=(B(u)u_{x})_{x},\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{&plus;}\\u(x,0)&=u_{0}(x),\qquad\forall&space;x\in\mathbb{R}^{n}" title="u_{t}+f(u)_{x}&=(B(u)u_{x})_{x},\qquad\forall(x,t)\in\mathbb{R}^{n}\times\mathbb{R}_{+}\\u(x,0)&=u_{0}(x),\qquad\forall x\in\mathbb{R}^{n}" /></a>
+We can also consider degenerate convection-diffusion systems (degenerate parabolic-hyperbolic equations) of the form:
 
-Solutions follow a conservative finite difference (finite volume) pattern. This method updates point values (cell averages) of the solution **u** and has the general form
+<a href="https://www.codecogs.com/eqnedit.php?latex=\frac{\partial}{\partial&space;t}u&space;&plus;&space;\nabla&space;\cdot&space;f(u)=&space;\nabla&space;\cdot&space;(B(u)\nabla&space;u),\quad&space;\forall&space;(x,t)\in&space;\mathbb{R}^{n}\times\mathbb{R}_{&plus;}&space;\\&space;u(x,0)&space;=&space;u_{0}(x)\quad&space;\forall&space;x&space;\in&space;\mathbb{R}^{n}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\frac{\partial}{\partial&space;t}u&space;&plus;&space;\nabla&space;\cdot&space;f(u)=&space;\nabla&space;\cdot&space;(B(u)\nabla&space;u),\quad&space;\forall&space;(x,t)\in&space;\mathbb{R}^{n}\times\mathbb{R}_{&plus;}&space;\\&space;u(x,0)&space;=&space;u_{0}(x)\quad&space;\forall&space;x&space;\in&space;\mathbb{R}^{n}" title="\frac{\partial}{\partial t}u + \nabla \cdot f(u)= \nabla \cdot (B(u)\nabla u),\quad \forall (x,t)\in \mathbb{R}^{n}\times\mathbb{R}_{+} \\ u(x,0) = u_{0}(x)\quad \forall x \in \mathbb{R}^{n}" /></a>
+
+Solutions follow a conservative finite difference (finite volume) pattern. This method updates cell averages of the solution **u**. For a particular cell *i* it has the general form
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\frac{d}{du}u_{i}(t)=-\frac{1}{\Delta_{i}x}(F_{i&plus;1/2}(t)-F_{i-1/2}(t))" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\frac{d}{du}u_{i}(t)=-\frac{1}{\Delta_{i}x}(F_{i&plus;1/2}(t)-F_{i-1/2}(t))" title="\frac{d}{du}u_{i}(t)=-\frac{1}{\Delta_{i}x}(F_{i+1/2}(t)-F_{i-1/2}(t))" /></a>
 
 Where the numerical flux <a href="https://www.codecogs.com/eqnedit.php?latex=F_{i&plus;1/2}(t)&space;=&space;F(u_{i}(t),u_{i&plus;1}(t)))" target="_blank"><img src="https://latex.codecogs.com/gif.latex?F_{i&plus;1/2}(t)&space;=&space;F(u_{i}(t),u_{i&plus;1}(t)))" title="F_{i+1/2}(t) = F(u_{i}(t),u_{i+1}(t)))" /></a> is an approximate solution of the Riemann problem at the cell interface (x(i+1/2)).
 
-An extra numerical function similar to **F** could be added to account for the Diffusion in the second case.
+An extra numerical function similar to **F** could be added to account for the Diffusion in the second case. 
 
 Discontinuous Galerking formulation is based on Hesthaven, Warburton, Nodal Discontinuous Galerkin Methods Algorithms, book.
-
-Time integration of the semi-discrete form is performed using [OrdinaryDiffEq](https://github.com/JuliaDiffEq/OrdinaryDiffEq.jl) algorithms.
 
 ## Features
 ### Mesh:
