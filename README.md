@@ -19,9 +19,9 @@ We can also consider degenerate convection-diffusion systems (degenerate parabol
 
 Solutions follow a conservative finite difference (finite volume) pattern. This method updates cell averages of the solution **u**. For a particular cell *i* it has the general form
 
-<a href="https://www.codecogs.com/eqnedit.php?latex=\frac{d}{du}u_{i}(t)=-\frac{1}{\Delta_{i}x}(F_{i&plus;1/2}(t)-F_{i-1/2}(t))" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\frac{d}{du}u_{i}(t)=-\frac{1}{\Delta_{i}x}(F_{i&plus;1/2}(t)-F_{i-1/2}(t))" title="\frac{d}{du}u_{i}(t)=-\frac{1}{\Delta_{i}x}(F_{i+1/2}(t)-F_{i-1/2}(t))" /></a>
+<a href="https://www.codecogs.com/eqnedit.php?latex=\frac{d}{d&space;t}u(x_i,t)&space;=&space;-&space;\frac{1}{\Delta&space;x_i}(F(x_{i&plus;1/2},t)&space;-&space;F(x_{i-1/2},t))" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\frac{d}{d&space;t}u(x_i,t)&space;=&space;-&space;\frac{1}{\Delta&space;x_i}(F(x_{i&plus;1/2},t)&space;-&space;F(x_{i-1/2},t))" title="\frac{d}{d t}u(x_i,t) = - \frac{1}{\Delta x_i}(F(x_{i+1/2},t) - F(x_{i-1/2},t))" /></a>
 
-Where the numerical flux <a href="https://www.codecogs.com/eqnedit.php?latex=F_{i&plus;1/2}(t)&space;=&space;F(u_{i}(t),u_{i&plus;1}(t)))" target="_blank"><img src="https://latex.codecogs.com/gif.latex?F_{i&plus;1/2}(t)&space;=&space;F(u_{i}(t),u_{i&plus;1}(t)))" title="F_{i+1/2}(t) = F(u_{i}(t),u_{i+1}(t)))" /></a> is an approximate solution of the Riemann problem at the cell interface (x(i+1/2)).
+Where the numerical flux <a href="https://www.codecogs.com/eqnedit.php?latex=F_{i&plus;1/2}(t)&space;=&space;F(u_{i}(t),u_{i&plus;1}(t)))" target="_blank"><img src="https://latex.codecogs.com/gif.latex?F_{i&plus;1/2}(t)&space;=&space;F(u_{i}(t),u_{i&plus;1}(t)))" title="F_{i+1/2}(t) = F(u_{i}(t),u_{i+1}(t)))" /></a> is an approximate solution of the Riemann problem at the cell interface <a href="https://www.codecogs.com/eqnedit.php?latex=x_{i&plus;1/2}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?x_{i&plus;1/2}" title="x_{i+1/2}" /></a>.
 
 An extra numerical function similar to **F** could be added to account for the Diffusion in the second case. 
 
