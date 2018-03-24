@@ -1,5 +1,4 @@
 # Mass conservation test
-
 using ConservationLawsDiffEq
 
 #FastGaussQuadrature
@@ -20,10 +19,9 @@ const τ = 1e-16
 const κ = 1e-16
 const grv = 9.81 #m/s²
 const wc = 40.0
+const Vmx = (ρd-ρc)*grv*di.^2/(18*μc)
 
-Vmx = (ρd-ρc)*grv*di.^2/(18*μc)
-
-function f(::Type{Val{:jac}},ϕ::Vector)
+function f(::Type{Val{:jac}},ϕ::AbstractVector)
   M = size(ϕ,1)
   F = zeros(M,M)
   Vϕ = VV(sum(ϕ))
@@ -36,7 +34,7 @@ function f(::Type{Val{:jac}},ϕ::Vector)
   F
 end
 
-f(ϕ::Vector) = VV(sum(ϕ))*ϕ.*Vmx
+f(ϕ::AbstractVector) = VV(sum(ϕ))*ϕ.*Vmx
 β(ϕ::Number) = D0*VV(ϕ)
 VV(ϕ::Number) = ϕ<1 ? (1.0-ϕ)^nrz : zero(ϕ)
 VP(ϕ::Number) = ϕ<1 ? -nrz*(1.0-ϕ)^(nrz-1) : zero(ϕ)
@@ -62,7 +60,7 @@ f0(x) = x < L/2 ? 1.0 : 0.0
  end
 
 ##################################### Entropy stable Problem -15 + 0.7*log(1/Vmx[i])
-function vl(u::Vector)
+function vl(u::AbstractVector)
   w = zeros(u)
   for (i,ui) in enumerate(u)
     w[i] = ui < 0.0 ? -wc : max(log(ui),-wc)
@@ -72,13 +70,13 @@ end
 ve(u::Vector) = vl(u)./Vmx
 vei(v::Vector) = exp.(v.*Vmx)
 
-function kv(v::Vector)
+function kv(v::AbstractVector)
   M = size(v,1)
   w = sum(vei(v))
   K = β(w)*diagm(Vmx.*exp.(Vmx.*v))
   K
 end
-function Nediff(vl::Vector, vr::Vector)
+function Nediff(vl::AbstractVector, vr::AbstractVector)
     ul = vei(vl); ur = vei(vr)
     if (sum(ul) < 1.0)
         kv(0.5*(vl+vr))

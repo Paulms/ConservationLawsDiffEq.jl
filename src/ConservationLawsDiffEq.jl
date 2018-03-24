@@ -9,6 +9,7 @@ module ConservationLawsDiffEq
   using RecipesBase, LaTeXStrings, FastGaussQuadrature
   using LsqFit
   using Polynomials
+  using StaticArrays
 
   # Interfaces
   import DiffEqBase: solve, @def, has_jac, LinSolveFactorize, LinearInterpolation

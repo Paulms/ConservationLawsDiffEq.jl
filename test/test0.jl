@@ -15,8 +15,8 @@ const xr = 3.0
 prob1 = RiemannProblem(Burgers(), ul, ur, x0, 0.0)
 sol_ana  = get_solution(prob1)
 
-f(::Type{Val{:jac}},u::Vector) = diagm(u)
-f(u::Vector) = u.^2/2
+f(::Type{Val{:jac}},u::AbstractArray{T,1}) where {T} = diagm(u)
+f(u::AbstractArray) = u.^2/2
 
 f0(x) = (x < x0) ? ul : ur
 

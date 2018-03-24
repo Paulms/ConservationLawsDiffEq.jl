@@ -86,7 +86,7 @@ end
     maxρ
 end
 
-@inline function fluxρ(uj::Vector,f)
+@inline function fluxρ(uj::AbstractArray{T,1},f) where {T}
   maximum(abs,eigvals(f(Val{:jac}, uj)))
 end
 

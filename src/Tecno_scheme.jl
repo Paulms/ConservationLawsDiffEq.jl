@@ -9,7 +9,7 @@ immutable FVTecnoAlgorithm <: AbstractFVAlgorithm
   ve    :: Function #Entropy variable
 end
 
-function FVTecnoAlgorithm(Nflux;order=2.0, ve = u::Vector -> u)
+function FVTecnoAlgorithm(Nflux;order=2.0, ve = u -> u)
   FVTecnoAlgorithm(order, Nflux, ve)
 end
 

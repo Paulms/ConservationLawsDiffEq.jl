@@ -26,8 +26,8 @@ function inner_loop!(hh,j,u,mesh,θ,Flux, alg::FVDRCU5Algorithm)
     uplus = 1/60*(-3*ull+27*ul+47*ur-13*urr+2*urrr)
 
     #Remark: some extrange bug wth eigvals force me to use Lapack
-    λm = sort(LAPACK.geev!('N','N',Flux(Val{:jac}, uminus))[1])
-    λp = sort(LAPACK.geev!('N','N',Flux(Val{:jac}, uplus))[1])
+    λm = sort(LAPACK.geev!('N','N',Array(Flux(Val{:jac}, uminus)))[1])
+    λp = sort(LAPACK.geev!('N','N',Array(Flux(Val{:jac}, uplus)))[1])
     aa_plus=maximum((λm[end], λp[end],0))
     aa_minus=minimum((λm[1], λp[1],0))
     # Update numerical fluxes
