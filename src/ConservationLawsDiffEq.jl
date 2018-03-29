@@ -29,6 +29,9 @@ module ConservationLawsDiffEq
   @compat abstract type AbstractFEAlgorithm <: DEAlgorithm end
   @compat abstract type AbstractDGLimiter end
 
+  # Reconstructions
+  abstract type AbstractReconstruction end
+
   include("spatial_mesh.jl")
   include("ConservationLawsProblems.jl")
   include("fv_integrators.jl")
@@ -81,5 +84,6 @@ module ConservationLawsDiffEq
   export advection_num_flux, rusanov_euler_num_flux, glf_num_flux
   export legendre_basis, PolynomialBasis, poly_jacobi, poly_legendre, reference_to_interval
   export DGLimiter, Linear_MUSCL_Limiter, WENO_Limiter
-  export fluxρ, myblock, apply_boundary
+  export fluxρ, myblock, apply_boundary, reconstruct
+  export ENO_Reconstruction, WENO_Reconstruction, MWENO_Reconstruction
 end

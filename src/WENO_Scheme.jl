@@ -20,7 +20,7 @@ mutable struct FVCompWENOAlgorithm{oType, aType, cType} <: AbstractFVAlgorithm
   order :: oType
   splitting :: Symbol #Splitting strategy local Lax-Friedrichs (LLF) or global
   α :: aType
-  crj :: cType
+  rec_scheme :: cType
   αf :: Function
 end
 
@@ -28,9 +28,7 @@ function FVCompWENOAlgorithm(;order=5, splitting = :GLF, αf = nothing)
   if αf == nothing
     αf = maxfluxρ
   end
-  k = Int((order + 1)/2)-1
-  crj = unif_crj(k+1)
-  FVCompWENOAlgorithm(order, splitting,0.0, crj, αf)
+  FVCompWENOAlgorithm(order, splitting,0.0, WENO_Reconstruction(order), αf)
 end
 
 function update_dt(alg::FVCompWENOAlgorithm{T1,T2,T3},u::AbstractArray{T4,2},Flux,
@@ -44,7 +42,7 @@ mutable struct FVCompMWENOAlgorithm{oType, aType, cType} <: AbstractFVAlgorithm
   order :: oType
   splitting :: Symbol
   α :: aType
-  crj :: cType
+  rec_scheme :: cType
   αf :: Function
 end
 
@@ -52,9 +50,7 @@ function FVCompMWENOAlgorithm(;order=5, splitting = :GLF, αf = nothing)
   if αf == nothing
     αf = maxfluxρ
   end
-  k = Int((order + 1)/2)-1
-  crj = unif_crj(k+1)
-  FVCompMWENOAlgorithm(order, splitting, 0.0, crj, αf)
+  FVCompMWENOAlgorithm(order, splitting, 0.0, MWENO_Reconstruction(order), αf)
 end
 
 function update_dt(alg::FVCompMWENOAlgorithm{T1,T2,T3},u::AbstractArray{T4,2},Flux,
@@ -66,7 +62,7 @@ function update_dt(alg::FVCompMWENOAlgorithm{T1,T2,T3},u::AbstractArray{T4,2},Fl
 
 immutable FVSpecMWENOAlgorithm{cType} <: AbstractFVAlgorithm
   order :: Int
-  crj :: cType
+  rec_scheme :: cType
 end
 
 """
@@ -75,58 +71,17 @@ Initialize Spectral Mapped Weno algorithm with
 WENO reconstruction of `order` default WENO5
 """
 function FVSpecMWENOAlgorithm(;order=5)
-  k = Int((order + 1)/2)-1
-  crj = unif_crj(k+1)
-  FVSpecMWENOAlgorithm(order, crj)
-end
-
-function glf_splt_inner_loop!(fminus, fplus, j, u, α, Flux)
-    fminus[j,:] = 0.5*(Flux(u[j,:])-α*u[j,:])
-    fplus[j,:] = 0.5*(Flux(u[j,:])+α*u[j,:])
-end
-function glf_splitting(u, α, Flux, N, ::Type{Val{true}})
-  # Lax Friedrichs flux splitting
-  fminus = similar(u); fplus = similar(u)
-  Threads.@threads for j = 1:N
-      glf_splt_inner_loop!(fminus, fplus, j, u, α, Flux)
-  end
-  fminus, fplus
-end
-
-function glf_splitting(u, α, Flux, N, ::Type{Val{false}})
-  # Lax Friedrichs flux splitting
-  fminus = similar(u); fplus = similar(u)
-  for j = 1:N
-      glf_splt_inner_loop!(fminus, fplus, j, u, α, Flux)
-  end
-  fminus, fplus
-end
-
-function llf_splitting(u, mesh, Flux)
-  # Lax Friedrichs flux splitting
-  fminus = similar(u); fplus = similar(u)
-  ul=cellval_at_left(1,u,mesh)
-  αl = fluxρ(ul, Flux)
-  αr = zero(αl)
-  for j = cell_indices(mesh)
-    ur=cellval_at_right(j,u,mesh)
-    αr = fluxρ(ur, Flux)
-    αk = max(αl, αr)
-    fminus[j,:] = 0.5*(Flux(u[j,:])-αk*u[j,:])
-    fplus[j,:] = 0.5*(Flux(u[j,:])+αk*u[j,:])
-    αl = αr
-  end
-  fminus,fplus
+  FVSpecMWENOAlgorithm(order, MWENO_Reconstruction(order))
 end
 
 ##############################################################
 #Component Wise WENO algorithm
 ##############################################################
-function inner_loop!(hh,j,k,M,order,crj,fminus,fplus,mesh,alg::FVCompWENOAlgorithm)
+function inner_loop!(hh,j,k,M,fminus,fplus,mesh,alg::FVCompWENOAlgorithm)
     @inbounds for i = 1:M
       fm = get_cellvals(fminus,mesh,(j-k+1:j+k+1,i)...)
       fp = get_cellvals(fplus,mesh,(j-k:j+k,i)...)
-      hh[j+1,i] = sum(WENO_pm_rec(fm,fp,order; crj = crj))
+      hh[j+1,i] = sum(reconstruct(fm, fp, alg.rec_scheme))
     end
 end
 """
@@ -135,7 +90,7 @@ Numerical flux of Component Wise WENO algorithm Scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompWENOAlgorithm, ::Type{Val{true}})
     N = numcells(mesh)
-    @unpack order, splitting, crj = alg
+    @unpack order, splitting = alg
     k = Int((order + 1)/2)-1
     # Flux splitting
     if splitting == :GLF
@@ -147,13 +102,13 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompWENOAlgorithm, ::T
     end
     #Compute numerical fluxes
     Threads.@threads for j = 0:N
-        inner_loop!(hh,j,k,M,order,crj,fminus,fplus,mesh,alg)
+        inner_loop!(hh,j,k,M,fminus,fplus,mesh,alg)
     end
 end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompWENOAlgorithm, ::Type{Val{false}})
     N = numcells(mesh)
-    @unpack order, splitting, crj = alg
+    @unpack order, splitting = alg
     k = Int((order + 1)/2)-1
     # Flux splitting
     if splitting == :GLF
@@ -165,7 +120,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompWENOAlgorithm, ::T
     end
     #Compute numerical fluxes
     for j = 0:N
-        inner_loop!(hh,j,k,M,order,crj,fminus,fplus,mesh,alg)
+        inner_loop!(hh,j,k,M,fminus,fplus,mesh,alg)
     end
 end
 
@@ -173,11 +128,11 @@ end
 #Component Wise Mapped WENO algorithm
 ##############################################################
 
-function inner_loop!(hh,j,k,M,order,crj,fminus,fplus,mesh,alg::FVCompMWENOAlgorithm)
+function inner_loop!(hh,j,k,M,fminus,fplus,mesh,alg::FVCompMWENOAlgorithm)
     @inbounds for i = 1:M
       fm = get_cellvals(fminus,mesh,(j-k+1:j+k+1,i)...)
       fp = get_cellvals(fplus,mesh,(j-k:j+k,i)...)
-      hh[j+1,i] = sum(MWENO_pm_rec(fm,fp,order; crj = crj))
+      hh[j+1,i] = sum(reconstruct(fm, fp, alg.rec_scheme))
     end
 end
 
@@ -187,7 +142,7 @@ Numerical flux of Mapped Component Wise WENO algorithm Scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompMWENOAlgorithm, ::Type{Val{true}})
     N = numcells(mesh)
-    @unpack order, splitting, crj = alg
+    @unpack order, splitting = alg
     k = Int((order + 1)/2)-1
     # Flux splitting
     if splitting == :GLF
@@ -199,13 +154,13 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompMWENOAlgorithm, ::
     end
     #Compute numerical fluxes
     Threads.@threads for j = 0:N
-        inner_loop!(hh,j,k,M,order,crj,fminus,fplus,mesh,alg)
+        inner_loop!(hh,j,k,M,fminus,fplus,mesh,alg)
     end
 end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompMWENOAlgorithm, ::Type{Val{false}})
     N = numcells(mesh)
-    @unpack order, splitting, crj = alg
+    @unpack order, splitting = alg
     k = Int((order + 1)/2)-1
     # Flux splitting
     if splitting == :GLF
@@ -217,7 +172,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompMWENOAlgorithm, ::
     end
     #Compute numerical fluxes
     for j = 0:N
-        inner_loop!(hh,j,k,M,order,crj,fminus,fplus,mesh,alg)
+        inner_loop!(hh,j,k,M,fminus,fplus,mesh,alg)
     end
 end
 
@@ -231,7 +186,7 @@ Numerical flux of Mapped Spectral WENO algorithm Scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSpecMWENOAlgorithm, ::Type{Val{false}})
     N = numcells(mesh)
-    @unpack order, crj = alg
+    @unpack order, rec_scheme = alg
     k = Int((order + 1)/2)-1
     save_case = zeros(N+1,M)
     αj = zeros(N+1,M)
@@ -277,11 +232,11 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSpecMWENOAlgorithm, ::
     end
     for i = 1:M
       if save_case[j+1,i] == 1
-        hh[j+1,i] = sum(MWENO_pm_rec(gmloc[:,i],gploc[:,i],order; crj = crj))
+        hh[j+1,i] = sum(reconstruct(gmloc[:,i],gploc[:,i], rec_scheme))
       elseif save_case[j+1,i] == 2
-        hh[j+1,i] = MWENO_pm_rec(gklloc[:,i],gkrloc[:,i],order; crj = crj)[2]
+        hh[j+1,i] = reconstruct(gklloc[:,i],gkrloc[:,i],rec_scheme)[2]
       else
-        hh[j+1,i] = MWENO_pm_rec(gklloc[:,i],gkrloc[:,i],order; crj = crj)[1]
+        hh[j+1,i] = reconstruct(gklloc[:,i],gkrloc[:,i],rec_scheme)[1]
       end
     end
     hh[j+1,:] = RMats[j+1]*hh[j+1,:]

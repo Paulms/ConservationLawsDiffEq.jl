@@ -38,6 +38,7 @@ function Uniform1DFVMesh(N::Int,xinit::Real,xend::Real,leftbdtype=:ZERO_FLUX,rig
     Uniform1DFVMesh(N,dx,xx,faces,leftbdtype,rightbdtype)
 end
 
+@inline cell_volume(mesh::Uniform1DFVMesh) = mesh.Δx
 @inline cell_volume(cell::Int, mesh::Uniform1DFVMesh) = mesh.Δx
 @inline cell_volumes(mesh::Uniform1DFVMesh) = mesh.Δx * ones(mesh.N)
 

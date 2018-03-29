@@ -33,8 +33,32 @@ function unif_crj(k::Int)
   crj
 end
 
+# Reconstruction types
+struct ENO_Reconstruction{kType} <: AbstractReconstruction
+    order::kType
+    crj::Matrix{Float64}
+end
+ENO_Reconstruction(order::Int) = ENO_Reconstruction(order, unif_crj(Int((order + 1)/2)))
+
+struct WENO_Reconstruction{kType,eType} <: AbstractReconstruction
+    order::kType
+    crj::Matrix{Float64}
+    ɛ::eType
+end
+WENO_Reconstruction(order::Int; ɛ = 1e-6) = WENO_Reconstruction(order, unif_crj(Int((order + 1)/2)), ɛ)
+
+struct MWENO_Reconstruction{kType,eType} <: AbstractReconstruction
+    order::kType
+    crj::Matrix{Float64}
+    ɛ::eType
+end
+MWENO_Reconstruction(order::Int; ɛ = 1e-6) = MWENO_Reconstruction(order, unif_crj(Int((order + 1)/2)), ɛ)
+
 #Eno reconstruction for uniform mesh
-function ENO_urec(dx,vloc::Vector,k::Int, crj::Matrix)
+function reconstruct(vloc::AbstractVector, dx::Real, eno_rec::ENO_Reconstruction)
+  order = eno_rec.order
+  k = Int((order + 1)/2)
+  crj = eno_rec.crj
   vdiffs = Vector{typeof(vloc)}(0)
   vl = zero(eltype(vloc))
   vr = zero(eltype(vloc))
@@ -63,7 +87,10 @@ function ENO_urec(dx,vloc::Vector,k::Int, crj::Matrix)
 end
 
 #Eno reconstruction for unestructured mesh
-function ENO_rec(xloc::Vector,vloc::Vector,k::Int, crj::Matrix)
+function reconstruct(vloc::AbstractVector, xloc::AbstractVector, eno_rec::ENO_Reconstruction)
+  order = eno_rec.order
+  k = Int((order + 1)/2)
+  crj = eno_rec.crj
   vdiffs = Vector{typeof(vloc)}(0)
   vl = zero(eltype(vloc))
   vr = zero(eltype(vloc))
@@ -109,14 +136,18 @@ end
   return βk, dr
 end
 
-function WENO_urec(vloc::Vector,order::Int;ɛ = 1e-6, crj = nothing)
+function reconstruct(vloc::AbstractVector, rec_scheme::WENO_Reconstruction)
+  order = rec_scheme.order
+  k = Int((order + 1)/2)
+  crj = rec_scheme.crj
+  ɛ = rech_scheme.ɛ
   vl = zero(eltype(vloc))
   vr = zero(eltype(vloc))
   N = size(vloc,1)
   if (N != order)
     throw("dimension of vloc is not consistent with order $order WENO")
   end
-  k = Int((order + 1)/2)
+
   #Special case k = 1
   if (k == 1)
     vl = vloc[1]; vr = vloc[1]
@@ -130,9 +161,6 @@ function WENO_urec(vloc::Vector,order::Int;ɛ = 1e-6, crj = nothing)
 
   # Compute k values of xl and xr based on different stencils
   ulr = zeros(k); urr = zeros(k);
-  if crj == nothing
-    crj = unif_crj(k)
-  end
   for r=0:(k-1)
       for i=0:k-1
           urr[r+1] = urr[r+1] + crj[r+2,i+1]*vloc[k-r+i];
@@ -163,14 +191,17 @@ function WENO_urec(vloc::Vector,order::Int;ɛ = 1e-6, crj = nothing)
   return(vl,vr)
 end
 
-function WENO_pm_rec(vmloc::Vector, vploc::Vector,order::Int;ɛ = 1e-6, crj = nothing)
+function reconstruct(vmloc::AbstractVector, vploc::AbstractVector,rec_scheme::WENO_Reconstruction)
+  order = rec_scheme.order
+  k = Int((order + 1)/2)
+  crj = rec_scheme.crj
+  ɛ = rec_scheme.ɛ
   vl = zero(eltype(vmloc))
   vr = zero(eltype(vploc))
   N = size(vmloc,1)
   if (N != order)
     throw("dimension of vloc is not consistent with order $order WENO")
   end
-  k = Int((order + 1)/2)
   #Special case k = 1
   if (k == 1)
     vl = vmloc[1]; vr = vploc[1]
@@ -184,9 +215,6 @@ function WENO_pm_rec(vmloc::Vector, vploc::Vector,order::Int;ɛ = 1e-6, crj = no
 
   # Compute k values of xl and xr based on different stencils
   ulr = zeros(k); urr = zeros(k);
-  if crj == nothing
-    crj = unif_crj(k)
-  end
   for r=0:(k-1)
       for i=0:k-1
           urr[r+1] = urr[r+1] + crj[r+2,i+1]*vploc[k-r+i];
@@ -233,14 +261,17 @@ end
   g
 end
 
-function MWENO_urec(vloc::Vector,order::Int;ɛ = 1e-6, crj = nothing)
+function reconstruct(vloc::AbstractVector, rec_scheme::MWENO_Reconstruction)
+  order = rec_scheme.order
+  k = Int((order + 1)/2)
+  crj = rec_scheme.crj
+  ɛ = rech_scheme.ɛ
   vl = zero(eltype(vloc))
   vr = zero(eltype(vloc))
   N = size(vloc,1)
   if (N != order)
     throw("dimension of vloc is not consistent with order $order WENO")
   end
-  k = Int((order + 1)/2)
   #Special case k = 1
   if (k == 1)
     vl = vloc[1]; vr = vloc[1]
@@ -256,9 +287,6 @@ function MWENO_urec(vloc::Vector,order::Int;ɛ = 1e-6, crj = nothing)
 
   # Compute k values of xl and xr based on different stencils
   ulr = zeros(k); urr = zeros(k);
-  if crj == nothing
-    crj = unif_crj(k)
-  end
   for r=0:(k-1)
       for i=0:k-1
           urr[r+1] = urr[r+1] + crj[r+2,i+1]*vloc[k-r+i];
@@ -309,14 +337,17 @@ function MWENO_urec(vloc::Vector,order::Int;ɛ = 1e-6, crj = nothing)
   return(vl,vr)
 end
 
-function MWENO_pm_rec(vmloc::Vector,vploc::Vector,order::Int;ɛ = 1e-6, crj=nothing)
+function reconstruct(vmloc::AbstractVector, vploc::AbstractVector,rec_scheme::MWENO_Reconstruction)
+  order = rec_scheme.order
+  k = Int((order + 1)/2)
+  crj = rec_scheme.crj
+  ɛ = rec_scheme.ɛ
   vl = zero(eltype(vmloc))
   vr = zero(eltype(vploc))
   N = size(vmloc,1)
   if (N != order)
     throw("dimension of vloc is not consistent with order $order WENO")
   end
-  k = Int((order + 1)/2)
   #Special case k = 1
   if (k == 1)
     vl = vmloc[1]; vr = vploc[1]
@@ -332,9 +363,6 @@ function MWENO_pm_rec(vmloc::Vector,vploc::Vector,order::Int;ɛ = 1e-6, crj=noth
 
   # Compute k values of xl and xr based on different stencils
   ulr = zeros(k); urr = zeros(k);
-  if crj == nothing
-    crj = unif_crj(k)
-  end
   for r=0:(k-1)
       for i=0:k-1
           urr[r+1] = urr[r+1] + crj[r+2,i+1]*vploc[k-r+i];

@@ -100,3 +100,43 @@ function myblock(A::AbstractArray{T,2},N::Int) where {T}
   end
   B
 end
+
+#Flux Splittings
+function glf_splt_inner_loop!(fminus, fplus, j, u, α, Flux)
+    fminus[j,:] = 0.5*(Flux(u[j,:])-α*u[j,:])
+    fplus[j,:] = 0.5*(Flux(u[j,:])+α*u[j,:])
+end
+function glf_splitting(u, α, Flux, N, ::Type{Val{true}})
+  # Lax Friedrichs flux splitting
+  fminus = similar(u); fplus = similar(u)
+  Threads.@threads for j = 1:N
+      glf_splt_inner_loop!(fminus, fplus, j, u, α, Flux)
+  end
+  fminus, fplus
+end
+
+function glf_splitting(u, α, Flux, N, ::Type{Val{false}})
+  # Lax Friedrichs flux splitting
+  fminus = similar(u); fplus = similar(u)
+  for j = 1:N
+      glf_splt_inner_loop!(fminus, fplus, j, u, α, Flux)
+  end
+  fminus, fplus
+end
+
+function llf_splitting(u, mesh, Flux)
+  # Lax Friedrichs flux splitting
+  fminus = similar(u); fplus = similar(u)
+  ul=cellval_at_left(1,u,mesh)
+  αl = fluxρ(ul, Flux)
+  αr = zero(αl)
+  for j = cell_indices(mesh)
+    ur=cellval_at_right(j,u,mesh)
+    αr = fluxρ(ur, Flux)
+    αk = max(αl, αr)
+    fminus[j,:] = 0.5*(Flux(u[j,:])-αk*u[j,:])
+    fplus[j,:] = 0.5*(Flux(u[j,:])+αk*u[j,:])
+    αl = αr
+  end
+  fminus,fplus
+end

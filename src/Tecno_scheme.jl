@@ -9,7 +9,7 @@ immutable FVTecnoAlgorithm <: AbstractFVAlgorithm
   ve    :: Function #Entropy variable
 end
 
-function FVTecnoAlgorithm(Nflux;order=2.0, ve = u -> u)
+function FVTecnoAlgorithm(Nflux;order=2, ve = u -> u)
   FVTecnoAlgorithm(order, Nflux, ve)
 end
 
@@ -37,7 +37,6 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVTecnoAlgorithm, ::Type
     end
     dd = zeros(N+1,M) #Extra numerical diffusion
     k = order - 1
-    weights = unif_crj(order)
     v = zeros(u)
     for j = indices(v, 1)
       v[j,:] = ve(u[j,:]) #entropy variables
@@ -47,7 +46,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVTecnoAlgorithm, ::Type
     for j in cell_indices(mesh)
       for i = 1:M
         v_eno = get_cellvals(v,mesh,(j-k:j+k,i)...)
-        vminus[j,i],vplus[j,i] = ENO_urec(dx,v_eno,order,weights)
+        vminus[j,i],vplus[j,i] = reconstruct(v_eno,dx,ENO_Reconstruction(2*order-1))
       end
       wminus[j,:] = MatR[j]'*vminus[j,:]
       wplus[j,:] = MatR[j+1]'*vplus[j,:]
