@@ -15,3 +15,4 @@ FastGaussQuadrature 0.3.0
 Polynomials 0.2.0
 LsqFit 0.3.0
 StaticArrays 0.7.0
+DiffEqCallbacks 1.0.0
