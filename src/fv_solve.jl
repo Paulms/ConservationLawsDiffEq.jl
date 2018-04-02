@@ -7,7 +7,6 @@ function solve(
   #Unroll some important constants
   @unpack tspan,f,f0, mesh = prob
   #Compute initial data
-  N = numcells(mesh)
   NType = eltype(f0(cell_faces(mesh)[1]))
   u0 = MMatrix{mesh.N, prob.numvars,NType}()
   compute_initial_data!(u0, f0, average_initial_data, mesh, Val{use_threads})
@@ -26,8 +25,7 @@ function solve(
   update_dt!(u0, ode_fv)
   # Call ODE solve method
   sol = solve(ode_prob,TimeIntegrator, dt = ode_fv.dt,callback=cb; kwargs...)
-  return(FVSolution(sol.u,sol.t,prob,
-  sol.retcode,sol.interp;dense = sol.dense))
+  return(FVSolution(sol.u,sol.t,prob,sol.retcode,sol.interp;dense = sol.dense))
 end
 
 function initial_data_inner_loop!(u0, f0, average_initial_data, mesh, i)
@@ -227,7 +225,6 @@ function fast_solve(
   @unpack tspan,f,f0, mesh = prob
 
   #Compute initial data
-  N = numcells(mesh)
   u0 = Matrix{eltype(f0(cell_faces(mesh)[1]))}(mesh.N, prob.numvars)
   compute_initial_data!(u0, f0, average_initial_data, mesh, Val{use_threads})
 

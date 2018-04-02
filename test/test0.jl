@@ -36,7 +36,7 @@ prob = get_problem(50)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 println("Comparision with custom solve solution")
 @time sol2 = fast_solve(prob, FVSKTAlgorithm();use_threads = false, save_everystep = true)
-@test get_L1_error(sol_ana, sol) ≈ get_L1_error(sol_ana, sol)
+@test get_L1_error(sol_ana, sol2) ≈ get_L1_error(sol_ana, sol)
 @test sol2.t == sol.t
 @time sol3 = fast_solve(prob, FVSKTAlgorithm();use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol3) ≈ get_L1_error(sol_ana, sol)
