@@ -24,7 +24,6 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxWendroffAlgorithm, ::
 end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxWendroffAlgorithm, ::Type{Val{false}})
-    N = numcells(mesh)
     dx = mesh.Δx
     #update vector
     for j in edge_indices(mesh)

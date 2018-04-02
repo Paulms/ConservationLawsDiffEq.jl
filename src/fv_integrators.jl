@@ -21,14 +21,16 @@ mutable struct FVDiffIntegrator{T1,mType,F,B, cType,T2,tType}
   use_threads :: Bool
 end
 
-function update_dt(u::AbstractArray{T,2},fv::FVIntegrator) where {T}
+function update_dt!(u::AbstractArray{T,2},fv::FVIntegrator) where {T}
   @unpack mesh, alg, Flux, CFL = fv
-  update_dt(alg, u, Flux, CFL, mesh)
+  fv.dt = update_dt(alg, u, Flux, CFL, mesh)
+  fv.dt
 end
 
-function update_dt(u::AbstractArray{T,2},fv::FVDiffIntegrator) where {T}
+function update_dt!(u::AbstractArray{T,2},fv::FVDiffIntegrator) where {T}
   @unpack mesh, alg, Flux, DiffMat, CFL = fv
-  update_dt(alg, u, Flux, DiffMat, CFL, mesh)
+  fv.dt = update_dt(alg, u, Flux, DiffMat, CFL, mesh)
+  fv.dt
 end
 
 """

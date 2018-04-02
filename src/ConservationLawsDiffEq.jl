@@ -1,6 +1,7 @@
 __precompile__()
 module ConservationLawsDiffEq
   using DiffEqPDEBase,DiffEqBase
+  using DiffEqCallbacks
   using Reexport
   @reexport using OrdinaryDiffEq
 

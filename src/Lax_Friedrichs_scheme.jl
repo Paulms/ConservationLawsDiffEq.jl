@@ -60,7 +60,6 @@ compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxFriedrichsAlgorithm, ::Type{Va
 Numerical flux of lax friedrichs algorithm in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxFriedrichsAlgorithm, ::Type{Val{true}})
-    N = numcells(mesh)
     dx = mesh.Δx
     #update vector
     Threads.@threads for j in edge_indices(mesh)
@@ -69,7 +68,6 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxFriedrichsAlgorithm, 
 end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxFriedrichsAlgorithm, ::Type{Val{false}})
-    N = numcells(mesh)
     dx = mesh.Δx
     #update vector
     for j in edge_indices(mesh)
@@ -82,7 +80,6 @@ compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsAlgorithm, ::Ty
 Numerical flux of local lax friedrichs algorithm in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsAlgorithm, ::Type{Val{false}})
-    N = numcells(mesh)
     dx = mesh.Δx
     ul=cellval_at_left(1,u,mesh)
     αl = fluxρ(ul, Flux)
@@ -112,7 +109,6 @@ compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::GlobalLaxFriedrichsAlgorithm, ::T
 Numerical flux of Global Lax-Friedrichs Scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::GlobalLaxFriedrichsAlgorithm, ::Type{Val{true}})
-    N = numcells(mesh)
     #update vector
     Threads.@threads for j in edge_indices(mesh)
         inner_loop!(hh,j,u,mesh,Flux, alg)
@@ -120,7 +116,6 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::GlobalLaxFriedrichsAlgor
 end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::GlobalLaxFriedrichsAlgorithm, ::Type{Val{false}})
-    N = numcells(mesh)
     #update vector
     Threads.@threads for j in edge_indices(mesh)
         inner_loop!(hh,j,u,mesh,Flux, alg)

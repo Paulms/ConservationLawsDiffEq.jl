@@ -8,7 +8,8 @@ function solve(
   @unpack tspan,f,f0, mesh = prob
   #Compute initial data
   N = numcells(mesh)
-  u0 = MMatrix{mesh.N, prob.numvars,eltype(f0(cell_faces(mesh)[1]))}()
+  NType = eltype(f0(cell_faces(mesh)[1]))
+  u0 = MMatrix{mesh.N, prob.numvars,NType}()
   compute_initial_data!(u0, f0, average_initial_data, mesh, Val{use_threads})
 
   if !has_jac(f)
@@ -18,15 +19,15 @@ function solve(
   # Semidiscretization
   ode_fv = get_semidiscretization(alg, prob; use_threads = use_threads)
   ode_prob = ODEProblem(ode_fv, u0, tspan)
-  # Check CFL condition
-  ode_fv.dt = update_dt(u0, ode_fv)
-  timeIntegrator = init(ode_prob, TimeIntegrator;dt=ode_fv.dt,kwargs...)
-  @inbounds for i in timeIntegrator
-    ode_fv.dt = update_dt(timeIntegrator.u, ode_fv)
-    set_proposed_dt!(timeIntegrator, ode_fv.dt)
-  end
-  return(FVSolution(timeIntegrator.sol.u,timeIntegrator.sol.t,prob,
-  timeIntegrator.sol.retcode,timeIntegrator.sol.interp;dense = timeIntegrator.sol.dense))
+  # Set update_dt function
+  dtFE(u,p,t) = update_dt!(u, ode_fv)
+  cb = StepsizeLimiter(dtFE;safety_factor=one(NType),max_step=true,cached_dtcache=zero(eltype(tspan)))
+  # Check initial CFL condition
+  update_dt!(u0, ode_fv)
+  # Call ODE solve method
+  sol = solve(ode_prob,TimeIntegrator, dt = ode_fv.dt,callback=cb; kwargs...)
+  return(FVSolution(sol.u,sol.t,prob,
+  sol.retcode,sol.interp;dense = sol.dense))
 end
 
 function initial_data_inner_loop!(u0, f0, average_initial_data, mesh, i)
@@ -83,30 +84,28 @@ function solve(
     b = cell_faces(mesh)[i+1]; a=cell_faces(mesh)[i]
     xg[:,i] = reference_to_interval(basis.nodes,(a,b))
   end
-
-  u0 = zeros(eltype(f0(cell_faces(mesh)[1])),NN*NC, N)
+  NType = eltype(f0(cell_faces(mesh)[1]))
+  u0 = zeros(NType,NN*NC, N)
   for i = 1:N
       for k = 1:NN
         u0[k:NN:NN*NC,i] = f0(xg[k,i])
       end
   end
-  #Time loop
-  #First dt
-  u0ₕ = flat_u(u0, basis.order, NC)
-  dt = update_dt(alg, u0ₕ, f, prob.CFL, mesh)
   # Setup time integrator
   semidiscretef(du,u,p,t) = residual!(du, u, basis, mesh, alg, f, riemann_solver, NC, Val{use_threads})
   ode_prob = ODEProblem(semidiscretef, u0, prob.tspan)
-  timeIntegrator = init(ode_prob, TimeIntegrator;dt=dt, kwargs...)
-  @inbounds for i in timeIntegrator
-    uₕ = flat_u(timeIntegrator.u, basis.order,NC)
-    dt = update_dt(alg, uₕ, f, prob.CFL, mesh)
-    set_proposed_dt!(timeIntegrator, dt)
+  # Set update_dt function
+  function dtFE(u,p,t)
+      uₕ = flat_u(u, basis.order,NC)
+      update_dt(alg, uₕ, f, prob.CFL, mesh)
   end
-  if timeIntegrator.sol.t[end] != prob.tspan[end]
-    savevalues!(timeIntegrator)
-  end
-  return build_solution(timeIntegrator.sol,xg,basis,prob, NC)
+  cb = StepsizeLimiter(dtFE;safety_factor=one(NType),max_step=true,cached_dtcache=zero(eltype(tspan)))
+  # Check initial CFL condition
+  u0ₕ = flat_u(u0, basis.order, NC)
+  dt = update_dt(alg, u0ₕ, f, prob.CFL, mesh)
+  # Call ODE solve method
+  sol = solve(ode_prob,TimeIntegrator, dt = dt,callback=cb; kwargs...)
+  return build_solution(sol,xg,basis,prob, NC)
 end
 
 ######### Legacy solve method (easy to debug)
@@ -247,13 +246,13 @@ function fast_solve(
   tend = tspan[end]
 
   # Check CFL condition
-  ode_fv.dt = update_dt(u0, ode_fv)
+  update_dt!(u0, ode_fv)
 
   u = copy(u0)
   rhs = zeros(u0)
   @fv_generalpreamble
   @inbounds for i=1:iterations
-    ode_fv.dt = update_dt(u, ode_fv)
+    update_dt!(u, ode_fv)
     if t + ode_fv.dt > tend; ode_fv.dt = tend - t; end
     t += ode_fv.dt
     @fv_deterministicloop

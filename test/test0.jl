@@ -26,14 +26,21 @@ function get_problem(N)
 end
 
 prob = get_problem(50)
-@time sol = solve(prob, FVSKTAlgorithm(); use_threads = false, save_everystep = false)
+@time sol = solve(prob, FVSKTAlgorithm(); use_threads = false, save_everystep = true)
 @test get_L1_error(sol_ana, sol) < 0.048
+@test sol.t == [0.0,0.05999999999999994,0.11999999999999988,0.17999999999999983,0.23999999999999977,
+                0.2999999999999997,0.35999999999999965,0.4199999999999996,0.47999999999999954,
+                0.5399999999999995,0.5999999999999994,0.6599999999999994,0.7199999999999993,
+                0.7799999999999992,0.8399999999999992,0.8999999999999991,0.9599999999999991,1.0]
 @time sol1 = solve(prob, FVSKTAlgorithm(); use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
-@time sol = fast_solve(prob, FVSKTAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.048
-@time sol1 = fast_solve(prob, FVSKTAlgorithm();use_threads = true, save_everystep = false)
-@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
+println("Comparision with custom solve solution")
+@time sol2 = fast_solve(prob, FVSKTAlgorithm();use_threads = false, save_everystep = true)
+@test get_L1_error(sol_ana, sol) ≈ get_L1_error(sol_ana, sol)
+@test sol2.t == sol.t
+@time sol3 = fast_solve(prob, FVSKTAlgorithm();use_threads = true, save_everystep = false)
+@test get_L1_error(sol_ana, sol3) ≈ get_L1_error(sol_ana, sol)
+println("Testing errors in the rest of schemes")
 @time sol = solve(prob, LaxFriedrichsAlgorithm();use_threads = false, save_everystep = false)
 @test get_L1_error(sol_ana, sol) < 0.24
 @time sol1 = solve(prob, LaxFriedrichsAlgorithm();use_threads = true, save_everystep = false)
@@ -65,8 +72,8 @@ println("No threaded version of FVSpecMWENOAlgorithm")
 @test get_L1_error(sol_ana, sol) < 0.039
 @time sol1 = solve(prob, FVDRCUAlgorithm(); use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
-@time sol = solve(prob, FVDRCU5Algorithm(); use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.051
+@time sol = solve(prob, FVDRCU5Algorithm(); use_threads = false, save_everystep = true)
+@test get_L1_error(sol_ana, sol) < 0.053
 @time sol1 = solve(prob, FVDRCU5Algorithm(); use_threads = true, save_everystep = false)
 @test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
 @time sol = solve(prob, LaxWendroffAlgorithm(); use_threads = false, save_everystep = false)
