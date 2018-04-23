@@ -1,4 +1,6 @@
 #ENO coefficients for uniform mesh
+#Based on: Shu C. Essentially Non-Oscillatory and Weighted Essentially
+#Non-Oscillatory Schemes for Hyperbolic Conservation Laws
 function unif_crj(k::Int)
   if k == 1
       return([1;1])
@@ -120,16 +122,17 @@ end
 
 #WEno reconstruction for uniform mesh
 #Order available: 1, 3, 5
+# Jiang, Shu, Efficient Implementation of Weighted ENO Schemes
 @inline function get_βk(vloc::Vector, k)
   βk = zeros(k); dr = zeros(k);
   if (k==2)
-      dr = [2/3,1/3]
+      dr = [2//3,1//3]
       βk = [(vloc[3]-vloc[2])^2, (vloc[2]-vloc[1])^2]
   elseif (k==3)
-      dr = [3/10, 3/5, 1/10]
-      βk = [13/12*(vloc[3]-2*vloc[4]+vloc[5])^2 + 1/4*(3*vloc[3]-4*vloc[4]+vloc[5])^2,
-      13/12*(vloc[2]-2*vloc[3]+vloc[4])^2 + 1/4*(vloc[2]-vloc[4])^2,
-      13/12*(vloc[1]-2*vloc[2]+vloc[3])^2 + 1/4*(3*vloc[3]-4*vloc[2]+vloc[1])^2]
+      dr = [3//10, 3//5, 1//10]
+      βk = [13//12*(vloc[3]-2*vloc[4]+vloc[5])^2 + 1//4*(3*vloc[3]-4*vloc[4]+vloc[5])^2,
+      13//12*(vloc[2]-2*vloc[3]+vloc[4])^2 + 1//4*(vloc[2]-vloc[4])^2,
+      13//12*(vloc[1]-2*vloc[2]+vloc[3])^2 + 1//4*(3*vloc[3]-4*vloc[2]+vloc[1])^2]
   else
     throw("WENO reconstruction of order $order is not implemented yet!")
   end
@@ -296,13 +299,13 @@ function reconstruct(vloc::AbstractVector, rec_scheme::MWENO_Reconstruction)
 
   # Set up WENO coefficients for different orders - 2k-1
   if (k==2)
-      dr = [2/3,1/3]
+      dr = [2//3,1//3]
       βk = [(vloc[3]-vloc[2])^2, (vloc[2]-vloc[1])^2]
   elseif (k==3)
-      dr = [3/10, 3/5, 1/10]
-      βk = [13/12*(vloc[3]-2*vloc[4]+vloc[5])^2 + 1/4*(3*vloc[3]-4*vloc[4]+vloc[5])^2,
-      13/12*(vloc[2]-2*vloc[3]+vloc[4])^2 + 1/4*(vloc[2]-vloc[4])^2,
-      13/12*(vloc[1]-2*vloc[2]+vloc[3])^2 + 1/4*(3*vloc[3]-4*vloc[2]+vloc[1])^2]
+      dr = [3//10, 3//5, 1//10]
+      βk = [13//12*(vloc[3]-2*vloc[4]+vloc[5])^2 + 1//4*(3*vloc[3]-4*vloc[4]+vloc[5])^2,
+      13//12*(vloc[2]-2*vloc[3]+vloc[4])^2 + 1//4*(vloc[2]-vloc[4])^2,
+      13//12*(vloc[1]-2*vloc[2]+vloc[3])^2 + 1//4*(3*vloc[3]-4*vloc[2]+vloc[1])^2]
   else
     throw("WENO reconstruction of order $order is not implemented yet!")
   end

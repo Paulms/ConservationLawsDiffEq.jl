@@ -23,7 +23,7 @@ Solutions follow a conservative finite difference (finite volume) pattern. This 
 
 Where the numerical flux <a href="https://www.codecogs.com/eqnedit.php?latex=F_{i&plus;1/2}(t)&space;=&space;F(u_{i}(t),u_{i&plus;1}(t)))" target="_blank"><img src="https://latex.codecogs.com/gif.latex?F_{i&plus;1/2}(t)&space;=&space;F(u_{i}(t),u_{i&plus;1}(t)))" title="F_{i+1/2}(t) = F(u_{i}(t),u_{i+1}(t)))" /></a> is an approximate solution of the Riemann problem at the cell interface <a href="https://www.codecogs.com/eqnedit.php?latex=x_{i&plus;1/2}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?x_{i&plus;1/2}" title="x_{i+1/2}" /></a>.
 
-An extra numerical function similar to **F** could be added to account for the Diffusion in the second case. 
+An extra numerical function similar to **F** could be added to account for the Diffusion in the second case.
 
 Discontinuous Galerking formulation is based on Hesthaven, Warburton, Nodal Discontinuous Galerkin Methods Algorithms, book.
 
@@ -147,7 +147,7 @@ const Tend = 0.2
 const gr = 9.8
 
 #Define Optional Jacobian of Flux
-function f(::Type{Val{:jac}},u::Vector)
+function f(::Type{Val{:jac}},u::AbstractVector)
   h = u[1]
   q = u[2]
   F =[0.0 1.0;-q^2/h^2+gr*h 2*q/h]
@@ -155,7 +155,7 @@ function f(::Type{Val{:jac}},u::Vector)
 end
 
 #Flux function:
-f(u::Vector) = [u[2];u[2]^2/u[1]+0.5*gr*u[1]^2]
+f(u::AbstractVector) = [u[2];u[2]^2/u[1]+0.5*gr*u[1]^2]
 
 #Initial Condition:
 f0(x) = x < 0.0 ? [2.0,0.0] : [1.0,0.0]
