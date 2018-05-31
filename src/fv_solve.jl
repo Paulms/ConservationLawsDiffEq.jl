@@ -5,7 +5,6 @@ function solve(
   average_initial_data::Bool = true, dt = -1.0, use_threads::Bool = false, kwargs...)
 
   #Unroll some important constants
-  #@unpack tspan,f,f0, mesh = prob
   tspan = prob.tspan; f = prob.f; f0 = prob.f0; mesh = prob.mesh
   #Compute initial data
   NType = eltype(f0(cell_faces(mesh)[1]))
@@ -55,7 +54,6 @@ function compute_initial_data!(u0, f0, average_initial_data, mesh, ::Type{Val{fa
 end
 
 function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsProblem;use_threads::Bool=false)
-    #@unpack f0, f,CFL,numvars,mesh,tspan = prob
     f0=prob.f0;f = prob.f; CFL = prob.CFL; numvars=prob.numvars;
     mesh = prob.mesh;tspan = prob.tspan
     fluxes = MMatrix{numedges(mesh),numvars,eltype(f0(cell_faces(mesh)[1]))}()
@@ -73,13 +71,13 @@ end
 "Solve scalar 1D conservation laws problems with DG Scheme"
 function solve(
   prob::AbstractConservationLawProblem,
-  alg::AbstractFEAlgorithm; dt = -1.0,
+  alg::AbstractFEAlgorithm; dt = -one(eltype(prob.tspan)),
   TimeIntegrator::OrdinaryDiffEqAlgorithm = SSPRK22(),use_threads = false, kwargs...)
 
   # Unpack some useful variables
-  @unpack basis, riemann_solver = alg
+  basis = alg.basis; riemann_solver = alg.riemann_solver
   #Unroll some important constants
-  @unpack tspan,f,f0, mesh = prob
+  tspan = prob.tspan;f = prob.f;f0 = prob.f0;mesh = prob.mesh
 
   N = numcells(mesh)
   NC = prob.numvars
