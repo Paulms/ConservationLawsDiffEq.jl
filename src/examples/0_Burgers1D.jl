@@ -6,8 +6,8 @@ using ConservationLawsDiffEq
 const CFL = 0.5
 const Tend = 1.0
 
-f(::Type{Val{:jac}},u::Vector) = diagm(u)
-f(u::Vector) = u.^2/2
+f(::Type{Val{:jac}},u::AbstractVector) = diagm(u)
+f(u::AbstractVector) = u.^2/2
 f0(x) = sin(2*π*x)
 
 function get_problem(N)

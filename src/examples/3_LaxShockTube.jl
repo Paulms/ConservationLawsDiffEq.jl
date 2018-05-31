@@ -7,14 +7,14 @@ const Tend = 0.2
 const γ=1.4 #gas constant
 const xdiafragm = 0.0
 
-function f(::Type{Val{:jac}},u::Vector)
+function f(::Type{Val{:jac}},u::AbstractVector)
   ρ = u[1]; v = u[2]/u[1]; ϵ=u[3]
   p = (ϵ-0.5*ρ*v^2)*(γ-1)
   F =[0.0 1.0 0.0;-v^2*(1+γ)/2 v*(3-γ) (γ-1);v^3*(γ-1)+γ*ϵ*v/ρ 3/2*v^2*(1-γ)+γ*ϵ/ρ γ*v]
   F
 end
 
-function f(u::Vector)
+function f(u::AbstractVector)
   ρ = u[1]; v = u[2]/u[1]; ϵ=u[3]
   p = (ϵ-0.5*ρ*v^2)*(γ-1)
   [u[2];u[2]^2/u[1]+p;(ϵ+p)*v]

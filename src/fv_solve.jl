@@ -2,10 +2,11 @@ function solve(
   prob::AbstractConservationLawProblem,
   alg::AbstractFVAlgorithm;
   TimeIntegrator::OrdinaryDiffEqAlgorithm = SSPRK22(),
-  average_initial_data::Bool = true, use_threads::Bool = false, kwargs...)
+  average_initial_data::Bool = true, dt = -1.0, use_threads::Bool = false, kwargs...)
 
   #Unroll some important constants
-  @unpack tspan,f,f0, mesh = prob
+  #@unpack tspan,f,f0, mesh = prob
+  tspan = prob.tspan; f = prob.f; f0 = prob.f0; mesh = prob.mesh
   #Compute initial data
   NType = eltype(f0(cell_faces(mesh)[1]))
   u0 = MMatrix{mesh.N, prob.numvars,NType}()
@@ -19,12 +20,17 @@ function solve(
   ode_fv = get_semidiscretization(alg, prob; use_threads = use_threads)
   ode_prob = ODEProblem(ode_fv, u0, tspan)
   # Set update_dt function
-  dtFE(u,p,t) = update_dt!(u, ode_fv)
-  cb = StepsizeLimiter(dtFE;safety_factor=one(NType),max_step=true,cached_dtcache=zero(eltype(tspan)))
-  # Check initial CFL condition
-  update_dt!(u0, ode_fv)
-  # Call ODE solve method
-  sol = solve(ode_prob,TimeIntegrator, dt = ode_fv.dt,callback=cb; kwargs...)
+  if dt < 0.0
+      dtFE(u,p,t) = update_dt!(u, ode_fv)
+      cb = StepsizeLimiter(dtFE;safety_factor=one(NType),max_step=true,cached_dtcache=zero(eltype(tspan)))
+      # Check initial CFL condition
+      update_dt!(u0, ode_fv)
+      # Call ODE solve method
+      sol = solve(ode_prob,TimeIntegrator, dt = ode_fv.dt,callback=cb; kwargs...)
+  else
+      ode_fv.dt = dt
+      sol = solve(ode_prob,TimeIntegrator, dt = dt; kwargs...)
+  end
   return(FVSolution(sol.u,sol.t,prob,sol.retcode,sol.interp;dense = sol.dense))
 end
 
@@ -49,7 +55,9 @@ function compute_initial_data!(u0, f0, average_initial_data, mesh, ::Type{Val{fa
 end
 
 function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsProblem;use_threads::Bool=false)
-    @unpack f0, f,CFL,numvars,mesh,tspan = prob
+    #@unpack f0, f,CFL,numvars,mesh,tspan = prob
+    f0=prob.f0;f = prob.f; CFL = prob.CFL; numvars=prob.numvars;
+    mesh = prob.mesh;tspan = prob.tspan
     fluxes = MMatrix{numedges(mesh),numvars,eltype(f0(cell_faces(mesh)[1]))}()
     dt = zero(eltype(tspan))
     FVIntegrator(alg,mesh,f,CFL,numvars, fluxes, dt, use_threads)
@@ -65,7 +73,7 @@ end
 "Solve scalar 1D conservation laws problems with DG Scheme"
 function solve(
   prob::AbstractConservationLawProblem,
-  alg::AbstractFEAlgorithm;
+  alg::AbstractFEAlgorithm; dt = -1.0,
   TimeIntegrator::OrdinaryDiffEqAlgorithm = SSPRK22(),use_threads = false, kwargs...)
 
   # Unpack some useful variables
@@ -93,16 +101,20 @@ function solve(
   semidiscretef(du,u,p,t) = residual!(du, u, basis, mesh, alg, f, riemann_solver, NC, Val{use_threads})
   ode_prob = ODEProblem(semidiscretef, u0, prob.tspan)
   # Set update_dt function
-  function dtFE(u,p,t)
-      uₕ = flat_u(u, basis.order,NC)
-      update_dt(alg, uₕ, f, prob.CFL, mesh)
+  if dt <= 0.0
+      function dtFE(u,p,t)
+          uₕ = flat_u(u, basis.order,NC)
+          update_dt(alg, uₕ, f, prob.CFL, mesh)
+      end
+      cb = StepsizeLimiter(dtFE;safety_factor=one(NType),max_step=true,cached_dtcache=zero(eltype(tspan)))
+      # Check initial CFL condition
+      u0ₕ = flat_u(u0, basis.order, NC)
+      dt = update_dt(alg, u0ₕ, f, prob.CFL, mesh)
+      # Call ODE solve method
+      sol = solve(ode_prob,TimeIntegrator, dt = dt,callback=cb; kwargs...)
+  else
+      sol = solve(ode_prob,TimeIntegrator, dt = dt; kwargs...)
   end
-  cb = StepsizeLimiter(dtFE;safety_factor=one(NType),max_step=true,cached_dtcache=zero(eltype(tspan)))
-  # Check initial CFL condition
-  u0ₕ = flat_u(u0, basis.order, NC)
-  dt = update_dt(alg, u0ₕ, f, prob.CFL, mesh)
-  # Call ODE solve method
-  sol = solve(ode_prob,TimeIntegrator, dt = dt,callback=cb; kwargs...)
   return build_solution(sol,xg,basis,prob, NC)
 end
 

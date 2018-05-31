@@ -22,14 +22,12 @@ mutable struct FVDiffIntegrator{T1,mType,F,B, cType,T2,tType}
 end
 
 function update_dt!(u::AbstractArray{T,2},fv::FVIntegrator) where {T}
-  @unpack mesh, alg, Flux, CFL = fv
-  fv.dt = update_dt(alg, u, Flux, CFL, mesh)
+  fv.dt = update_dt(fv.alg, u, fv.Flux, fv.CFL, fv.mesh)
   fv.dt
 end
 
 function update_dt!(u::AbstractArray{T,2},fv::FVDiffIntegrator) where {T}
-  @unpack mesh, alg, Flux, DiffMat, CFL = fv
-  fv.dt = update_dt(alg, u, Flux, DiffMat, CFL, mesh)
+  fv.dt = update_dt(fv.alg, u, fv.Flux, fv.DiffMat, fv.CFL, fv.mesh)
   fv.dt
 end
 

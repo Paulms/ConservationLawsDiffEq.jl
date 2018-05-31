@@ -37,7 +37,7 @@ compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{Val{true}
 Numerical flux of Second-Order dissipation reduced upwind central scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{Val{true}})
-    @unpack θ = alg
+    θ = alg.θ
     #update vector
     # 1. slopes
     ∇u = compute_slopes(u, mesh, θ, M, Val{true})
@@ -50,7 +50,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{
 end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{Val{false}})
-    @unpack θ = alg
+    θ = alg.θ
     #update vector
     # 1. slopes
     ∇u = compute_slopes(u, mesh, θ, M, Val{false})
@@ -87,7 +87,7 @@ function inner_loop!(hh,j,u,∇u,mesh,Flux, DiffMat, alg::FVDRCUAlgorithm)
 end
 
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{Val{true}})
-    @unpack θ = alg
+    θ = alg.θ
     #update vector
     # 1. slopes
     ∇u = compute_slopes(u, mesh, θ, M, Val{true})
@@ -98,7 +98,7 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCUAlgorith
 end
 
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{Val{false}})
-    @unpack θ = alg
+    θ = alg.θ
     #update vector
     # 1. slopes
     ∇u = compute_slopes(u, mesh, θ, M, Val{false})

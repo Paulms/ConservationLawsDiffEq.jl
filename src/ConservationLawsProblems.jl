@@ -20,6 +20,9 @@ end
 isinplace{islinear,isstochastic,MeshType}(prob::AbstractConservationLawProblem{islinear,isstochastic,MeshType}) = false
 
 function ConservationLawsProblem(f0,f,CFL,tend,mesh)
+ if typeof(tend) <: Int
+     warn("Integer time passed. It could result in unpredictable behaviour consider using a rational time")
+ end
  numvars = size(f0(cell_faces(mesh)[1]),1)
  islinear = false
  isstochastic = false

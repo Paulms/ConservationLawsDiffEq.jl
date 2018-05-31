@@ -48,7 +48,7 @@ compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{Val{true}
 Numerical flux of Fifth-Order dissipation reduced upwind central scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCU5Algorithm, ::Type{Val{true}})
-    @unpack θ = alg
+    θ = alg.θ
     #update vector
     Threads.@threads for j in edge_indices(mesh)
         inner_loop!(hh,j,u,mesh,θ,Flux, alg)
@@ -56,7 +56,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCU5Algorithm, ::Type
 end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCU5Algorithm, ::Type{Val{false}})
-    @unpack θ = alg
+    θ = alg.θ
     #update vector
     for j in edge_indices(mesh)
         inner_loop!(hh,j,u,mesh,θ,Flux, alg)
@@ -96,7 +96,7 @@ function inner_loop!(hh,j,u,∇u,mesh,θ,Flux, DiffMat, alg::FVDRCU5Algorithm)
 end
 
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCU5Algorithm, ::Type{Val{true}})
-    @unpack θ = alg
+    θ = alg.θ
     # 1. slopes
     ∇u = compute_slopes(u, mesh, θ, M, Val{true})
     #update vector
@@ -106,7 +106,7 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCU5Algorit
 end
 
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCU5Algorithm, ::Type{Val{false}})
-    @unpack θ = alg
+    θ = alg.θ
     # 1. slopes
     ∇u = compute_slopes(u, mesh, θ, M, Val{true})
     #update vector

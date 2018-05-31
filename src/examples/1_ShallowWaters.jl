@@ -5,23 +5,23 @@ const CFL = 0.1
 const Tend = 0.2
 const gr = 9.8
 
-function f(::Type{Val{:jac}},u::Vector)
+function f(::Type{Val{:jac}},u::AbstractVector)
   h = u[1]
   q = u[2]
   F =[0.0 1.0;-q^2/h^2+gr*h 2*q/h]
   F
 end
-f(u::Vector) = [u[2];u[2]^2/u[1]+0.5*gr*u[1]^2]
+f(u::AbstractVector) = [u[2];u[2]^2/u[1]+0.5*gr*u[1]^2]
 f0(x) = x < 0.0 ? 2.0 : 1.0
 
-function Nflux(ϕl::Vector, ϕr::Vector)
+function Nflux(ϕl::AbstractVector, ϕr::AbstractVector)
   hl = ϕl[1]; hr = ϕr[1]
   ul = ϕl[2]/ϕl[1]; ur = ϕr[2]/ϕr[1];
   hm = 0.5*(hl+hr)
   um = 0.5*(ul+ur)
   return([hm*um;hm*um^2+0.5*gr*(0.5*(hl^2+hr^2))])
 end
-ve(u::Vector) = [gr*u[1]-0.5*(u[2]/u[1])^2;u[2]/u[1]]
+ve(u::AbstractVector) = [gr*u[1]-0.5*(u[2]/u[1])^2;u[2]/u[1]]
 
 function get_problem(N)
   mesh = Uniform1DFVMesh(N,-5.0,5.0,:PERIODIC, :PERIODIC)

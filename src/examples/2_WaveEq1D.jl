@@ -5,12 +5,12 @@ const CFL = 0.45
 const Tend = 1.0
 const cc = 1.0
 
-f(::Type{Val{:jac}},u::Vector) = [0.0 cc;cc 0.0]
+f(::Type{Val{:jac}},u::AbstractVector) = [0.0 cc;cc 0.0]
 f(u::Vector) = [0.0 cc;cc 0.0]*u
 f0(x) = sin(4*π*x)
 
-Nflux(ϕl::Vector, ϕr::Vector) = 0.5*(f(ϕl)+f(ϕr))
-exact_sol(x::Vector, t::Float64) = hcat(0.5*(sin.(4*π*(-t+x))+sin.(4*π*(t+x))),
+Nflux(ϕl::AbstractVector, ϕr::AbstractVector) = 0.5*(f(ϕl)+f(ϕr))
+exact_sol(x::AbstractVector, t::Float64) = hcat(0.5*(sin.(4*π*(-t+x))+sin.(4*π*(t+x))),
 0.5*(sin.(4*π*(-t+x))-sin.(4*π*(t+x))))
 
 function get_problem(N)

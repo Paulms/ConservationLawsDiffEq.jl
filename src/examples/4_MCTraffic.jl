@@ -16,7 +16,7 @@ const CC = e/7
 const κ = 1e-6
 const L = 0.03
 
-function f(::Type{Val{:jac}}, ϕ::Vector)
+function f(::Type{Val{:jac}}, ϕ::AbstractVector)
   M = size(ϕ,1)
   F = zeros(M,M)
   Vϕ = VV(sum(ϕ))
@@ -29,7 +29,7 @@ function f(::Type{Val{:jac}}, ϕ::Vector)
   F
 end
 
-f(ϕ::Vector) = VV(sum(ϕ))*ϕ.*Vmax
+f(ϕ::AbstractVector) = VV(sum(ϕ))*ϕ.*Vmax
 β(ϕ::Number) = -VP(ϕ)*L*ϕ/M*mean(Vmax)
 VV(ϕ::Number) = (ϕ < ϕc) ? 1.0 : 1.0-ϕ
 VP(ϕ::Number) = (ϕ < ϕc) ? 0.0 : -1.0
