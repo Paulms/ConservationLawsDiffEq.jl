@@ -3,7 +3,7 @@
 #S. Boscarino, R. Bürger, P. Mulet, G. Russo, L. Villada, Linearly implicit IMEX
 #Runge Kutta methods for a class of degenerate convection difussion problems
 
-immutable RKTable{T}
+struct RKTable{T}
   order ::Int
   ct :: Vector{T}
   At :: Matrix{T}

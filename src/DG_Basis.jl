@@ -10,12 +10,12 @@ struct PolynomialBasis{T}
 end
 
 """compute Legendre polynomials coefficients, normalized to be orthonormal"""
-function poly_legendre{T<:Number}(n, ::Type{T}=Float64, var=:x)
+function poly_legendre(n, ::Type{T}=Float64, var=:x) where T<:Number
     return poly_jacobi(n,0.0,0.0,T,var)
 end
 
 """compute Jacobi polynomials coefficients, normalized to be orthonormal"""
-function poly_jacobi{T<:Number}(n, a, b, ::Type{T}=Float64, var=:x)
+function poly_jacobi(n, a, b, ::Type{T}=Float64, var=:x) where T<:Number
     ox = one(T)
     zx = zero(T)
     #Compute initial P_0 and P_1
@@ -39,7 +39,7 @@ function poly_jacobi{T<:Number}(n, a, b, ::Type{T}=Float64, var=:x)
     return p1
 end
 
-function legendre_basis{T<:Number}(order, ::Type{T}=Float64)
+function legendre_basis(order, ::Type{T}=Float64) where T<:Number
   nodes, weights = gausslobatto(order+1)
   φ = zeros(T,order+1,order+1)
   dφ = zeros(T,order+1,order+1)

@@ -1,6 +1,6 @@
 # Lax-Wendroff Scheme
 
-immutable LaxWendroffAlgorithm <: AbstractFVAlgorithm end
+struct LaxWendroffAlgorithm <: AbstractFVAlgorithm end
 
 function inner_loop!(hh,j,u,dx,dt,mesh,Flux, alg::LaxWendroffAlgorithm)
     # Local speeds of propagation
@@ -36,7 +36,7 @@ end
 # R. Leveque. Finite Volume Methods for Hyperbolic Problems.Cambridge University
 # Press. New York 2002
 
-immutable LaxWendroff2sAlgorithm <: AbstractFVAlgorithm end
+struct LaxWendroff2sAlgorithm <: AbstractFVAlgorithm end
 
 function inner_loop!(hh,j,u,dx,dt,mesh,Flux, alg::LaxWendroff2sAlgorithm)
     # Local speeds of propagation

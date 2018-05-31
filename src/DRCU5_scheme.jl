@@ -5,7 +5,7 @@
 # Kurganov, Liu, New adaptive artificial viscosity method for hyperbolic systems
 # of conservation laws
 
-immutable FVDRCU5Algorithm <: AbstractFVAlgorithm
+struct FVDRCU5Algorithm <: AbstractFVAlgorithm
   θ :: Float64
 end
 

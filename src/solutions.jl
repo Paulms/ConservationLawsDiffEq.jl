@@ -55,10 +55,10 @@ struct DGSolution{T,N,uType,xType,uType2,DType,tType,rateType,P,B,A,IType} <: Ab
   retcode::Symbol
 end
 
-function build_solution{T,N,uType,uType2,DType,tType,
-rateType,P,A,IType}(
+function build_solution(
   ode_sol::ODESolution{T,N,uType,uType2,DType,tType,
-  rateType,P,A,IType}, xg, basis, problem, NC)
+  rateType,P,A,IType}, xg, basis, problem, NC) where {T,N,uType,uType2,DType,tType,
+                              rateType,P,A,IType}
   @unpack u_analytic, errors, t, k,alg,interp,
   dense,tslocation,retcode = ode_sol
   mesh = problem.mesh

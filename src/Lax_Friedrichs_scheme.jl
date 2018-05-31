@@ -3,9 +3,9 @@
 # R. Leveque. Finite Volume Methods for Hyperbolic Problems.Cambridge University
 # Press. New York 2002
 
-immutable LaxFriedrichsAlgorithm <: AbstractFVAlgorithm end
+struct LaxFriedrichsAlgorithm <: AbstractFVAlgorithm end
 
-immutable LocalLaxFriedrichsAlgorithm <: AbstractFVAlgorithm end
+struct LocalLaxFriedrichsAlgorithm <: AbstractFVAlgorithm end
 
 mutable struct GlobalLaxFriedrichsAlgorithm{T} <: AbstractFVAlgorithm
   αf :: Function #viscosity coefficient

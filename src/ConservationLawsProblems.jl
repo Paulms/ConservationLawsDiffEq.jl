@@ -17,7 +17,7 @@ struct ConservationLawsWithDiffusionProblem{islinear,isstochastic,MeshType,F,F3,
  DiffMat::F6
 end
 
-isinplace{islinear,isstochastic,MeshType}(prob::AbstractConservationLawProblem{islinear,isstochastic,MeshType}) = false
+isinplace(prob::AbstractConservationLawProblem{islinear,isstochastic,MeshType}) where {islinear,isstochastic,MeshType} = false
 
 function ConservationLawsProblem(f0,f,CFL,tend,mesh)
  if typeof(tend) <: Int
