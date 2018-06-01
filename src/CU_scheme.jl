@@ -4,7 +4,7 @@
 # for hyperbolic Conservation Laws and Hamilton-Jacobi Equations. SIAM. Sci Comput,
 # Vol 23, No 3m pp 707-740. 2001
 
-immutable FVCUAlgorithm <: AbstractFVAlgorithm
+struct FVCUAlgorithm <: AbstractFVAlgorithm
   θ :: Float64
 end
 

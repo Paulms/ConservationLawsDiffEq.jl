@@ -23,7 +23,7 @@ function f(::Type{Val{:jac}}, ϕ::AbstractVector)
   VPϕ = VP(sum(ϕ))
   for i =  1:M
     for j = 1:M
-      F[i,j]=Vmax[i]*(((i==j)? Vϕ:0.0) + ϕ[i]*VPϕ)
+      F[i,j]=Vmax[i]*(((i==j) ? Vϕ : 0.0) + ϕ[i]*VPϕ)
     end
   end
   F

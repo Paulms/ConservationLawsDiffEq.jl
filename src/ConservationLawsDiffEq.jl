@@ -18,17 +18,17 @@ module ConservationLawsDiffEq
   import Base.Markdown
 
   #Solutions
-  @compat abstract type AbstractFVSolution{T,N} <: AbstractTimeseriesSolution{T,N} end
+  abstract type AbstractFVSolution{T,N} <: AbstractTimeseriesSolution{T,N} end
   # Mesh
-  @compat abstract type AbstractFVMesh end
+  abstract type AbstractFVMesh end
 
   # Problems
   #@compat abstract type PDEProblem <: DEProblem end
-  @compat abstract type AbstractConservationLawProblem{islinear,isstochastic,MeshType} <: DEProblem end
+  abstract type AbstractConservationLawProblem{islinear,isstochastic,MeshType} <: DEProblem end
   # abstract algorithms types
-  @compat abstract type AbstractFVAlgorithm <: DEAlgorithm end
-  @compat abstract type AbstractFEAlgorithm <: DEAlgorithm end
-  @compat abstract type AbstractDGLimiter end
+  abstract type AbstractFVAlgorithm <: DEAlgorithm end
+  abstract type AbstractFEAlgorithm <: DEAlgorithm end
+  abstract type AbstractDGLimiter end
 
   # Reconstructions
   abstract type AbstractReconstruction end

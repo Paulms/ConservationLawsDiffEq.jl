@@ -50,7 +50,7 @@ end
 #MUSCL Limiter Van Leer
 #Reference: Hesthaven, Warburton, Nodal Discontinuous Galerkin Methods Algorithms, Analysis and
 #applications, pp 150.
-immutable Linear_MUSCL_Limiter <: AbstractDGLimiter end
+struct Linear_MUSCL_Limiter <: AbstractDGLimiter end
 
 """
 apply_limiter!(u,f,t,mesh, basis, limiter::Linear_MUSCL_Limiter)

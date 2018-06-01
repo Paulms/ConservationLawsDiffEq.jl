@@ -3,7 +3,7 @@
 # Kurganov A., Lin C., On the reduction of Numerical Dissipation in Central-Upwind
 # Schemes, Commun. Comput. Phys. Vol 2. No. 1, pp 141-163, Feb 2007.
 
-immutable FVDRCUAlgorithm <: AbstractFVAlgorithm
+struct FVDRCUAlgorithm <: AbstractFVAlgorithm
   θ :: Float64
 end
 

@@ -3,12 +3,12 @@
 # equations. 2017. Society for Industrial and Applied Mathematics. SIAM. Vol. 55.
 # No. 1. pp. 240-264
 
-immutable FVESJPAlgorithm <: AbstractFVAlgorithm
+struct FVESJPAlgorithm <: AbstractFVAlgorithm
   Nflux :: Function
   Ndiff :: Function #Entropy stable 2 point flux
   ϵ     :: Number # Extra diffusion
 end
-immutable FVESJPeAlgorithm <: AbstractFVAlgorithm
+struct FVESJPeAlgorithm <: AbstractFVAlgorithm
   Nflux :: Function
   Ndiff :: Function #Entropy stable 2 point flux
   ϵ     :: Number

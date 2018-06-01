@@ -3,7 +3,7 @@
 # Kurganov, Tadmor. New High Resolution Central Schemes for Non Linear Conservation
 # Laws and Convection-Difussion Equations. Journal of Comp Physics 160, pp 241-282. 2000
 
-immutable FVSKTAlgorithm <: AbstractFVAlgorithm
+struct FVSKTAlgorithm <: AbstractFVAlgorithm
   θ :: Float64
 end
 

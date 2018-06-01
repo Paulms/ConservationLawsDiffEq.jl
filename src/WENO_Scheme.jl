@@ -60,7 +60,7 @@ function update_dt(alg::FVCompMWENOAlgorithm{T1,T2,T3},u::AbstractArray{T4,2},Fl
   CFL*mesh.Δx/alg.α
  end
 
-immutable FVSpecMWENOAlgorithm{cType} <: AbstractFVAlgorithm
+struct FVSpecMWENOAlgorithm{cType} <: AbstractFVAlgorithm
   order :: Int
   rec_scheme :: cType
 end
