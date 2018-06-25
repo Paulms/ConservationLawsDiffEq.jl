@@ -15,7 +15,7 @@ module ConservationLawsDiffEq
   # Interfaces
   import DiffEqBase: solve, @def, has_jac, LinSolveFactorize, LinearInterpolation
   import Base: show
-  import Base.Markdown
+  import Markdown
 
   #Solutions
   abstract type AbstractFVSolution{T,N} <: AbstractTimeseriesSolution{T,N} end

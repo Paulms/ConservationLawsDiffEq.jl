@@ -190,7 +190,7 @@ function apply_limiter!(u,f,t,prob, basis, params, limiter::WENO_Limiter)
         # Find elements that require limiting
         vel = vj[k,:] - minmod.(vj[k,:]-uel[k,:],vj[k,:]-vjm[k,:],vjp[k,:]-vj[k,:])
         ver = vj[k,:] + minmod.(uer[k,:]-vj[k,:],vj[k,:]-vjm[k,:],vjp[k,:]-vj[k,:])
-        ids = union(find(x->abs(x)>eps0, vel-uel[k,:]), find(x->abs(x)>eps0, ver-uer[k,:]))
+        ids = union(findall(x->abs(x)>eps0, vel-uel[k,:]), findall(x->abs(x)>eps0, ver-uer[k,:]))
 
         # Apply limiting when needed
         if (!isempty(ids))
