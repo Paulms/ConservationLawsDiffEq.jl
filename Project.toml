@@ -1,0 +1,23 @@
+name = "ConservationLawsDiffEq"
+version = "0.0.0"
+uuid = "b56b4ee8-7a48-11e8-27ed-e3ce6d676b48"
+author = ["P Mendez <pmendez@ing-mat.udec.cl>"]
+
+[deps]
+Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
+DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
+DiffEqCallbacks = "459566f4-90b8-5000-8ac3-15dfb0a30def"
+DiffEqPDEBase = "34035eb4-37db-58ae-b003-a3202c898701"
+FastGaussQuadrature = "442a2c76-b920-505d-bb47-c5924d526838"
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
+IterativeSolvers = "42fd0dbc-a981-5370-80f2-aaf504508153"
+Juno = "e5e0dc1b-0480-54bc-9374-aad01c23163d"
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
+LsqFit = "2fda8390-95c7-5789-9bda-21331edee243"
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
+Polynomials = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
+RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
