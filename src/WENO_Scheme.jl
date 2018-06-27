@@ -90,7 +90,7 @@ Numerical flux of Component Wise WENO algorithm Scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompWENOAlgorithm, ::Type{Val{true}})
     N = numcells(mesh)
-    @unpack order, splitting = alg
+    order = alg.order; splitting = alg.splitting
     k = Int((order + 1)/2)-1
     # Flux splitting
     if splitting == :GLF
@@ -108,7 +108,7 @@ end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompWENOAlgorithm, ::Type{Val{false}})
     N = numcells(mesh)
-    @unpack order, splitting = alg
+    order = alg.order; splitting = alg.splitting
     k = Int((order + 1)/2)-1
     # Flux splitting
     if splitting == :GLF
@@ -142,7 +142,7 @@ Numerical flux of Mapped Component Wise WENO algorithm Scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompMWENOAlgorithm, ::Type{Val{true}})
     N = numcells(mesh)
-    @unpack order, splitting = alg
+    order = alg.order; splitting = alg.splitting
     k = Int((order + 1)/2)-1
     # Flux splitting
     if splitting == :GLF
@@ -160,7 +160,7 @@ end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCompMWENOAlgorithm, ::Type{Val{false}})
     N = numcells(mesh)
-    @unpack order, splitting = alg
+    order = alg.order; splitting = alg.splitting
     k = Int((order + 1)/2)-1
     # Flux splitting
     if splitting == :GLF
@@ -186,7 +186,7 @@ Numerical flux of Mapped Spectral WENO algorithm Scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSpecMWENOAlgorithm, ::Type{Val{false}})
     N = numcells(mesh)
-    @unpack order, rec_scheme = alg
+    order = alg.order; rec_scheme = alg.rec_scheme
     k = Int((order + 1)/2)-1
     save_case = zeros(N+1,M)
     αj = zeros(N+1,M)

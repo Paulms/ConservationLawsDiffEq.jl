@@ -45,20 +45,18 @@ compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVESJPAlgorithm, ::Type{Val{true}
 Numerical flux of Entropy Stable Schemes in 1D
 """
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVESJPAlgorithm, ::Type{Val{true}})
-    @unpack Nflux,Ndiff,ϵ = alg
     dx = mesh.Δx
     #update vector
     Threads.@threads for j in edge_indices(mesh)
-        inner_loop!(hh, j, u, mesh, ϵ, dx, Nflux, Ndiff, alg)
+        inner_loop!(hh, j, u, mesh, alg.ϵ, dx, alg.Nflux, alg.Ndiff, alg)
     end
 end
 
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVESJPAlgorithm, ::Type{Val{false}})
-    @unpack Nflux,Ndiff,ϵ = alg
     dx = mesh.Δx
     #update vector
     for j in edge_indices(mesh)
-        inner_loop!(hh, j, u, mesh, ϵ, dx, Nflux, Ndiff, alg)
+        inner_loop!(hh, j, u, mesh, alg.ϵ, dx, alg.Nflux, alg.Ndiff, alg)
     end
 end
 
@@ -73,19 +71,17 @@ function inner_loop!(hh, j, u, ve, mesh, ϵ, dx, Nflux, Ndiff,alg::FVESJPeAlgori
     1/dx*(Ndiff(vl, vr)*(vr-vl)+ ϵ*(vr-vl))
 end
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVESJPeAlgorithm, ::Type{Val{true}})
-    @unpack Nflux,Ndiff,ϵ,ve = alg
     dx = mesh.Δx
     #update vector
     Threads.@threads for j in edge_indices(mesh)
-        inner_loop!(hh, j, u, ve, mesh, ϵ, dx, Nflux, Ndiff, alg)
+        inner_loop!(hh, j, u, alg.ve, mesh, alg.ϵ, dx, alg.Nflux, alg.Ndiff, alg)
     end
 end
 
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVESJPeAlgorithm, ::Type{Val{false}})
-    @unpack Nflux,Ndiff,ϵ,ve = alg
     dx = mesh.Δx
     #update vector
     for j in edge_indices(mesh)
-        inner_loop!(hh, j, u, ve, mesh, ϵ, dx, Nflux, Ndiff, alg)
+        inner_loop!(hh, j, u, alg.ve, mesh, alg.ϵ, dx, alg.Nflux, alg.Ndiff, alg)
     end
 end

@@ -5,7 +5,7 @@ module ConservationLawsDiffEq
   using Reexport
   @reexport using OrdinaryDiffEq
 
-  using Parameters, Compat, Juno
+  using Juno
   using ForwardDiff, Interpolations, IterativeSolvers
   using RecipesBase, LaTeXStrings, FastGaussQuadrature
   using LsqFit
@@ -38,7 +38,7 @@ module ConservationLawsDiffEq
   include("fv_integrators.jl")
   include("aux_functions.jl")
   include("solutions.jl")
-   include("fv_solve.jl")
+  include("fv_solve.jl")
 
   #Algoritms
   include("ENO_WENO.jl")
