@@ -18,7 +18,7 @@ compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVTecnoAlgorithm, ::Type{Val{fals
 Numerical flux of Tecno Scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVTecnoAlgorithm, ::Type{Val{false}})
-    @unpack order, Nflux, ve = alg
+    order = alg.order; Nflux = alg.Nflux; ve = alg.ve
     N = numcells(mesh)
     dx = mesh.Δx
     #Eno Reconstrucion

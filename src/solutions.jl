@@ -59,8 +59,9 @@ function build_solution(
   ode_sol::ODESolution{T,N,uType,uType2,DType,tType,
   rateType,P,A,IType}, xg, basis, problem, NC) where {T,N,uType,uType2,DType,tType,
                               rateType,P,A,IType}
-  @unpack u_analytic, errors, t, k,alg,interp,
-  dense,tslocation,retcode = ode_sol
+  u_analytic = ode_sol.u_analytic; errors = ode_sol.errors; t = ode_sol.t
+  k = ode_sol.k; alg=ode_sol.alg;interp = ode_sol.interp
+  dense = ode_sol.dense;tslocation=ode_sol.tslocation;retcode = ode_sol.retcode
   mesh = problem.mesh
   #Use first value to infere types
   k = 1

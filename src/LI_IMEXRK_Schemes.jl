@@ -94,7 +94,8 @@ function solve(
   save_everystep = false,kwargs...)
 
   #Unroll some important constants
-  @unpack tspan,f,f0, DiffMat, CFL, numvars, mesh = prob
+  tspan = prob.tspan;f = prob.f; f0 = prob.f0; DiffMat=prob.DiffMat
+  CFL = prob.CFL; numvars = prob.numvars; mesh = prob.mesh
   M = numvars; dx = mesh.Δx
   N = numcells(mesh); Flux = f
   #Compute initial data
@@ -104,7 +105,7 @@ function solve(
     f(::Type{Val{:jac}},x) = x -> ForwardDiff.jacobian(f,x)
   end
   RKTab = RKTable(TimeAlgorithm)
-  @unpack linsolve = alg
+  linsolve = alg.linsolve
 
   #Setup timeseries
   t = tspan[1]

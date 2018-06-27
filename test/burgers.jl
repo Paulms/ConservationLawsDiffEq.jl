@@ -72,8 +72,8 @@ Evaluate the solution `sol` at the value `ξ` of the self-similarity variable
 `ξ = (x - x₀) / (t - t₀)`.
 """
 function (sol::BurgersRiemannSolution)(ξ::Real)
-  @unpack σ⁻, σ⁺ = sol
-  @unpack uₗ, uᵣ = sol.prob
+  σ⁻ = sol.σ⁻; σ⁺ = sol.σ⁺
+  uₗ = sol.prob.uₗ; uᵣ = sol.prob.uᵣ
 
   if ξ < σ⁻
     uₗ
@@ -90,7 +90,7 @@ end
 Evaluate the solution `sol` at the time and space coordinates `t` and `x`.
 """
 function (sol::BurgersRiemannSolution)(x::Real, t::Real)
-  @unpack x₀, t₀ = sol.prob
+  x₀ = sol.prob.x₀; t₀ = sol.prob.t₀
 
   sol((x-x₀)/(t-t₀))
 end
@@ -100,7 +100,7 @@ end
 Compute the solution of the Riemann prolem `prob`.
 """
 function get_solution(prob::RiemannProblem{Burgers{T,1},T,T1}) where {T,T1}
-  @unpack uₗ, uᵣ = prob
+  uₗ = prob.uₗ; uᵣ = prob.uᵣ
   if uₗ > uᵣ
     σ⁻ = σ⁺ = (uₗ + uᵣ) / 2
   else

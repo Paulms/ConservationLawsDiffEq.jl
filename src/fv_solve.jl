@@ -62,7 +62,8 @@ function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLaws
 end
 
 function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsWithDiffusionProblem;use_threads::Bool=false)
-    @unpack f0,f,CFL,numvars,mesh,DiffMat,tspan = prob
+    f0 = prob.f0;f = prob.f;CFL = prob.CFL; numvars=prob.numvars
+    mesh = prob.mesh;DiffMat = prob.DiffMat;tspan = prob.tspan
     fluxes = MMatrix{numedges(mesh),numvars,eltype(f0(cell_faces(mesh)[1]))}()
     dt = zero(eltype(tspan))
     FVDiffIntegrator(alg,mesh,f,DiffMat,CFL,numvars, fluxes, dt, use_threads)
@@ -232,7 +233,7 @@ function fast_solve(
   use_threads::Bool = false, kwargs...)
 
   #Unroll some important constants
-  @unpack tspan,f,f0, mesh = prob
+  tspan = prob.tspan;f = prob.f; f0 = prob.f0; mesh = prob.mesh
 
   #Compute initial data
   u0 = Matrix{eltype(f0(cell_faces(mesh)[1]))}(mesh.N, prob.numvars)

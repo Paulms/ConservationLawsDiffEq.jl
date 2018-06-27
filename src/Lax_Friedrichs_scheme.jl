@@ -145,7 +145,7 @@ Numerical flux of Component Wise Global Lax-Friedrichs Diffusive Scheme in 1D
 """
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::COMP_GLF_Diff_Algorithm, ::Type{Val{false}})
     N = numcells(mesh)
-    @unpack order = alg
+    order = alg.order
     k = Int((order + 1)/2)-1
     # Flux splitting
     fminus, fplus = glf_splitting(u, alg.α, Flux, N, Val{false})
@@ -163,7 +163,7 @@ Numerical flux of Component Wise Global Lax-Friedrichs Diffusive Scheme in 1D. P
 """
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::COMP_GLF_Diff_Algorithm, ::Type{Val{true}})
     N = numcells(mesh)
-    @unpack order = alg
+    order = alg.order
     k = Int((order + 1)/2)-1
     # Flux splitting
     fminus, fplus = glf_splitting(u, alg.α, Flux, N, Val{true})

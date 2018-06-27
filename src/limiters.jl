@@ -29,8 +29,7 @@ end
 params_init(limiter::AbstractDGLimiter, basis::PolynomialBasis, problem::AbstractConservationLawProblem) = nothing
 
 function (dgLimiter::DGLimiter)(u, f, t)
-    @unpack problem, basis, limiter, params = dgLimiter
-    apply_limiter!(u,f,t,problem, basis, params, limiter)
+    apply_limiter!(u,f,t,dgLimiter.problem, dgLimiter.basis, dgLimiter.params, dgLimiter.limiter)
 end
 
 # Auxiliary functions
