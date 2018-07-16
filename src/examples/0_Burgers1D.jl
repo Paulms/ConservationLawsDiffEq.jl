@@ -6,7 +6,7 @@ using ConservationLawsDiffEq
 const CFL = 0.5
 const Tend = 1.0
 
-f(::Type{Val{:jac}},u::AbstractVector) = diagm(u)
+f(::Type{Val{:jac}},u::AbstractVector) = Matrix(Diagonal(u))
 f(u::AbstractVector) = u.^2/2
 f0(x) = sin(2*π*x)
 

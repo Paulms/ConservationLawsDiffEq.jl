@@ -192,10 +192,10 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 
 [[LineSearches]]
-deps = ["Compat", "NLSolversBase", "NaNMath", "Parameters"]
-git-tree-sha1 = "6bb5ccc860a158b58ab40ffad08809bb54801dff"
+deps = ["LinearAlgebra", "NLSolversBase", "NaNMath", "Parameters", "Printf", "Test"]
+git-tree-sha1 = "31d89c1b2594d741cb78f5fc7cb616762a71b559"
 uuid = "d3d80556-e9d4-5f37-9878-2ab0fcc64255"
-version = "6.0.2"
+version = "7.0.0"
 
 [[LinearAlgebra]]
 uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -232,9 +232,9 @@ version = "0.2.0"
 
 [[NLSolversBase]]
 deps = ["Calculus", "DiffEqDiffTools", "Distributed", "ForwardDiff", "LinearAlgebra", "Random", "SparseArrays", "Test"]
-git-tree-sha1 = "ef286addca39b6b6b79dc98510c080d26b0622c3"
+git-tree-sha1 = "f26d6629b8a68bcb07cce4dc1da5a7a92268a32a"
 uuid = "d41bc354-129a-5804-8e4c-c37616107c6c"
-version = "7.0.0"
+version = "7.0.1"
 
 [[NLsolve]]
 deps = ["DiffBase", "DiffEqDiffTools", "Distances", "ForwardDiff", "LineSearches", "LinearAlgebra", "NLSolversBase", "Printf", "Reexport", "SparseArrays", "Test"]

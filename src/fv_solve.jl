@@ -30,7 +30,13 @@ function solve(
       ode_fv.dt = dt
       sol = solve(ode_prob,TimeIntegrator, dt = dt; kwargs...)
   end
-  return(FVSolution(sol.u,sol.t,prob,sol.retcode,sol.interp;dense = sol.dense))
+  return _build_solution(sol, prob)
+end
+
+function _build_solution(sol::ODESolution{T,N,uType,uType2,DType,tType,
+  rateType,P,A,IType}, prob::AbstractConservationLawProblem{A1,A2,MeshType}) where {T,N,uType,uType2,DType,tType,
+                              rateType,P,A,IType,A1,A2,MeshType}
+  FVSolution{T,N,uType,tType,typeof(prob),MeshType,IType}(sol.u,sol.t,prob,sol.dense,0,sol.interp,sol.retcode)
 end
 
 function initial_data_inner_loop!(u0, f0, average_initial_data, mesh, i)
