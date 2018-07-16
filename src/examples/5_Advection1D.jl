@@ -4,7 +4,7 @@ using ConservationLawsDiffEq
 const CFL = 0.5
 const Tend = 1.0
 
-f(::Type{Val{:jac}},u::AbstractVector) = eye(size(u,1))
+f(::Type{Val{:jac}},u::AbstractVector) = Matrix(I,size(u,1),size(u,1))
 f(u::AbstractVector) = u
 
 #define max wave speed

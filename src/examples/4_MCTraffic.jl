@@ -9,10 +9,10 @@ using ConservationLawsDiffEq
 # Parameters:
 const CFL = 0.25
 const Tend = 0.1
-const ϕc = exp(-7/e)
+const ϕc = exp(-7/ℯ)
 const M = 4
 const Vmax = [60.0,55.0,50.0,45.0]
-const CC = e/7
+const CC = ℯ/7
 const κ = 1e-6
 const L = 0.03
 

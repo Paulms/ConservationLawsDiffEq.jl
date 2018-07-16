@@ -5,7 +5,7 @@
 # Vol 23, No 3m pp 707-740. 2001
 
 struct FVCUAlgorithm <: AbstractFVAlgorithm
-  θ :: Float64
+  θ :: Float64      #TODO: This must be in minmod definition not here
 end
 
 function FVCUAlgorithm(;θ=1.0)

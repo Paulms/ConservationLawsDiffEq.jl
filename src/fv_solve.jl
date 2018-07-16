@@ -8,7 +8,7 @@ function solve(
   tspan = prob.tspan; f = prob.f; f0 = prob.f0; mesh = prob.mesh
   #Compute initial data
   NType = eltype(f0(cell_faces(mesh)[1]))
-  u0 = MMatrix{mesh.N, prob.numvars,NType}()
+  u0 = MMatrix{mesh.N, prob.numvars,NType}(undef)
   compute_initial_data!(u0, f0, average_initial_data, mesh, Val{use_threads})
 
   if !has_jac(f)
@@ -62,7 +62,7 @@ end
 function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsProblem;use_threads::Bool=false)
     f0=prob.f0;f = prob.f; CFL = prob.CFL; numvars=prob.numvars;
     mesh = prob.mesh;tspan = prob.tspan
-    fluxes = MMatrix{numedges(mesh),numvars,eltype(f0(cell_faces(mesh)[1]))}()
+    fluxes = MMatrix{numedges(mesh),numvars,eltype(f0(cell_faces(mesh)[1]))}(undef)
     dt = zero(eltype(tspan))
     FVIntegrator(alg,mesh,f,CFL,numvars, fluxes, dt, use_threads)
 end
@@ -70,7 +70,7 @@ end
 function get_semidiscretization(alg::AbstractFVAlgorithm, prob::ConservationLawsWithDiffusionProblem;use_threads::Bool=false)
     f0 = prob.f0;f = prob.f;CFL = prob.CFL; numvars=prob.numvars
     mesh = prob.mesh;DiffMat = prob.DiffMat;tspan = prob.tspan
-    fluxes = MMatrix{numedges(mesh),numvars,eltype(f0(cell_faces(mesh)[1]))}()
+    fluxes = MMatrix{numedges(mesh),numvars,eltype(f0(cell_faces(mesh)[1]))}(undef)
     dt = zero(eltype(tspan))
     FVDiffIntegrator(alg,mesh,f,DiffMat,CFL,numvars, fluxes, dt, use_threads)
 end
