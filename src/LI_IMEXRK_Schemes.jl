@@ -56,9 +56,9 @@ function assamble_B(Φ,N,M,DiffMat,mesh)
   if isleftperiodic(mesh);uleft = view(Φ,((N-1)*M+1):(N*M));end
   if isrightperiodic(mesh);uright = view(Φ,1:M);end
   nnz=M*M*(N-2)*3+M*M*2*2
-  idr = zeros(Int,nnz)
-  idc = zeros(Int,nnz)
-  vals = zeros(eltype(Φ),nnz)
+  idr = fill(zero(Int),nnz)
+  idc = fill(zero(Int),nnz)
+  vals = fill(zero(eltype(Φ)),nnz)
   cent = 1
   for i = 1:N
     for j = 1:N
@@ -99,7 +99,7 @@ function solve(
   M = numvars; dx = mesh.Δx
   N = numcells(mesh); Flux = f
   #Compute initial data
-  u0 = zeros(mesh.N, prob.numvars)
+  u0 = fill(0.0,mesh.N, prob.numvars)
   compute_initial_data!(u0, f0, average_initial_data, mesh, Val{use_threads})
   if !has_jac(f)
     f(::Type{Val{:jac}},x) = x -> ForwardDiff.jacobian(f,x)
@@ -109,9 +109,9 @@ function solve(
 
   #Setup timeseries
   t = tspan[1]
-  timeseries = Vector{typeof(u0)}(0)
+  timeseries = Vector{typeof(u0)}(undef,0)
   push!(timeseries,copy(u0))
-  ts = Vector{typeof(t)}(0)
+  ts = Vector{typeof(t)}(undef,0)
   push!(ts, t)
   tend = tspan[end]
 
@@ -121,17 +121,17 @@ function solve(
   #Start Computation
   u = copy(u0)
   Φ = view(u',:)
-  hh = zeros(eltype(u), N+1, M)
+  hh = fill(zero(eltype(u)), N+1, M)
   crj = unif_crj(3) #eno weights for weno5
   order = 5         #weno5
   @inbounds for i=1:iterations
     α = maxfluxρ(u,Flux)
     dt = CFL*dx/α
-    Ki = zeros(Φ)
-    Kj = Vector{typeof(Ki)}(0)
+    Ki = fill!(similar(Φ), zero(eltype(Φ)))
+    Kj = Vector{typeof(Ki)}(undef,0)
     # i step
     for i = 1:RKTab.order
-      Kjs = zeros(Ki); Kjh = zeros(Ki)
+      Kjs = fill!(similar(Ki),zero(eltype(Ki))); Kjh = fill!(similar(Ki),zero(eltype(Ki)))
       for j = 1:i-1
         Kjs = Kjs + RKTab.At[i,j]*Kj[j]
         Kjh = Kjh + RKTab.A[i,j]*Kj[j]

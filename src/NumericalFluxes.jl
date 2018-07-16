@@ -14,7 +14,7 @@ Obstacles, J. Comput. Math. Phys. USSR, 1, pp. 267-279, 1961.
 function rusanov_euler_num_flux(ul, ur, f, α)
   @assert(size(ul,1) == size(ur,1),
   "ul and ur vector have different number of components")
-  F = zeros(ul)
+  F = fill!(similar(ul),zero(eltype(ul)))
 
   # Fisical variables and sound speeds
   ρL = ul[1];vL=ul[2]/ρL;EL = ul[3]

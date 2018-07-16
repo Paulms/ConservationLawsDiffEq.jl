@@ -61,7 +61,7 @@ function reconstruct(vloc::AbstractVector, dx::Real, eno_rec::ENO_Reconstruction
   order = eno_rec.order
   k = Int((order + 1)/2)
   crj = eno_rec.crj
-  vdiffs = Vector{typeof(vloc)}(0)
+  vdiffs = Vector{typeof(vloc)}(undef,0)
   vl = zero(eltype(vloc))
   vr = zero(eltype(vloc))
   N = size(vloc,1)
@@ -257,7 +257,7 @@ end
 
 #Mapping function
 @inline function gk(ω::Vector, dr::Vector)
-  g = zeros(ω)
+  g = zero(ω)
   for i in 1:size(ω,1)
     g[i] = ω[i]*(dr[i]+dr[i]^2-3*dr[i]*ω[i]+ω[i]^2)/(dr[i]^2+ω[i]*(1-2*dr[i]))
   end

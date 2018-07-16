@@ -1,8 +1,5 @@
 # Copyright (c) 2017: Hendrik Ranocha.
 
-using Parameters
-using RecipesBase
-
 """
 An abstract type representing a balance law in `Dim` space dimensions.
 """
@@ -41,7 +38,7 @@ Create the `RiemannProblem` for `model` with left and right values  `uₗ`,`uᵣ
 `x₀`,`t₀`.
 """
 function RiemannProblem(model::AbstractBalanceLaw{1}, uₗ, uᵣ, x₀::Real=0, t₀::Real=0)
-  assert(typeof(uₗ) == typeof(uᵣ))
+  @assert (typeof(uₗ) == typeof(uᵣ))
   x₀, t₀ == promote(x₀, t₀)
   RiemannProblem{typeof(model),typeof(uₗ),typeof(x₀)}(model, uₗ, uᵣ, x₀, t₀)
 end

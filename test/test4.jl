@@ -5,20 +5,21 @@
 # and mechanics, 2013
 
 using ConservationLawsDiffEq
+using LinearAlgebra
 
 # Parameters:
 const CFL = 0.25
 const Tend = 0.1
-const ϕc = exp(-7/e)
+const ϕc = exp(-7/ℯ)
 const M = 4
 const Vmax = [60.0,55.0,50.0,45.0]
-const CC = e/7
+const CC = ℯ/7
 const κ = 1e-6
 const L = 0.03
 
 function f(::Type{Val{:jac}}, ϕ::AbstractVector)
   M = size(ϕ,1)
-  F = zeros(M,M)
+  F = fill(zero(eltype(ϕ)),M,M)
   Vϕ = VV(sum(ϕ))
   VPϕ = VP(sum(ϕ))
   for i =  1:M
@@ -37,9 +38,9 @@ VP(ϕ::Number) = (ϕ < ϕc) ? 0.0 : -1.0
 function BB(ϕ::AbstractArray)
   M = size(ϕ,1)
   if (sum(ϕ) < ϕc)
-    zeros(M,M)
+    fill(zero(eltype(ϕ)),M,M)
   else
-    B = β(sum(ϕ))*eye(M)
+    B = β(sum(ϕ))*Matrix(I,M,M)
     B
   end
 end

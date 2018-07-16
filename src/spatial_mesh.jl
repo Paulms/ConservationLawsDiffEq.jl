@@ -191,7 +191,7 @@ The index of the edge to the left of `cell` in `mesh`.
 """
 @inline function left_edge(cell::Int, mesh::AbstractFVMesh1D)
     @boundscheck begin
-        assert(1 <= cell <= numcells(mesh))
+        @assert (1 <= cell <= numcells(mesh))
     end
     cell
 end
@@ -203,7 +203,7 @@ The index of the edge to the right of `cell` in `mesh`.
 """
 @inline function right_edge(cell::Int, mesh::AbstractFVMesh1D)
     @boundscheck begin
-        assert(1 <= cell <= numcells(mesh))
+        @assert (1 <= cell <= numcells(mesh))
     end
     cell+1
 end

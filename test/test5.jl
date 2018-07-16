@@ -1,5 +1,6 @@
 # Mass conservation test
 using ConservationLawsDiffEq
+using LinearAlgebra
 
 #FastGaussQuadrature
 const t_nodes = [0.06943184420297371,0.33000947820757187, 0.6699905217924281,0.9305681557970262]
@@ -23,7 +24,7 @@ const Vmx = (ρd-ρc)*grv*di.^2/(18*μc)
 
 function f(::Type{Val{:jac}},ϕ::AbstractVector)
   M = size(ϕ,1)
-  F = zeros(M,M)
+  F = fill(zero(eltype(ϕ)),M,M)
   Vϕ = VV(sum(ϕ))
   VPϕ = VP(sum(ϕ))
   for i =  1:M
@@ -41,7 +42,7 @@ VP(ϕ::Number) = ϕ<1 ? -nrz*(1.0-ϕ)^(nrz-1) : zero(ϕ)
 
 function BB(ϕ::AbstractArray)
     M = size(ϕ,1)
-    B = β(sum(ϕ))*eye(M)
+    B = β(sum(ϕ))*Matrix(I,M,M)
     B
 end
 f0(x) = x < L/2 ? 1.0 : 0.0
@@ -61,7 +62,7 @@ f0(x) = x < L/2 ? 1.0 : 0.0
 
 ##################################### Entropy stable Problem -15 + 0.7*log(1/Vmx[i])
 function vl(u::AbstractVector)
-  w = zeros(u)
+  w = fill!(similar(u),zero(eltype(u)))
   for (i,ui) in enumerate(u)
     w[i] = ui < 0.0 ? -wc : max(log(ui),-wc)
   end
@@ -73,7 +74,7 @@ vei(v::Vector) = exp.(v.*Vmx)
 function kv(v::AbstractVector)
   M = size(v,1)
   w = sum(vei(v))
-  K = β(w)*diagm(Vmx.*exp.(Vmx.*v))
+  K = β(w)*Matrix(Diagonal(Vmx.*exp.(Vmx.*v)))
   K
 end
 function Nediff(vl::AbstractVector, vr::AbstractVector)
@@ -82,17 +83,17 @@ function Nediff(vl::AbstractVector, vr::AbstractVector)
         kv(0.5*(vl+vr))
     else
         ny = size(vl,1)
-        return zeros(eltype(ny),ny,ny)
+        return fill(zero(eltype(ny)),ny,ny)
     end
 end
 
 function cons_integral(vl,vr)
-    F = zeros(vl)
-    ueps = zeros(vl)
+    F = fill!(similar(vl),zero(eltype(vl)))
+    ueps = fill!(similar(vl),zero(eltype(vl)))
     for i in 1:size(t_nodes,1)
         @. ueps = exp((vl + t_nodes[i]*(vr-vl))*Vmx)
         if sum(ueps) > 1.0
-            F = zeros(vl)
+            F = fill!(similar(vl),zero(eltype(vl)))
             break
         end
         F = F + 0.5*weights[i]*f(ueps)

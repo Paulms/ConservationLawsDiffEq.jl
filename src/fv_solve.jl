@@ -84,16 +84,16 @@ function solve(
   NC = prob.numvars
   NN = basis.order+1
   #Assign Initial values
-  xg = zeros(NN,N)
+  xg = fill(0.0,NN,N)
   for i in 1:N
     b = cell_faces(mesh)[i+1]; a=cell_faces(mesh)[i]
     xg[:,i] = reference_to_interval(basis.nodes,(a,b))
   end
   NType = eltype(f0(cell_faces(mesh)[1]))
-  u0 = zeros(NType,NN*NC, N)
+  u0 = fill(zero(NType),NN*NC, N)
   for i = 1:N
       for k = 1:NN
-        u0[k:NN:NN*NC,i] = f0(xg[k,i])
+        u0[k:NN:NN*NC,i] .= f0(xg[k,i])
       end
   end
   # Setup time integrator
@@ -199,7 +199,7 @@ end
     ode_fv.dt = dt_2
     ode_fv(rhs,tmp,nothing,t)
     u₄ = tmp + dt_6 * rhs # u₄
-    k₄ = zeros(rhs)
+    k₄ = fill(0.0,rhs)
     ode_fv.dt = dt_3
     ode_fv(k₄,u₄,nothing,t)
     tmp = (3*uold + 2*u₄ + 2*dt_6 * k₄) / 5 # u₅
@@ -236,7 +236,7 @@ function fast_solve(
   tspan = prob.tspan;f = prob.f; f0 = prob.f0; mesh = prob.mesh
 
   #Compute initial data
-  u0 = Matrix{eltype(f0(cell_faces(mesh)[1]))}(mesh.N, prob.numvars)
+  u0 = Matrix{eltype(f0(cell_faces(mesh)[1]))}(undef,mesh.N, prob.numvars)
   compute_initial_data!(u0, f0, average_initial_data, mesh, Val{use_threads})
 
   if !has_jac(f)
@@ -248,7 +248,7 @@ function fast_solve(
 
   #Setup timeseries
   t = tspan[1]
-  timeseries = Vector{typeof(u0)}(0)
+  timeseries = Vector{typeof(u0)}(undef,0)
   push!(timeseries,copy(u0))
   ts = Float64[t]
   tend = tspan[end]
@@ -257,7 +257,7 @@ function fast_solve(
   update_dt!(u0, ode_fv)
 
   u = copy(u0)
-  rhs = zeros(u0)
+  rhs = zero(u0)
   @fv_generalpreamble
   @inbounds for i=1:iterations
     update_dt!(u, ode_fv)

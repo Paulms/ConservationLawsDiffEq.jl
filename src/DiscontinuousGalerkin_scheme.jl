@@ -26,7 +26,7 @@ end
 function reconstruct_u(u::AbstractArray{T,2}, φ::AbstractArray{T2,2}, NC::Int) where {T, T2}
   uh = myblock(φ,NC)*u
   NN = size(φ,1); Nx = size(u,2)
-  uₕ = zeros(T, NN*Nx,NC)
+  uₕ = fill(zero(T), NN*Nx,NC)
   for j in 1:NC
     uₕ[:,j] = uh[(j-1)*NN+1:j*NN,:][:]
   end
@@ -36,7 +36,7 @@ end
 "Flat x nodes on u matrix"
 function flat_u(u::AbstractArray{T,2}, order::Int, NC::Int) where {T}
   NN = order + 1
-  uh = zeros(T, size(u,2)*NN, NC)
+  uh = fill(zero(T), size(u,2)*NN, NC)
   for j in 1:NC
     uh[:,j] = u[(j-1)*NN+1:j*NN,:][:]
   end
@@ -47,7 +47,7 @@ end
 function get_dg_face_values(u::AbstractArray{T,2}, order::Int, NC::Int) where {T}
     NN = order + 1
     #TODO: number of faces depend on dimension
-    us = zeros(T, 2*NC, size(u,2))
+    us = fill(zero(T), 2*NC, size(u,2))
     for j in 1:size(u,2)
       for k in 1:NC
           us[(2*k-1):k*2,j] = u[[1+NN*(k-1),NN+NN*(k-1)],j]
@@ -71,8 +71,8 @@ function residual!(H::AbstractArray{T,2}, u::AbstractArray{T,2}, basis::Polynomi
     us = get_dg_face_values(u, basis.order, NC)
     #Apply boundary conditions TODO: Other boundary types
     us = apply_boundary(us, mesh)
-    q = zeros(u)
-    F = zeros(u)
+    q = fill!(similar(u), zero(eltype(u)))
+    F = fill!(similar(u), zero(eltype(u)))
     ur=us[1:2:end,:]
     ul=us[2:2:end,:]
     for i = 1:numcells(mesh)
@@ -89,8 +89,8 @@ function residual!(H::AbstractArray{T,2}, u::AbstractArray{T,2}, basis::Polynomi
     ru = myblock(alg.S',NC)*F - q
     h = maximum(cell_volumes(mesh))
     H[:,:] = (h/2*myblock(alg.Ma,NC))\ru;
-    if isleftdirichlet(mesh); H[:,1] = 0.0; end
-   if isrightdirichlet(mesh); H[:,end] = 0.0; end
+    if isleftdirichlet(mesh); H[:,1] .= 0.0; end
+   if isrightdirichlet(mesh); H[:,end] .= 0.0; end
 end
 
 "Apply boundary conditions on scalar problems"

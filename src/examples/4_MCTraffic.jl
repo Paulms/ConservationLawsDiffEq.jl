@@ -18,7 +18,7 @@ const L = 0.03
 
 function f(::Type{Val{:jac}}, ϕ::AbstractVector)
   M = size(ϕ,1)
-  F = zeros(M,M)
+  F = fill(zero(eltype(ϕ)),M,M)
   Vϕ = VV(sum(ϕ))
   VPϕ = VP(sum(ϕ))
   for i =  1:M
@@ -37,7 +37,7 @@ VP(ϕ::Number) = (ϕ < ϕc) ? 0.0 : -1.0
 function BB(ϕ::AbstractArray)
   M = size(ϕ,1)
   if (sum(ϕ) < ϕc)
-    zeros(M,M)
+    fill(zero(eltype(ϕ)),M,M)
   else
     B = β(sum(ϕ))*eye(M)
     B

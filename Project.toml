@@ -1,7 +1,7 @@
 name = "ConservationLawsDiffEq"
 uuid = "b56b4ee8-7a48-11e8-27ed-e3ce6d676b48"
 author = ["P Mendez <pmendez@ing-mat.udec.cl>"]
-version = "0.0.0"
+version = "0.0.1"
 
 [deps]
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
@@ -13,9 +13,12 @@ Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
 IterativeSolvers = "42fd0dbc-a981-5370-80f2-aaf504508153"
 Juno = "e5e0dc1b-0480-54bc-9374-aad01c23163d"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
-LsqFit = "2fda8390-95c7-5789-9bda-21331edee243"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 Polynomials = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"

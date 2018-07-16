@@ -36,7 +36,7 @@ positive(x) = max(0,x)
 #define max wave speed (generic euler system)
 function max_w_speed(u)
   ρ = u[:,1];v = u[:,2]./ρ;E = u[:,3]
-  p = zeros(ρ); wave_speed = zeros(ρ)
+  p = fill!(similar(ρ), zero(eltype(ρ))); wave_speed = fill!(similar(ρ), zero(eltype(ρ)))
   @. p = (γ-1)*(E-0.5*ρ*v*v)
   @. wave_speed = abs(v) + sqrt(γ*positive(p/ρ))
   return maximum(wave_speed)
@@ -51,7 +51,7 @@ function Nflux(ul::Vector, ur::Vector)
   zr = sqrt(ρr/pr)*[1;vr;pr]
   zm = 0.5*(zl+zr)
   zln = (zr-zl)./(log(zr)-log(zl))
-  F = zeros(ul)
+  F = fill!(similar(ul), zero(eltype(ul)))
   F[1] = zm[2]*zln[3]
   F[2] = zm[3]/zm[1]+zm[2]/zm[1]*F[1]
   F[2] = 0.5*zm[2]/zm[1]*((γ+1)/(γ-1)*zln[3]/zln[1]+F[2])

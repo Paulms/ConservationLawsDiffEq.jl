@@ -30,7 +30,7 @@ function save_csv(sol::FVSolution, file_name::String; idx = -1)
 end
 
 function get_total_u(sol::FVSolution)
-    masa = zeros(size(sol.u))
+    masa = fill(zero(eltype(sol.u[1])),size(sol.u,1))
     for (i,u) in enumerate(sol.u)
         masa[i] = sum(u*sol.prob.mesh.Δx)
     end
@@ -68,19 +68,20 @@ function build_solution(
   NN = size(basis.φ,1)
   Nx = size(ode_sol.u[k],2)
   uh = flat_u(ode_sol.u[k], basis.order, NC)
-  u = Vector{typeof(uh)}(0)
+  u = Vector{typeof(uh)}(undef,0)
   push!(u, copy(uh))
 
   # Save the rest of the iterations
-  for k in 2:size(ode_sol.u,1)
+  sol_size = size(ode_sol.u,1)
+  for k in 2:sol_size
     uh = flat_u(ode_sol.u[k], basis.order, NC)
     push!(u, copy(uh))
   end
   xg = xg[:]
   #TODO: Actually compute errors
   DGSolution{T,N,typeof(u),typeof(xg),typeof(u_analytic),typeof(errors),
-  typeof(t),typeof(k),typeof(problem),typeof(basis),typeof(alg),typeof(interp)}(u, xg,
-  NC,u_analytic, errors, t, k,problem,basis,alg,interp,dense,tslocation,retcode)
+  typeof(t),typeof(sol_size),typeof(problem),typeof(basis),typeof(alg),typeof(interp)}(u, xg,
+  NC,u_analytic, errors, t, sol_size,problem,basis,alg,interp,dense,tslocation,retcode)
 end
 
 function interp_common(sol, u)

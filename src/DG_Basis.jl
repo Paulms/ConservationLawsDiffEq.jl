@@ -41,9 +41,9 @@ end
 
 function legendre_basis(order, ::Type{T}=Float64) where T<:Number
   nodes, weights = gausslobatto(order+1)
-  φ = zeros(T,order+1,order+1)
-  dφ = zeros(T,order+1,order+1)
-  polynomials = Vector{Poly}(order+1)
+  φ = fill(zero(T),order+1,order+1)
+  dφ = fill(zero(T),order+1,order+1)
+  polynomials = Vector{Poly}(undef,order+1)
   for n = 0:order
     p = poly_legendre(n, T)
     dp = polyder(p)
@@ -58,23 +58,5 @@ end
 
 "Maps reference coordinates (ξ ∈ [-1,1]) to interval coordinates (x)"
 function reference_to_interval(ξ,a::Tuple)
-   0.5*(a[2]-a[1])*ξ + 0.5*(a[2]+a[1])
-end
-
-"Project function f on polynomial space Vₕ"
-function project_function(f, basis, interval::Tuple; component=1)
-  nodes = reference_to_interval(basis.nodes, interval)
-  f_val = zeros(nodes)
-  for i in 1:size(nodes,1)
-    f_val[i] = f(nodes[i])[component]
-  end
-  function model(x,p)
-    result = zeros(x)
-    for i in 1:size(p,1)
-      result.+=p[i]*polyval(basis.polynomials[i], x)
-    end
-    result
-  end
-  p0 = zeros(eltype(basis.nodes),basis.order+1)
-  curve_fit(model, basis.nodes, f_val, p0)
+   0.5*(a[2]-a[1])*ξ .+ 0.5*(a[2]+a[1])
 end

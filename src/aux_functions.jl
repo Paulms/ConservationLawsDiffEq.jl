@@ -7,9 +7,9 @@ Numerical integration helper function.
 """
 function num_integrate(f,a,b;order=5, method = gausslegendre)
     nodes, weights = method(order);
-    t_nodes = 0.5*(b-a)*nodes+0.5(b+a)
+    t_nodes = 0.5*(b-a)*nodes .+ 0.5(b+a)
     M = length(f(a))
-    tmp = zeros(M)
+    tmp = fill(0.0,M)
     for i in 1:M
         g(x) = f(x)[i]
         tmp[i] = 0.5*(b-a)*dot(g.(t_nodes),weights)
@@ -45,7 +45,7 @@ function compute_slopes(u::AbstractArray, mesh::AbstractFVMesh1D, θ, M::Int, ::
 end
 
 function compute_slopes(u::AbstractArray, mesh::AbstractFVMesh1D, θ, M::Int, ::Type{Val{false}})
-    ∇u = zeros(u)
+    ∇u = similar(u)
     for j in cell_indices(mesh)
         inner_slopes_loop!(∇u,j,u,mesh,θ,M)
     end
@@ -94,7 +94,7 @@ end
 function myblock(A::AbstractArray{T,2},N::Int) where {T}
   M = size(A,1)
   Q = size(A,2)
-  B = zeros(T,M*N,Q*N)
+  B = fill(zero(T),M*N,Q*N)
   for i = 1:N
     B[(i-1)*M+1:i*M,(i-1)*Q+1:i*Q] = A
   end

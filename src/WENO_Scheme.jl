@@ -34,7 +34,7 @@ end
 function update_dt(alg::FVCompWENOAlgorithm{T1,T2,T3},u::AbstractArray{T4,2},Flux,
     CFL,mesh::Uniform1DFVMesh) where {T1,T2,T3,T4}
   alg.α = alg.αf(u,Flux)
-  assert(abs(alg.α) > eps(T2))
+  @assert (abs(alg.α) > eps(T2))
   CFL*mesh.Δx/alg.α
  end
 
@@ -56,7 +56,7 @@ end
 function update_dt(alg::FVCompMWENOAlgorithm{T1,T2,T3},u::AbstractArray{T4,2},Flux,
     CFL,mesh::Uniform1DFVMesh) where {T1,T2,T3,T4}
   alg.α = alg.αf(u,Flux)
-  assert(abs(alg.α) > eps(T2))
+  @assert (abs(alg.α) > eps(T2))
   CFL*mesh.Δx/alg.α
  end
 
@@ -188,11 +188,11 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSpecMWENOAlgorithm, ::
     N = numcells(mesh)
     order = alg.order; rec_scheme = alg.rec_scheme
     k = Int((order + 1)/2)-1
-    save_case = zeros(N+1,M)
-    αj = zeros(N+1,M)
-    RMats = Vector{typeof(Flux(Val{:jac},u[1,:]))}(0)
-    LMats = Vector{typeof(Flux(Val{:jac},u[1,:]))}(0)
-    gk = zeros(u)
+    save_case = fill(0.0,N+1,M)
+    αj = fill(0.0,N+1,M)
+    RMats = Vector{typeof(Flux(Val{:jac},u[1,:]))}(undef,0)
+    LMats = Vector{typeof(Flux(Val{:jac},u[1,:]))}(undef,0)
+    gk = fill!(similar(u), zero(eltype(u)))
     for j in edge_indices(mesh)
       @inbounds ul = cellval_at_left(j,u,mesh)
       @inbounds ur = cellval_at_right(j,u,mesh)
@@ -200,7 +200,7 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSpecMWENOAlgorithm, ::
       Rj = eigvecs(MatJf);  Lj = inv(Rj)
       push!(RMats,Rj); push!(LMats,Lj)
       λl = eigvals(Flux(Val{:jac},ul)); λr = eigvals(Flux(Val{:jac},ur))
-      αj[j,:] = maximum(abs,[λl λr],2)
+      αj[j,:] = maximum(abs,[λl λr],dims=2)
       if j < N+1
         gk[j,:] = Flux(u[j,:])
       end
@@ -217,8 +217,8 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSpecMWENOAlgorithm, ::
       end
     end
   #WEno Reconstrucion
-  gklloc = zeros(k*2+1,M);gkrloc = zeros(k*2+1,M)
-  gmloc = zeros(k*2+1,M);gploc = zeros(k*2+1,M)
+  gklloc = fill(0.0,k*2+1,M);gkrloc = fill(0.0,k*2+1,M)
+  gmloc = fill(0.0,k*2+1,M);gploc = fill(0.0,k*2+1,M)
   for j = 0:N
     for (ll,l) in enumerate((j-k):(j+k))
       gkl = get_cellvals(gk,mesh,(l+1,:)...)

@@ -33,7 +33,7 @@ function get_LP_error(ref::Function, sol::AbstractFVSolution; relative = true, p
 function get_LP_error(ref::Function, sol::AbstractFVSolution; relative::Bool = true, p = 1.0, pointwise::Bool = false)
     x = cell_centers(sol.prob.mesh)
     tspan = sol.prob.tspan
-    uexact = zeros(sol.u[end])
+    uexact = fill!(similar(sol.u[end]), zero(eltype(sol.u[end])))
     faces = cell_faces(sol.prob.mesh)
     for i in cell_indices(sol.prob.mesh)
         if pointwise
@@ -48,9 +48,9 @@ end
 function get_LP_error(ref::Function, sol::DGSolution; relative::Bool = true, p = 1.0)
     x = sol.nodes
     tspan = sol.prob.tspan
-    uexact = zeros(sol.u[end])
+    uexact = fill!(similar(sol.u[end]), zero(eltype(sol.u[end])))
     for i in 1:size(x,1)
-        uexact[i,:] = ref(x[i], tspan[end])
+        uexact[i,:] .= ref(x[i], tspan[end])
     end
     relative ? 100*dg_norm((sol.u[end] - uexact), sol.basis, p)/dg_norm(uexact, sol.basis, p) : dg_norm((sol.u[end] - uexact), sol.basis, p)
 end
@@ -74,10 +74,10 @@ end
 #TODO: Estimate approx numerical errors when DG is used
 "Compute aproximate L1 errors with numerical reference solution"
 function get_num_LP_error(reference,M, uu,N,dx; relative::Bool = true, p = 1.0)
-    uexact = zeros(uu)
+    uexact = fill!(similar(uu), zero(eltype(uu)))
     R = Int(round(M/N))
     for i = 1:N
-        uexact[i,:] = 1.0/R*sum(reference[R*(i-1)+1:R*i,:],1)
+        uexact[i,:] = 1.0/R*sum(reference[R*(i-1)+1:R*i,:],dims=1)
     end
     relative ? 100.0*mesh_norm((uu - uexact), dx, p)/mesh_norm(uexact, dx, p) : mesh_norm((uu - uexact), dx, p)
 end
@@ -134,7 +134,7 @@ by solving a Conservations Laws problem in a sequence of meshes of cell size giv
 `kwargs` extra arguments are passed to `solve` function
 """
 function get_conv_order_table(alg, get_problem, u_exact::Function, mesh_ncells; relative::Bool = true, kwargs...)
-    errors = zeros(Float64,size(mesh_ncells,1),2)
+    errors = fill(zero(Float64),size(mesh_ncells,1),2)
     @assert size(mesh_ncells,1) > 2 "mesh_sizes must have at least two elements"
     for (i,N) in enumerate(mesh_ncells)
         prob = get_problem(N)
@@ -146,7 +146,7 @@ function get_conv_order_table(alg, get_problem, u_exact::Function, mesh_ncells; 
 end
 
 function get_conv_order_table(alg, get_problem, u_exact::AbstractFVSolution, mesh_ncells; relative::Bool = true, kwargs...)
-    errors = zeros(Float64,size(mesh_ncells,1),2)
+    errors = fill(zero(Float64),size(mesh_ncells,1),2)
     @assert size(mesh_ncells,1) > 2 "mesh_sizes must have at least two elements"
     for (i,N) in enumerate(mesh_ncells)
         prob = get_problem(N)

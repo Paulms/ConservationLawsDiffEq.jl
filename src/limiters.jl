@@ -63,21 +63,21 @@ function apply_limiter!(u,f,t,prob, basis, params, imiter::Linear_MUSCL_Limiter)
     @assert basis.order > 1 "MUSCL limiter requires at least linear polynomials"
     #Extract linear polynomial
     ul = uh[:,:];
-    for k = 1:NC;ul[((k-1)*NN+3):k*NN,:] = 0.0;end
+    for k = 1:NC;ul[((k-1)*NN+3):k*NN,:] .= 0.0;end
 
     # Compute cell averages
-    uavg = zeros(eltype(u), NC, numcells(mesh))
+    uavg = fill(zero(eltype(u)), NC, numcells(mesh))
     get_cell_averages!(uavg, basis, uh, NC)
 
     #compute nodes in real coordinates
-    x1 = zeros(basis.order+1,numcells(mesh))
+    x1 = fill(0.0,basis.order+1,numcells(mesh))
     for k in 1:numcells(mesh)
         x1[:,k] = reference_to_interval(basis.nodes, (cell_faces(mesh)[k],cell_faces(mesh)[k+1]))
     end
     x0 = cell_centers(mesh)
     # Compute derivative
     h = cell_volumes(mesh)
-    ux = 2*(1./h)'.*(myblock(basis.dφ,NC)*ul)
+    ux = 2*(1 ./ h)'.*(myblock(basis.dφ,NC)*ul)
 
     ve = apply_boundary(uavg, mesh)
     uavgp1 = ve[:,3:end];  uavgm1 = ve[:,1:end-2]
@@ -106,8 +106,8 @@ Compute operators to enable evaluation of WENO smoothness
 indicator and WENO polynomial of order m.
 """
 function WENOLimiterWeights(m,iV);
-    Q = zeros(m+1,m+1)
-    Pmat = zeros(m+1,m+1)
+    Q = fill(0.0,m+1,m+1)
+    Pmat = fill(0.0,m+1,m+1)
     Xm = Pmat; Xp = Pmat;
 
     # Compute quadrature points
@@ -126,7 +126,7 @@ function WENOLimiterWeights(m,iV);
     # Compute matrices corresponding to increasing order of derivative
     for l=1:m
         # Set up operator to recover derivaties
-        A = zeros(m+2-l,m+2-l); A[1,1] = 1/sqrt((2*l+1)*(2*l-1))
+        A = fill(0.0,m+2-l,m+2-l); A[1,1] = 1/sqrt((2*l+1)*(2*l-1))
         A[m+2-l,m+2-l] = 1/(sqrt(2*(m+2)+1)*sqrt(2*(m+2)-1))
         for i=2:m-l+1
             Ah = 1/(sqrt(2*(l-1+i)+1)*sqrt(2*(l-1+i)-1))
@@ -169,7 +169,7 @@ function apply_limiter!(u,f,t,prob, basis, params, limiter::WENO_Limiter)
 
     # Compute cell averages and cell centers
     uh = iV*u
-    uavg = zeros(eltype(u), NC, numcells(mesh))
+    uavg = fill(zero(eltype(u)), NC, numcells(mesh))
     get_cell_averages!(uavg, basis, uh, NC)
 
     # Compute extended polynomials with zero cell averages

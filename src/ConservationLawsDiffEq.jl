@@ -3,17 +3,20 @@ module ConservationLawsDiffEq
   using DiffEqPDEBase,DiffEqBase
   using DiffEqCallbacks
   using Reexport
+  using LinearAlgebra
+  using SpecialFunctions
+  using SparseArrays
   @reexport using OrdinaryDiffEq
 
   using Juno
   using ForwardDiff, Interpolations, IterativeSolvers
   using RecipesBase, LaTeXStrings, FastGaussQuadrature
-  using LsqFit
   using Polynomials
   using StaticArrays
 
   # Interfaces
-  import DiffEqBase: solve, @def, has_jac, LinSolveFactorize, LinearInterpolation
+  import DiffEqBase: solve, @def, LinSolveFactorize, LinearInterpolation, AbstractTimeseriesSolution, DEProblem,
+                     DEAlgorithm
   import Base: show
   import Markdown
 
@@ -23,7 +26,6 @@ module ConservationLawsDiffEq
   abstract type AbstractFVMesh end
 
   # Problems
-  #@compat abstract type PDEProblem <: DEProblem end
   abstract type AbstractConservationLawProblem{islinear,isstochastic,MeshType} <: DEProblem end
   # abstract algorithms types
   abstract type AbstractFVAlgorithm <: DEAlgorithm end
@@ -32,6 +34,9 @@ module ConservationLawsDiffEq
 
   # Reconstructions
   abstract type AbstractReconstruction end
+
+  #Interface functions
+  include("utils.jl")
 
   include("spatial_mesh.jl")
   include("ConservationLawsProblems.jl")
@@ -81,10 +86,9 @@ module ConservationLawsDiffEq
   export cell_centers, get_semidiscretization, cell_volume, cell_indices, numcells
   export get_total_u, get_relative_L1_error, get_L1_error, approx_L1_error, approx_relative, L1_error
   export num_integrate
-  export  FVOOCTable, get_conv_order_table, mesh_norm, get_LP_error, get_num_LP_error
+  export FVOOCTable, get_conv_order_table, mesh_norm, get_LP_error, get_num_LP_error
   export advection_num_flux, rusanov_euler_num_flux, glf_num_flux
   export legendre_basis, PolynomialBasis, poly_jacobi, poly_legendre, reference_to_interval
   export DGLimiter, Linear_MUSCL_Limiter, WENO_Limiter
-  export fluxρ, myblock, apply_boundary, reconstruct
   export ENO_Reconstruction, WENO_Reconstruction, MWENO_Reconstruction
 end

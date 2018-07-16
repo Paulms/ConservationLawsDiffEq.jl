@@ -15,7 +15,7 @@ end
 function update_dt(alg::GlobalLaxFriedrichsAlgorithm{T1},u::AbstractArray{T2,2},Flux,
     CFL,mesh::Uniform1DFVMesh) where {T1,T2}
   alg.α = alg.αf(u,Flux)
-  assert(abs(alg.α) > eps(T1))
+  @assert (abs(alg.α) > eps(T1))
   CFL*mesh.Δx/alg.α
 end
 
@@ -36,7 +36,7 @@ end
 function update_dt(alg::COMP_GLF_Diff_Algorithm{T0,T1,T2},u::AbstractArray{T3,2},Flux,
     DiffMat,CFL,mesh::Uniform1DFVMesh) where {T0,T1,T2,T3}
   alg.α = alg.αf(u,Flux)
-  assert(abs(alg.α) > eps(T0))
+  @assert (abs(alg.α) > eps(T0))
   CFL*mesh.Δx/alg.α
 end
 
