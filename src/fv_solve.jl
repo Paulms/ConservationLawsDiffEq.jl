@@ -11,10 +11,6 @@ function solve(
   u0 = MMatrix{mesh.N, prob.numvars,NType}(undef)
   compute_initial_data!(u0, f0, average_initial_data, mesh, Val{use_threads})
 
-  if !has_jac(f)
-    f(::Type{Val{:jac}},x) = x -> ForwardDiff.jacobian(f,x)
-  end
-
   # Semidiscretization
   ode_fv = get_semidiscretization(alg, prob; use_threads = use_threads)
   ode_prob = ODEProblem(ode_fv, u0, tspan)
@@ -244,10 +240,6 @@ function fast_solve(
   #Compute initial data
   u0 = Matrix{eltype(f0(cell_faces(mesh)[1]))}(undef,mesh.N, prob.numvars)
   compute_initial_data!(u0, f0, average_initial_data, mesh, Val{use_threads})
-
-  if !has_jac(f)
-    f(::Type{Val{:jac}},x) = x -> ForwardDiff.jacobian(f,x)
-  end
 
   # Semidiscretization
   ode_fv = get_semidiscretization(alg, prob; use_threads = use_threads)

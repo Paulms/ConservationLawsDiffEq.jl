@@ -36,8 +36,6 @@ module ConservationLawsDiffEq
   abstract type AbstractReconstruction end
 
   #Interface functions
-  include("utils.jl")
-
   include("spatial_mesh.jl")
   include("ConservationLawsProblems.jl")
   include("fv_integrators.jl")
@@ -67,7 +65,7 @@ module ConservationLawsDiffEq
   include("plotRecipe.jl")
 
   #Exports
-  export solve, fast_solve
+  export solve, fast_solve, CLFunction
   export AbstractFVAlgorithm
   export Uniform1DFVMesh, AbstractFVMesh1D
   export FVSolution, DGSolution, save_csv
@@ -79,7 +77,7 @@ module ConservationLawsDiffEq
   export LocalLaxFriedrichsAlgorithm, GlobalLaxFriedrichsAlgorithm
   export DiscontinuousGalerkinScheme
   export COMP_GLF_Diff_Algorithm
-  export minmod, scheme_short_name
+  export minmod
   export FVCUAlgorithm, FVDRCUAlgorithm, FVSKTAlgorithm
   export FVDRCU5Algorithm
   export cell_faces
@@ -88,7 +86,7 @@ module ConservationLawsDiffEq
   export num_integrate
   export FVOOCTable, get_conv_order_table, mesh_norm, get_LP_error, get_num_LP_error
   export advection_num_flux, rusanov_euler_num_flux, glf_num_flux
-  export legendre_basis, PolynomialBasis, poly_jacobi, poly_legendre, reference_to_interval
+  export legendre_basis, PolynomialBasis
   export DGLimiter, Linear_MUSCL_Limiter, WENO_Limiter
   export ENO_Reconstruction, WENO_Reconstruction, MWENO_Reconstruction
 end

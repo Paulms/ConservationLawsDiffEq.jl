@@ -16,14 +16,14 @@ const xr = 3.0
 prob1 = RiemannProblem(Burgers(), ul, ur, x0, 0.0)
 sol_ana  = get_solution(prob1)
 
-f(::Type{Val{:jac}},u::AbstractArray{T,1}) where {T} = Matrix(Diagonal(u))
-f(u::AbstractArray) = u.^2/2
+Jf(u::AbstractVector) = Matrix(Diagonal(u))
+f(u::AbstractVector) = u.^2/2
 
 f0(x) = (x < x0) ? ul : ur
 
 function get_problem(N)
   mesh = Uniform1DFVMesh(N,xl,xr,:DIRICHLET, :DIRICHLET)
-  ConservationLawsProblem(f0,f,CFL,Tend,mesh)
+  ConservationLawsProblem(f0,f,CFL,Tend,mesh;jac = Jf)
 end
 
 prob = get_problem(50)

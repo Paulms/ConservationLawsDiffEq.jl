@@ -17,7 +17,7 @@ const CC = ℯ/7
 const κ = 1e-6
 const L = 0.03
 
-function f(::Type{Val{:jac}}, ϕ::AbstractVector)
+function Jf(ϕ::AbstractVector)
   M = size(ϕ,1)
   F = fill(zero(eltype(ϕ)),M,M)
   Vϕ = VV(sum(ϕ))
@@ -49,7 +49,7 @@ f0(x) = 0.5*exp.(-(x-3)^2)*[0.2,0.3,0.2,0.3]
 
 function get_problem(N)
   mesh = Uniform1DFVMesh(N,0.0,10.0,:PERIODIC, :PERIODIC)
-  ConservationLawsWithDiffusionProblem(f0,f,BB,CFL,Tend,mesh)
+  ConservationLawsWithDiffusionProblem(f0,f,BB,CFL,Tend,mesh;jac = Jf)
 end
 #Compile
 prob = get_problem(10)

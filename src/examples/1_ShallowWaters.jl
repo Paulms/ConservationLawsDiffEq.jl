@@ -5,7 +5,7 @@ const CFL = 0.1
 const Tend = 0.2
 const gr = 9.8
 
-function f(::Type{Val{:jac}},u::AbstractVector)
+function Jf(u::AbstractVector)
   h = u[1]
   q = u[2]
   F =[0.0 1.0;-q^2/h^2+gr*h 2*q/h]
@@ -25,7 +25,7 @@ ve(u::AbstractVector) = [gr*u[1]-0.5*(u[2]/u[1])^2;u[2]/u[1]]
 
 function get_problem(N)
   mesh = Uniform1DFVMesh(N,-5.0,5.0,:PERIODIC, :PERIODIC)
-  prob = ConservationLawsProblem(f0,f,CFL,Tend,mesh)
+  prob = ConservationLawsProblem(f0,f,CFL,Tend,mesh;jac = Jf)
 end
 #Compile
 prob = get_problem(10)

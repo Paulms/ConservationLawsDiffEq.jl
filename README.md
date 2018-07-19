@@ -148,7 +148,7 @@ const Tend = 0.2
 const gr = 9.8
 
 #Define Optional Jacobian of Flux
-function f(::Type{Val{:jac}},u::AbstractVector)
+function Jf(u::AbstractVector)
   h = u[1]
   q = u[2]
   F =[0.0 1.0;-q^2/h^2+gr*h 2*q/h]
@@ -166,7 +166,7 @@ N = 100
 mesh = Uniform1DFVMesh(N,-5.0,5.0,:PERIODIC,:PERIODIC)
 
 #Setup problem:
-prob = ConservationLawsProblem(f0,f,CFL,Tend,mesh)
+prob = ConservationLawsProblem(f0,f,CFL,Tend,mesh;jac = Jf)
 
 #Solve problem using Kurganov-Tadmor scheme and Strong Stability Preserving RK33
 @time sol = solve(prob, FVSKTAlgorithm();progress=true, TimeIntegrator = SSPRK33())

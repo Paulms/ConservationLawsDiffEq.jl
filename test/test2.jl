@@ -6,7 +6,7 @@ const CFL = 0.45
 const Tend = 1.0
 const cc = 1.0
 
-f(::Type{Val{:jac}},u::AbstractVector) = [0.0 cc;cc 0.0]
+Jf(u::AbstractVector) = [0.0 cc;cc 0.0]
 f(u::AbstractVector) = [0.0 cc;cc 0.0]*u
 f0(x) = [sin(4*π*x), 0.0]
 
@@ -16,7 +16,7 @@ exact_sol(x::Float64, t::Float64) = hcat(0.5*(sin.(4*π*(-t+x))+sin.(4*π*(t+x))
 
 function get_problem(N)
   mesh = Uniform1DFVMesh(N,-1.0,1.0,:PERIODIC, :PERIODIC)
-  ConservationLawsProblem(f0,f,CFL,Tend,mesh)
+  ConservationLawsProblem(f0,f,CFL,Tend,mesh;jac = Jf)
 end
 #Compile
 prob = get_problem(20)
@@ -29,7 +29,11 @@ prob = get_problem(20)
 @test get_L1_error(exact_sol, sol) < 1.15
 @time sol1 = solve(prob, FVSKTAlgorithm();progress=true, use_threads=true)
 @test get_L1_error(exact_sol, sol1) ≈ get_L1_error(exact_sol, sol)
+@time sol = solve(prob, FVTecnoAlgorithm(Nflux;order=2);progress=true, use_threads=false)
+@test get_L1_error(exact_sol, sol) < 1.152
 @time sol = solve(prob, FVTecnoAlgorithm(Nflux;order=3);progress=true, use_threads=false)
+@test get_L1_error(exact_sol, sol) < 1.14
+@time sol = solve(prob, FVTecnoAlgorithm(Nflux;order=5);progress=true, use_threads=false)
 @test get_L1_error(exact_sol, sol) < 1.14
 println("No threaded version of TECNO scheme")
 @time sol = solve(prob, FVCompWENOAlgorithm();progress=true, use_threads=false)

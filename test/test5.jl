@@ -22,7 +22,7 @@ const grv = 9.81 #m/s²
 const wc = 40.0
 const Vmx = (ρd-ρc)*grv*di.^2/(18*μc)
 
-function f(::Type{Val{:jac}},ϕ::AbstractVector)
+function Jf(ϕ::AbstractVector)
   M = size(ϕ,1)
   F = fill(zero(eltype(ϕ)),M,M)
   Vϕ = VV(sum(ϕ))
@@ -103,7 +103,7 @@ end
 
 function get_problem(N, CFL=0.3, Tend=300.0)
   mesh = Uniform1DFVMesh(N,0.0,L,:ZERO_FLUX,:ZERO_FLUX)
-  return ConservationLawsWithDiffusionProblem(f0,f,BB,CFL,Tend,mesh)
+  return ConservationLawsWithDiffusionProblem(f0,f,BB,CFL,Tend,mesh;jac = Jf)
 end
 function run_test(prob;α=1.0e-13, ses = false, ut = false)
   ϵ = α*prob.mesh.Δx

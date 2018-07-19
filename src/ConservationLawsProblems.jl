@@ -17,23 +17,43 @@ struct ConservationLawsWithDiffusionProblem{islinear,isstochastic,MeshType,F,F3,
  DiffMat::F6
 end
 
+mutable struct CLFunction{F1,F2}
+  f::F1
+  Jf::F2
+end
+
+(f::CLFunction)(::Type{Val{:jac}}, args...) = f.Jf(args...)
+(f::CLFunction)(args...) = f.f(args...)
+has_jac(f::CLFunction) = f.Jf != nothing
+
 isinplace(prob::AbstractConservationLawProblem{islinear,isstochastic,MeshType}) where {islinear,isstochastic,MeshType} = false
 
-function ConservationLawsProblem(f0,f,CFL,tend,mesh)
+function ConservationLawsProblem(f0,f,CFL,tend,mesh; jac = nothing)
  if typeof(tend) <: Int
      warn("Integer time passed. It could result in unpredictable behaviour consider using a rational time")
+ end
+ if jac == nothing
+  jac = x -> ForwardDiff.jacobian(f,x)
  end
  numvars = size(f0(cell_faces(mesh)[1]),1)
  islinear = false
  isstochastic = false
- ConservationLawsProblem{islinear,isstochastic,typeof(mesh),typeof(f),typeof(CFL),typeof(tend),typeof(f0)}(f0,f,CFL,(0.0,tend),numvars,mesh)
+ ff = CLFunction(f,jac)
+ ConservationLawsProblem{islinear,isstochastic,typeof(mesh),typeof(ff),typeof(CFL),typeof(tend),typeof(f0)}(f0,ff,CFL,(0.0,tend),numvars,mesh)
 end
 
-function ConservationLawsWithDiffusionProblem(f0,f,BB,CFL,tend,mesh)
+function ConservationLawsWithDiffusionProblem(f0,f,BB,CFL,tend,mesh; jac = nothing)
+  if typeof(tend) <: Int
+    warn("Integer time passed. It could result in unpredictable behaviour consider using a rational time")
+  end
+  if jac == nothing
+    jac = x -> ForwardDiff.jacobian(f,x)
+  end
  numvars = size(f0(cell_faces(mesh)[1]),1)
  islinear = false
  isstochastic = false
- ConservationLawsWithDiffusionProblem{islinear,isstochastic,typeof(mesh),typeof(f),typeof(CFL),typeof(tend),typeof(f0),typeof(BB)}(f0,f,CFL,(0.0,tend),numvars,mesh,BB)
+ ff = CLFunction(f,jac)
+ ConservationLawsWithDiffusionProblem{islinear,isstochastic,typeof(mesh),typeof(ff),typeof(CFL),typeof(tend),typeof(f0),typeof(BB)}(f0,ff,CFL,(0.0,tend),numvars,mesh,BB)
 end
 
 ### Displays

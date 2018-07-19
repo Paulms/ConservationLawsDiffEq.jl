@@ -6,19 +6,19 @@ using ConservationLawsDiffEq
 const CFL = 0.5
 const Tend = 1.0
 
-f(::Type{Val{:jac}},u::AbstractVector) = Matrix(Diagonal(u))
+Jf(u::AbstractVector) = Matrix(Diagonal(u))
 f(u::AbstractVector) = u.^2/2
 f0(x) = sin(2*π*x)
 
 function get_problem(N)
   mesh = Uniform1DFVMesh(N,0.0,1.0,:PERIODIC,:PERIODIC)
-  ConservationLawsProblem(f0,f,CFL,Tend,mesh)
+  ConservationLawsProblem(f0,f,CFL,Tend,mesh;jac = Jf)
 end
 #Compile
 prob = get_problem(10)
 #Run
 prob = get_problem(200)
-@time sol = solve(prob, FVSKTAlgorithm();progress=true, use_threads = true, save_everystep = false)
+@time sol = solve(prob, FVSKTAlgorithm();progress=false, use_threads = false, save_everystep = false)
 @time sol1 = fast_solve(prob, FVSKTAlgorithm();progress=true)
 @time sol2 = solve(prob, LaxFriedrichsAlgorithm();progress=true, save_everystep = false)
 @time sol3 = solve(prob, LocalLaxFriedrichsAlgorithm();progress=true, save_everystep = false)

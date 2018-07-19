@@ -7,7 +7,7 @@ const Tend = 0.2
 const γ=1.4 #gas constant
 const xdiafragm = 0.0
 
-function f(::Type{Val{:jac}},u::AbstractVector)
+function Jf(u::AbstractVector)
   ρ = u[1]; v = u[2]/u[1]; ϵ=u[3]
   p = (ϵ-0.5*ρ*v^2)*(γ-1)
   F =[0.0 1.0 0.0;-v^2*(1+γ)/2 v*(3-γ) (γ-1);v^3*(γ-1)+γ*ϵ*v/ρ 3/2*v^2*(1-γ)+γ*ϵ/ρ γ*v]
@@ -67,7 +67,7 @@ end
 
 function get_problem(N)
     mesh = Uniform1DFVMesh(N,-1.0,1.0,:ZERO_FLUX, :ZERO_FLUX)
-    ConservationLawsProblem(f0,f,CFL,Tend,mesh)
+    ConservationLawsProblem(f0,f,CFL,Tend,mesh;jac = Jf)
 end
 prob = get_problem(20)
 
