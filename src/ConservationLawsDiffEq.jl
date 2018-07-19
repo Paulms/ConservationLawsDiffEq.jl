@@ -6,9 +6,9 @@ module ConservationLawsDiffEq
   using LinearAlgebra
   using SpecialFunctions
   using SparseArrays
+  using Logging
   @reexport using OrdinaryDiffEq
 
-  using Juno
   using ForwardDiff, Interpolations, IterativeSolvers
   using RecipesBase, LaTeXStrings, FastGaussQuadrature
   using Polynomials

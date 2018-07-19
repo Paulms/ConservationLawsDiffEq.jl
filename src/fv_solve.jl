@@ -121,13 +121,13 @@ end
 
 ######### Legacy solve method (easy to debug)
 @def fv_generalpreamble begin
-  progress && (prog = Juno.ProgressBar(name=progressbar_name))
+  progress && @logmsg -1 "$progressbar_name" progress=0
   percentage = 0
   limit = tend/10.0
 end
 
 @def fv_postamble begin
-  progress && Juno.done(prog)
+  progress && @logmsg -1 "$progressbar_name" progress=1.0
   if ts[end] != t
      push!(timeseries,copy(u))
      push!(ts,t)
@@ -142,8 +142,7 @@ end
   if progress && t>limit
     percentage = percentage + 10
     limit = limit +tend/10.0
-    Juno.msg(prog,"dt="*string(dt))
-    Juno.progress(prog,percentage/100.0)
+    @logmsg -1 "$progressbar_name" progress=percentage/100.0
   end
   if (t>=tend)
     break

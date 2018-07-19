@@ -3,7 +3,6 @@ Reexport 0.0.3
 OrdinaryDiffEq 3.0.1
 DiffEqBase 3.0.0
 DiffEqPDEBase 0.4.0
-Juno 0.2.4
 IterativeSolvers 0.2.2
 ForwardDiff 0.2.4
 RecipesBase 0.1.0
