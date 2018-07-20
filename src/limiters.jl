@@ -21,6 +21,8 @@ mutable struct DGLimiter{pType}
   params::pType
 end
 
+Base.summary(limiter::DGLimiter) = string("DG Limiter of type ", limiter.limiter)
+
 function DGLimiter(problem, basis, limiter)
     DGLimiter(problem, basis, limiter, params_init(limiter, basis, problem))
 end

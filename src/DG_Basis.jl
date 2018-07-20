@@ -9,6 +9,21 @@ struct PolynomialBasis{T}
   invφ::Matrix{T}   #inverse of Gen. Vandermonde matrix
 end
 
+### Displays
+Base.summary(basis::PolynomialBasis{T}) where {T} = string("Polynomial Basis of order ",basis.order," with data Type ",T)
+
+function Base.show(io::IO, A::PolynomialBasis)
+  println(io,summary(A))
+  print(io,"quadrature nodes: ")
+  show(io,A.nodes)
+  println(io)
+  print(io,"quadrature weights: ")
+  show(io,A.weights)
+  println(io)
+  print(io,"polynomials: ")
+  show(io, A.polynomials)
+end
+
 """compute Legendre polynomials coefficients, normalized to be orthonormal"""
 function poly_legendre(n, ::Type{T}=Float64, var=:x) where T<:Number
     return poly_jacobi(n,0.0,0.0,T,var)

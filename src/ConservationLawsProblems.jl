@@ -57,13 +57,16 @@ function ConservationLawsWithDiffusionProblem(f0,f,BB,CFL,tend,mesh; jac = nothi
 end
 
 ### Displays
-Base.summary(prob::AbstractConservationLawProblem{islinear,isstochastic,mType}) where {islinear, isstochastic, mType} = string("ConservationLawsProblem"," with mType ",mType)
+Base.summary(prob::AbstractConservationLawProblem{islinear,isstochastic,mType}) where {islinear, isstochastic, mType} = string("ConservationLawsProblem with mesh type ",mType)
 
 function Base.show(io::IO, A::AbstractConservationLawProblem)
   println(io,summary(A))
   print(io,"timespan: ")
   show(io,A.tspan)
   println(io)
-  print(io,"num vars: ")
+  print(io,"CFL: ")
+  show(io, A.CFL)
+  println(io)
+  print(io,"number of vars: ")
   show(io, A.numvars)
 end

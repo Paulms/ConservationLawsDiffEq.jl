@@ -30,6 +30,26 @@ struct Uniform1DFVMesh{T} <: AbstractFVMesh1D
   right_boundary::Symbol
 end
 
+Base.summary(mesh::AbstractFVMesh1D{T}) where {T} = string("FV 1D Mesh of data type: ",T)
+
+function Base.show(io::IO, A::Uniform1DFVMesh)
+  println(io,summary(A))
+  print(io,"N: ")
+  show(io,A.N)
+  println(io)
+  print(io,"Δx: ")
+  show(io, A.Δx)
+  println(io)
+  print(io,"cell centers: ")
+  show(io, A.cell_centers)
+  println(io)
+  print(io,"cell faces: ")
+  show(io, A.cell_faces)
+  println(io)
+  print(io,"Boundary conditions: ")
+  println(io, "Left: ",A.left_boundary, ", Right: ", A.right_boundary)
+end
+
 function Uniform1DFVMesh(N::Int,xinit::Real,xend::Real,leftbdtype=:ZERO_FLUX,rightbdtype=:ZERO_FLUX)
     L = xend - xinit
     dx = L/N
