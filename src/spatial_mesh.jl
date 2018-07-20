@@ -30,7 +30,7 @@ struct Uniform1DFVMesh{T} <: AbstractFVMesh1D
   right_boundary::Symbol
 end
 
-Base.summary(mesh::AbstractFVMesh1D{T}) where {T} = string("FV 1D Mesh of data type: ",T)
+Base.summary(::Uniform1DFVMesh{T}) where {T} = string("FV 1D Mesh of data type: ",T)
 
 function Base.show(io::IO, A::Uniform1DFVMesh)
   println(io,summary(A))
