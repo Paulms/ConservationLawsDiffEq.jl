@@ -7,6 +7,8 @@ module ConservationLawsDiffEq
   using SpecialFunctions
   using SparseArrays
   using Logging
+  using TreeViews
+  
   @reexport using OrdinaryDiffEq
 
   using ForwardDiff, Interpolations, IterativeSolvers

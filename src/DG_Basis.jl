@@ -24,6 +24,12 @@ function Base.show(io::IO, A::PolynomialBasis)
   show(io, A.polynomials)
 end
 
+TreeViews.hastreeview(x::ConservationLawsDiffEq.PolynomialBasis) = true
+function TreeViews.treelabel(io::IO,x::ConservationLawsDiffEq.PolynomialBasis,
+                             mime::MIME"text/plain" = MIME"text/plain"())
+  show(io,mime,Text(Base.summary(x)))
+end
+
 """compute Legendre polynomials coefficients, normalized to be orthonormal"""
 function poly_legendre(n, ::Type{T}=Float64, var=:x) where T<:Number
     return poly_jacobi(n,0.0,0.0,T,var)

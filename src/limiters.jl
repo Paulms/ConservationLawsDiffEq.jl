@@ -23,6 +23,12 @@ end
 
 Base.summary(limiter::DGLimiter) = string("DG Limiter of type ", limiter.limiter)
 
+TreeViews.hastreeview(x::ConservationLawsDiffEq.DGLimiter) = true
+function TreeViews.treelabel(io::IO,x::ConservationLawsDiffEq.DGLimiter,
+                             mime::MIME"text/plain" = MIME"text/plain"())
+  show(io,mime,Text(Base.summary(x)))
+end
+
 function DGLimiter(problem, basis, limiter)
     DGLimiter(problem, basis, limiter, params_init(limiter, basis, problem))
 end

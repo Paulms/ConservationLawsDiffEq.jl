@@ -50,6 +50,12 @@ function Base.show(io::IO, A::Uniform1DFVMesh)
   println(io, "Left: ",A.left_boundary, ", Right: ", A.right_boundary)
 end
 
+TreeViews.hastreeview(x::Uniform1DFVMesh) = true
+function TreeViews.treelabel(io::IO,x::Uniform1DFVMesh,
+                             mime::MIME"text/plain" = MIME"text/plain"())
+  show(io,mime,Text(Base.summary(x)))
+end
+
 function Uniform1DFVMesh(N::Int,xinit::Real,xend::Real,leftbdtype=:ZERO_FLUX,rightbdtype=:ZERO_FLUX)
     L = xend - xinit
     dx = L/N
