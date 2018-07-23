@@ -2,6 +2,7 @@
 # u_t+(0.5*u²)_{x}=0
 
 using ConservationLawsDiffEq
+using LinearAlgebra
 
 const CFL = 0.5
 const Tend = 1.0

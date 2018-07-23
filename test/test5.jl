@@ -1,26 +1,29 @@
 # Mass conservation test
+
+@testset "1D Scalar Diffusion Algorithms: Mass conservation" begin
+
 using ConservationLawsDiffEq
 using LinearAlgebra
 
 #FastGaussQuadrature
-const t_nodes = [0.06943184420297371,0.33000947820757187, 0.6699905217924281,0.9305681557970262]
-const weights = [0.34785484513745385,0.6521451548625462,0.6521451548625462,0.34785484513745385]
+t_nodes = [0.06943184420297371,0.33000947820757187, 0.6699905217924281,0.9305681557970262]
+weights = [0.34785484513745385,0.6521451548625462,0.6521451548625462,0.34785484513745385]
 
 # Parameters:
-const ρc = 880.0 #Kg/m³
-const ρd = 1090.0 #Kg/m³
-const L = 20.0e-3  #m
-const μc = 6.5e-3 #Pa
-const D0 = 1.0e-7 #m²/s
-const nrz = 2.0#4.65
-const M = 1
-const di = 1e-6*[140.2] #mm# #m1e-6*
-const u₀ = 1e-2*[0.6410]
-const τ = 1e-16
-const κ = 1e-16
-const grv = 9.81 #m/s²
-const wc = 40.0
-const Vmx = (ρd-ρc)*grv*di.^2/(18*μc)
+ρc = 880.0 #Kg/m³
+ρd = 1090.0 #Kg/m³
+L = 20.0e-3  #m
+μc = 6.5e-3 #Pa
+D0 = 1.0e-7 #m²/s
+nrz = 2.0#4.65
+M = 1
+di = 1e-6*[140.2] #mm# #m1e-6*
+u₀ = 1e-2*[0.6410]
+τ = 1e-16
+κ = 1e-16
+grv = 9.81 #m/s²
+wc = 40.0
+Vmx = (ρd-ρc)*grv*di.^2/(18*μc)
 
 function Jf(ϕ::AbstractVector)
   M = size(ϕ,1)
@@ -154,3 +157,5 @@ masa = get_total_u(sol6);
 @time sol6 = solve(prob, COMP_GLF_Diff_Algorithm();progress=false, save_everystep = true, use_threads=true)
 masa = get_total_u(sol6);
 @test minimum(masa) ≈ maximum(masa)
+
+end

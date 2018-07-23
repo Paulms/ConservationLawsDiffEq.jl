@@ -4,18 +4,20 @@
 # with Anticipation Lengths and Reaction times, Advances in Applied Mathematics
 # and mechanics, 2013
 
+@testset "1D Diffusion System Algorithms" begin
+
 using ConservationLawsDiffEq
 using LinearAlgebra
 
 # Parameters:
-const CFL = 0.25
-const Tend = 0.1
-const ϕc = exp(-7/ℯ)
-const M = 4
-const Vmax = [60.0,55.0,50.0,45.0]
-const CC = ℯ/7
-const κ = 1e-6
-const L = 0.03
+CFL = 0.25
+Tend = 0.1
+ϕc = exp(-7/ℯ)
+M = 4
+Vmax = [60.0,55.0,50.0,45.0]
+CC = ℯ/7
+κ = 1e-6
+L = 0.03
 
 function Jf(ϕ::AbstractVector)
   M = size(ϕ,1)
@@ -83,3 +85,5 @@ prob = get_problem(100)
 @test approx_L1_error(solref, sol) < 0.015
 @time sol1 = solve(prob, COMP_GLF_Diff_Algorithm();progress=false, save_everystep = false, use_threads=true)
 @test approx_L1_error(solref, sol1) ≈ approx_L1_error(solref, sol)
+
+end

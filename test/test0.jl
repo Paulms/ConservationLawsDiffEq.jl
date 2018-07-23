@@ -1,17 +1,19 @@
 # 1D Burgers Equation
 # u_t+(0.5*u²)_{x}=0
 
+@testset "1D Scalar Algorithms" begin
+
 using ConservationLawsDiffEq
 using LinearAlgebra
 include("burgers.jl")
 
-const CFL = 0.5
-const Tend = 1.0
-const ul = 1.0
-const ur = 0.0
-const x0 = 0.0
-const xl = -3.0
-const xr = 3.0
+CFL = 0.5
+Tend = 1.0
+ul = 1.0
+ur = 0.0
+x0 = 0.0
+xl = -3.0
+xr = 3.0
 
 prob1 = RiemannProblem(Burgers(), ul, ur, x0, 0.0)
 sol_ana  = get_solution(prob1)
@@ -86,3 +88,5 @@ limiter! = DGLimiter(prob, basis, Linear_MUSCL_Limiter())
 @time sol = solve(prob, DiscontinuousGalerkinScheme(basis, glf_num_flux); TimeIntegrator = SSPRK22(limiter!))
 @test get_L1_error(sol_ana, sol) < 1.28
 println("No threaded version of DG Scheme")
+
+end

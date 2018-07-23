@@ -1,10 +1,13 @@
 # One dimensional wave equation
 # Test systems of conservation laws
+
+@testset "1D Sytems Algorithms" begin
+
 using ConservationLawsDiffEq
 
-const CFL = 0.45
-const Tend = 1.0
-const cc = 1.0
+CFL = 0.45
+Tend = 1.0
+cc = 1.0
 
 Jf(u::AbstractVector) = [0.0 cc;cc 0.0]
 f(u::AbstractVector) = [0.0 cc;cc 0.0]*u
@@ -59,3 +62,5 @@ println("No threaded version of FVSpecMWENOAlgorithm")
 @test get_L1_error(exact_sol, sol) < 0.48
 @time sol1 = solve(prob, FVDRCU5Algorithm(); use_threads = true, save_everystep = false)
 @test get_L1_error(exact_sol, sol1) ≈ get_L1_error(exact_sol, sol)
+
+end
