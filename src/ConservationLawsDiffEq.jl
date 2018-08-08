@@ -1,4 +1,3 @@
-__precompile__()
 module ConservationLawsDiffEq
   using DiffEqPDEBase,DiffEqBase
   using DiffEqCallbacks
@@ -8,7 +7,7 @@ module ConservationLawsDiffEq
   using SparseArrays
   using Logging
   using TreeViews
-  
+
   @reexport using OrdinaryDiffEq
 
   using ForwardDiff, Interpolations, IterativeSolvers
