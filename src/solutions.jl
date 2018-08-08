@@ -87,7 +87,7 @@ end
 function interp_common(sol, u)
   NN = size(sol.basis.φ,1)
   if typeof(u) <: Vector
-    u = Vector{Matrix{eltype(uₘ[1])}}(0)
+    u = Vector{Matrix{eltype(uₘ[1])}}()
     for M in u
       uₕ = flat_u(M, sol.basis.order, sol.NC)
       push!(u, copy(uₕ))

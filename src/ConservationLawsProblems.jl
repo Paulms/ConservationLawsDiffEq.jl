@@ -30,7 +30,7 @@ isinplace(prob::AbstractConservationLawProblem{islinear,isstochastic,MeshType}) 
 
 function ConservationLawsProblem(f0,f,CFL,tend,mesh; jac = nothing)
  if typeof(tend) <: Int
-     warn("Integer time passed. It could result in unpredictable behaviour consider using a rational time")
+     @warn("Integer time passed. It could result in unpredictable behaviour consider using a rational time")
  end
  if jac == nothing
   jac = x -> ForwardDiff.jacobian(f,x)
@@ -44,7 +44,7 @@ end
 
 function ConservationLawsWithDiffusionProblem(f0,f,BB,CFL,tend,mesh; jac = nothing)
   if typeof(tend) <: Int
-    warn("Integer time passed. It could result in unpredictable behaviour consider using a rational time")
+    @warn("Integer time passed. It could result in unpredictable behaviour consider using a rational time")
   end
   if jac == nothing
     jac = x -> ForwardDiff.jacobian(f,x)
