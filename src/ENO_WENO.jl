@@ -93,7 +93,7 @@ function reconstruct(vloc::AbstractVector, xloc::AbstractVector, eno_rec::ENO_Re
   order = eno_rec.order
   k = Int((order + 1)/2)
   crj = eno_rec.crj
-  vdiffs = Vector{typeof(vloc)}(0)
+  vdiffs = Vector{typeof(vloc)}()
   vl = zero(eltype(vloc))
   vr = zero(eltype(vloc))
   N = size(vloc,1)
