@@ -5,6 +5,7 @@ os:
   - osx
 julia:
   - 0.7
+  - 1.0
   - nightly
 matrix:
   allow_failures:
@@ -14,7 +15,7 @@ notifications:
 # uncomment the following lines to override the default test script
 #script:
 #  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-#  - julia -e 'Pkg.clone(pwd()); Pkg.build("ConservationLawsDiffEq"); Pkg.test("ConservationLawsDiffEq"; coverage=true)'
+#  - julia -e 'using Pkg; Pkg.clone(pwd()); Pkg.build("ConservationLawsDiffEq"); Pkg.test("ConservationLawsDiffEq"; coverage=true)'
 after_success:
   # push coverage results to Coveralls
   - julia -e 'cd(Pkg.dir("ConservationLawsDiffEq")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
