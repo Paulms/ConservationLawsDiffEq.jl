@@ -13,3 +13,4 @@ Polynomials 0.5
 StaticArrays 0.8
 DiffEqCallbacks 2.1
 TreeViews
+SpecialFunctions
