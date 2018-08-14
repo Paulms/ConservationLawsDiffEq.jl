@@ -123,7 +123,7 @@ end
 
 Base.show(io::IO, mime, f::FVOOCTable) = show(io, mime, getMDOCCTable(f))
 Base.show(io::IO, mime::MIME"text/plain", f::FVOOCTable) = show(io, mime, getMDOCCTable(f))
-Base.mimewritable(mime::MIME, f::FVOOCTable) = mimewritable(mime, Markdown.md"")
+Base.showable(mime::MIME, f::FVOOCTable) = showable(mime, Markdown.md"")
 
 """
 get_conv_order_table(alg, get_problem, u_exact, mesh_ncells; relative = true, kwargs...)

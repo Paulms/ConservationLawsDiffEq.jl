@@ -65,7 +65,7 @@ end
 
 function scheme_short_name(alg::AbstractFVAlgorithm)
     b = string(typeof(alg))
-    replace(b[search(b, ".")[1]+1:end], r"(Algorithm)", s"")
+    b
 end
 
 function update_dt(alg::AbstractFVAlgorithm,u::AbstractArray{T,2},Flux,

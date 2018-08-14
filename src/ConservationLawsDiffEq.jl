@@ -7,6 +7,8 @@ module ConservationLawsDiffEq
   using SparseArrays
   using Logging
   using TreeViews
+  using Markdown
+
 
   @reexport using OrdinaryDiffEq
 
