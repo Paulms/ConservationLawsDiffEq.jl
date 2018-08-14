@@ -37,7 +37,7 @@ end
 struct LI_IMEX_RK_Algorithm{F} <: AbstractFVAlgorithm
   linsolve :: F
 end
-function LI_IMEX_RK_Algorithm(;linsolve = LinSolveFactorize(lufact))
+function LI_IMEX_RK_Algorithm(;linsolve = LinSolveFactorize(lu))
   LI_IMEX_RK_Algorithm(linsolve)
 end
 
