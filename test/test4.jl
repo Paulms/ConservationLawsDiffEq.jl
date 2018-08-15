@@ -21,13 +21,11 @@ L = 0.03
 
 function Jf(ϕ::AbstractVector)
   M = size(ϕ,1)
-  F = fill(zero(eltype(ϕ)),M,M)
+  F = zeros(eltype(ϕ),M,M)
   Vϕ = VV(sum(ϕ))
   VPϕ = VP(sum(ϕ))
-  for i =  1:M
-    for j = 1:M
+  for j in 1:M, i in 1:M
       F[i,j]=Vmax[i]*(((i==j) ? Vϕ : 0.0) + ϕ[i]*VPϕ)
-    end
   end
   F
 end
@@ -42,7 +40,7 @@ function BB(ϕ::AbstractArray)
   if (sum(ϕ) < ϕc)
     fill(zero(eltype(ϕ)),M,M)
   else
-    B = β(sum(ϕ))*Matrix(I,M,M)
+    B = β(sum(ϕ))*Diagonal(ones(M))
     B
   end
 end

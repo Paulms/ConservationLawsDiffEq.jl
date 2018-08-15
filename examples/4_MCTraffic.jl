@@ -39,7 +39,7 @@ function BB(ϕ::AbstractArray)
   if (sum(ϕ) < ϕc)
     fill(zero(eltype(ϕ)),M,M)
   else
-    B = β(sum(ϕ))*eye(M)
+    B = β(sum(ϕ))**Diagonal(ones(M))
     B
   end
 end

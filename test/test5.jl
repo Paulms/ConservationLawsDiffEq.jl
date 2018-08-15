@@ -45,7 +45,7 @@ VP(ϕ::Number) = ϕ<1 ? -nrz*(1.0-ϕ)^(nrz-1) : zero(ϕ)
 
 function BB(ϕ::AbstractArray)
     M = size(ϕ,1)
-    B = β(sum(ϕ))*Matrix(I,M,M)
+    B = β(sum(ϕ))*Diagonal(ones(M))
     B
 end
 f0(x) = x < L/2 ? 1.0 : 0.0
