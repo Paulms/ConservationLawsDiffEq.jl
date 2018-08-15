@@ -12,7 +12,7 @@ function Jf(u::AbstractVector)
   F
 end
 f(u::AbstractVector) = [u[2];u[2]^2/u[1]+0.5*gr*u[1]^2]
-f0(x) = x < 0.0 ? 2.0 : 1.0
+f0(x) = x < 0.0 ? [2.0,0.0] : [1.0,0.0]
 
 function Nflux(ϕl::AbstractVector, ϕr::AbstractVector)
   hl = ϕl[1]; hr = ϕr[1]
