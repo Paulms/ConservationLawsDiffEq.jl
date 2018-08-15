@@ -7,7 +7,7 @@ using LinearAlgebra
 const CFL = 0.5
 const Tend = 1.0
 
-Jf(u::AbstractVector) = Matrix(Diagonal(u))
+Jf(u::AbstractVector) = Diagonal(u)
 f(u::AbstractVector) = u.^2/2
 f0(x) = sin(2*π*x)
 

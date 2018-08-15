@@ -190,8 +190,8 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSpecMWENOAlgorithm, ::
     k = Int((order + 1)/2)-1
     save_case = fill(0.0,N+1,M)
     αj = fill(0.0,N+1,M)
-    RMats = Vector{typeof(Flux(Val{:jac},u[1,:]))}(undef,0)
-    LMats = Vector{typeof(Flux(Val{:jac},u[1,:]))}(undef,0)
+    RMats = Vector{typeof(eigvecs(Flux(Val{:jac},u[1,:])))}(undef,0)
+    LMats = Vector{eltype(RMats)}(undef,0)
     gk = fill!(similar(u), zero(eltype(u)))
     for j in edge_indices(mesh)
       @inbounds ul = cellval_at_left(j,u,mesh)

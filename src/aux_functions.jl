@@ -86,8 +86,12 @@ end
     maxρ
 end
 
-@inline function fluxρ(uj::AbstractArray{T,1},f) where {T}
-  maximum(abs,eigvals(f(Val{:jac}, uj)))
+function fluxρ(uj::SArray{Tuple{1},Float64,1,1},f) where {T}
+    return abs(f(Val{:jac}, uj)[1])
+end
+
+function fluxρ(uj::AbstractArray{T,1},f) where {T}
+        maximum(abs,eigvals(f(Val{:jac}, uj)))
 end
 
 "build a block diagonal matrix by repeating a matrix N times"

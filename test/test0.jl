@@ -18,7 +18,7 @@ xr = 3.0
 prob1 = RiemannProblem(Burgers(), ul, ur, x0, 0.0)
 sol_ana  = get_solution(prob1)
 
-Jf(u::AbstractVector) = Matrix(Diagonal(u))
+Jf(u::AbstractVector) = Diagonal(u)
 f(u::AbstractVector) = u.^2/2
 
 f0(x) = (x < x0) ? ul : ur

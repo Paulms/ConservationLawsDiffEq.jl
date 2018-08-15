@@ -2,7 +2,7 @@ using ConservationLawsDiffEq
 using LinearAlgebra
 u_exact(x,t) = sin(4*pi*(x-t))
 # Define the flux and flux Jacobian
-Jf(u::AbstractVector{T}) where {T} = Matrix{T}(I,size(u,1),size(u,1))
+Jf(u::AbstractVector{T}) where {T} = Diagonal(u)
 f(u::AbstractVector) = u
 
 # Initial condition (using integral cell averages)

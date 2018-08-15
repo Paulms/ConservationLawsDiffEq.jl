@@ -4,7 +4,7 @@ using ConservationLawsDiffEq
 const CFL = 0.5
 const Tend = 1.0
 
-Jf(u::AbstractVector{T}) where {T} = Matrix{T}(I,size(u,1),size(u,1))
+Jf(u::AbstractVector{T}) where {T} = Diagonal(u)
 f(u::AbstractVector) = u
 
 #define max wave speed
