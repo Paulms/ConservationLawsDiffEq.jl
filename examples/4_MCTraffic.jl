@@ -5,6 +5,8 @@
 # and mechanics, 2013
 
 using ConservationLawsDiffEq
+using Statistics
+using LinearAlgebra
 
 # Parameters:
 const CFL = 0.25
@@ -21,26 +23,23 @@ function Jf(ϕ::AbstractVector)
   F = fill(zero(eltype(ϕ)),M,M)
   Vϕ = VV(sum(ϕ))
   VPϕ = VP(sum(ϕ))
-  for i =  1:M
-    for j = 1:M
+  for j = 1:M, i = 1:M
       F[i,j]=Vmax[i]*(((i==j) ? Vϕ : 0.0) + ϕ[i]*VPϕ)
-    end
   end
   F
 end
 
 f(ϕ::AbstractVector) = VV(sum(ϕ))*ϕ.*Vmax
 β(ϕ::Number) = -VP(ϕ)*L*ϕ/M*mean(Vmax)
-VV(ϕ::Number) = (ϕ < ϕc) ? 1.0 : 1.0-ϕ
-VP(ϕ::Number) = (ϕ < ϕc) ? 0.0 : -1.0
+VV(ϕ::T) where {T<:Number} = (ϕ < ϕc) ? one(T) : one(T)-ϕ
+VP(ϕ::T) where {T<:Number} = (ϕ < ϕc) ? zero(T) : -one(T)
 
 function BB(ϕ::AbstractArray)
   M = size(ϕ,1)
   if (sum(ϕ) < ϕc)
     fill(zero(eltype(ϕ)),M,M)
   else
-    B = β(sum(ϕ))**Diagonal(ones(M))
-    B
+    β(sum(ϕ))*Diagonal(ones(M))
   end
 end
 
@@ -50,8 +49,7 @@ function get_problem(N)
   mesh = Uniform1DFVMesh(N,0.0,10.0,:PERIODIC, :PERIODIC)
   ConservationLawsWithDiffusionProblem(f0,f,BB,CFL,Tend,mesh;jac = Jf)
 end
-#Compile
-prob = get_problem(10)
+
 #Run
 prob = get_problem(100)
 @time sol = solve(prob, FVSKTAlgorithm();progress=true, save_everystep = false)

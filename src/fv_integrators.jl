@@ -37,13 +37,6 @@ end
 Apply a finite volume semidiscretization.
 """
 function (fv::FVIntegrator)(du::AbstractArray{T,2}, u::AbstractArray{T,2}, p, t) where {T}
-  @boundscheck begin
-    if length(u) != length(du)
-      error("length(u) = $(length(u)) != $(length(du)) = length(du)")
-    end
-    size(u,1) != numcells(fv.mesh) && error("length(u) != numcells(fv.mesh)")
-  end
-
   mesh = fv.mesh; alg = fv.alg; Flux = fv.Flux; M = fv.M;
   fluxes = fv.fluxes; dt = fv.dt; use_threads = fv.use_threads
   compute_fluxes!(fluxes, Flux, u, mesh, dt, M, alg, Val{use_threads})
@@ -61,13 +54,6 @@ end
 Apply a finite volume semidiscretization.
 """
 function (fv::FVDiffIntegrator)(du::AbstractArray{T,2}, u::AbstractArray{T,2}, p, t) where {T}
-  @boundscheck begin
-    if length(u) != length(du)
-      error("length(u) = $(length(u)) != $(length(du)) = length(du)")
-    end
-    size(u,1) != numcells(fv.mesh) && error("size(u,1) != numcells(fv.mesh)")
-  end
-
   mesh = fv.mesh; alg = fv.alg; Flux = fv.Flux; M = fv.M
   fluxes = fv.fluxes; DiffMat = fv.DiffMat; dt = fv.dt; use_threads = fv.use_threads
   compute_Dfluxes!(fluxes, Flux, DiffMat, u, mesh, dt, M, alg, Val{use_threads})

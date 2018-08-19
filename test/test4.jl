@@ -32,16 +32,15 @@ end
 
 f(ϕ::AbstractVector) = VV(sum(ϕ))*ϕ.*Vmax
 β(ϕ::Number) = -VP(ϕ)*L*ϕ/M*sum(Vmax)/M
-VV(ϕ::Number) = (ϕ < ϕc) ? 1.0 : 1.0-ϕ
-VP(ϕ::Number) = (ϕ < ϕc) ? 0.0 : -1.0
+VV(ϕ::T) where {T<:Number} = (ϕ < ϕc) ? one(T) : one(T)-ϕ
+VP(ϕ::T) where {T<:Number} = (ϕ < ϕc) ? zero(T) : -one(T)
 
 function BB(ϕ::AbstractArray)
   M = size(ϕ,1)
   if (sum(ϕ) < ϕc)
     fill(zero(eltype(ϕ)),M,M)
   else
-    B = β(sum(ϕ))*Diagonal(ones(M))
-    B
+    β(sum(ϕ))*Diagonal(ones(M))
   end
 end
 

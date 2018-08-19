@@ -13,13 +13,13 @@ function FVCUAlgorithm(;θ=1.0)
 end
 
 function inner_loop!(hh,j,u,∇u,mesh,Flux,alg::FVCUAlgorithm)
-    @inbounds uminus=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
-    @inbounds uplus=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
+    uminus=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
+    uplus=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
 
-    λm = sort(eigvals(Flux(Val{:jac}, uminus)))
-    λp = sort(eigvals(Flux(Val{:jac}, uplus)))
-    aa_plus=maximum((λm[end], λp[end],0))
-    aa_minus=minimum((λm[1], λp[1],0))
+    λm = eigvals(Flux(Val{:jac}, uminus))
+    λp = eigvals(Flux(Val{:jac}, uplus))
+    aa_plus=maximum((maximum(λm), maximum(λp),0))
+    aa_minus=minimum((minimum(λm), minimum(λp),0))
     # Update numerical fluxes
     if abs(aa_plus-aa_minus) < 1e-8
       hh[j,:] = 0.5*(Flux(uminus)+Flux(uplus))
@@ -60,15 +60,15 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCUAlgorithm, ::Type{Va
 end
 
 function inner_loop!(hh,j,u,∇u,mesh,Flux,DiffMat, alg::FVCUAlgorithm)
-    @inbounds uminus=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
-    @inbounds uplus=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
-    @inbounds ul = cellval_at_left(j,u,mesh)
-    @inbounds ur = cellval_at_right(j,u,mesh)
+    uminus=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
+    uplus=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
+    ul = cellval_at_left(j,u,mesh)
+    ur = cellval_at_right(j,u,mesh)
 
-    λm = sort(eigvals(Flux(Val{:jac}, uminus)))
-    λp = sort(eigvals(Flux(Val{:jac}, uplus)))
-    aa_plus=maximum((λm[end], λp[end],0))
-    aa_minus=minimum((λm[1], λp[1],0))
+    λm = eigvals(Flux(Val{:jac}, uminus))
+    λp = eigvals(Flux(Val{:jac}, uplus))
+    aa_plus=maximum((maximum(λm), maximum(λp),0))
+    aa_minus=minimum((minimum(λm), minimum(λp),0))
     # Update numerical fluxes
     if abs(aa_plus-aa_minus) < 1e-8
       hh[j,:] = 0.5*(Flux(uminus)+Flux(uplus)) - 0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_left(j,∇u,mesh)/mesh.Δx

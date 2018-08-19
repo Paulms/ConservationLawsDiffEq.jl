@@ -12,8 +12,8 @@ function FVDRCUAlgorithm(;θ=1.0)
 end
 
 function inner_loop!(hh,j,u,∇u,mesh,Flux, alg::FVDRCUAlgorithm)
-    @inbounds uminus=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
-    @inbounds uplus=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
+    uminus=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
+    uplus=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
 
     λm = sort(eigvals(Flux(Val{:jac}, uminus)))
     λp = sort(eigvals(Flux(Val{:jac}, uplus)))
@@ -63,10 +63,10 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{
 end
 
 function inner_loop!(hh,j,u,∇u,mesh,Flux, DiffMat, alg::FVDRCUAlgorithm)
-    @inbounds uminus=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
-    @inbounds uplus=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
-    @inbounds ul = cellval_at_left(j,u,mesh)
-    @inbounds ur = cellval_at_right(j,u,mesh)
+    uminus=cellval_at_left(j,u,mesh)+0.5*cellval_at_left(j,∇u,mesh)
+    uplus=cellval_at_right(j,u,mesh)-0.5*cellval_at_right(j,∇u,mesh)
+    ul = cellval_at_left(j,u,mesh)
+    ur = cellval_at_right(j,u,mesh)
 
     λm = sort(eigvals(Flux(Val{:jac}, uminus)))
     λp = sort(eigvals(Flux(Val{:jac}, uplus)))
