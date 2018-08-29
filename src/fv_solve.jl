@@ -2,7 +2,7 @@ function solve(
   prob::AbstractConservationLawProblem,
   alg::AbstractFVAlgorithm;
   TimeIntegrator::OrdinaryDiffEqAlgorithm = SSPRK22(),
-  average_initial_data::Bool = true, dt = -1.0, use_threads::Bool = false, kwargs...)
+  average_initial_data::Bool = true, dt = nothing, use_threads::Bool = false, kwargs...)
 
   #Unroll some important constants
   tspan = prob.tspan; f = prob.f; f0 = prob.f0; mesh = prob.mesh
@@ -15,7 +15,7 @@ function solve(
   ode_fv = get_semidiscretization(alg, prob; use_threads = use_threads)
   ode_prob = ODEProblem(ode_fv, u0, tspan)
   # Set update_dt function
-  if dt < 0.0
+  if dt == nothing
       dtFE(u,p,t) = update_dt!(u, ode_fv)
       cb = StepsizeLimiter(dtFE;safety_factor=one(NType),max_step=true,cached_dtcache=zero(eltype(tspan)))
       # Check initial CFL condition
@@ -43,6 +43,7 @@ function initial_data_inner_loop!(u0, f0, average_initial_data, mesh, i)
         centers = cell_centers(mesh)
         u0[i,:] = f0(centers[i])
     end
+    nothing
 end
 function compute_initial_data!(u0, f0, average_initial_data, mesh, ::Type{Val{true}})
     Threads.@threads for i in 1:numcells(mesh)
@@ -74,7 +75,7 @@ end
 "Solve scalar 1D conservation laws problems with DG Scheme"
 function solve(
   prob::AbstractConservationLawProblem,
-  alg::AbstractFEAlgorithm; dt = -one(eltype(prob.tspan)),
+  alg::AbstractFEAlgorithm; dt = nothing,
   TimeIntegrator::OrdinaryDiffEqAlgorithm = SSPRK22(),use_threads = false, kwargs...)
 
   # Unpack some useful variables
@@ -102,7 +103,7 @@ function solve(
   semidiscretef(du,u,p,t) = residual!(du, u, basis, mesh, alg, f, riemann_solver, NC, Val{use_threads})
   ode_prob = ODEProblem(semidiscretef, u0, prob.tspan)
   # Set update_dt function
-  if dt <= 0.0
+  if dt == nothing
       function dtFE(u,p,t)
           uₕ = flat_u(u, basis.order,NC)
           update_dt(alg, uₕ, f, prob.CFL, mesh)

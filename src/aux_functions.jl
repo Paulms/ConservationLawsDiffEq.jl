@@ -7,7 +7,7 @@ Numerical integration helper function.
 """
 function num_integrate(f,a,b;order=5, method = gausslegendre)
     nodes, weights = method(order);
-    t_nodes = 0.5*(b-a)*nodes .+ 0.5(b+a)
+    t_nodes = 0.5*(b-a)*nodes .+ 0.5*(b+a)
     M = length(f(a))
     tmp = fill(0.0,M)
     for i in 1:M
