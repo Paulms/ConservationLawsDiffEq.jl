@@ -44,7 +44,7 @@ function BB(ϕ::AbstractArray)
   end
 end
 
-f0(x) = 0.5*exp.(-(x-3)^2)*[0.2,0.3,0.2,0.3]
+f0(x) = 0.5*exp(-(x-3)^2)*[0.2,0.3,0.2,0.3]
 
 function get_problem(N)
   mesh = Uniform1DFVMesh(N,0.0,10.0,:PERIODIC, :PERIODIC)
