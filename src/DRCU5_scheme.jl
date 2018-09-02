@@ -5,15 +5,15 @@
 # Kurganov, Liu, New adaptive artificial viscosity method for hyperbolic systems
 # of conservation laws
 
-struct FVDRCU5Algorithm <: AbstractFVAlgorithm
-  θ :: Float64
+struct FVDRCU5Algorithm{ltype <: AbstractSlopeLimiter} <: AbstractFVAlgorithm
+  slopeLimiter :: ltype
 end
 
-function FVDRCU5Algorithm(;θ=1.0)
-  FVDRCU5Algorithm(θ)
+function FVDRCU5Algorithm(;slopeLimiter=GeneralizedMinmodLimiter())
+  FVDRCU5Algorithm(slopeLimiter)
 end
 
-function inner_loop!(hh,j,u,mesh,θ,Flux, alg::FVDRCU5Algorithm)
+function inner_loop!(hh,j,u,mesh,slopeLimiter,Flux, alg::FVDRCU5Algorithm)
     # A fifth-order piecewise polynomial reconstruction
     @inbounds ulll=cellval_at_left(j-2,u,mesh)
     @inbounds ull=cellval_at_left(j-1,u,mesh)
@@ -48,22 +48,22 @@ compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{Val{true}
 Numerical flux of Fifth-Order dissipation reduced upwind central scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCU5Algorithm, ::Type{Val{true}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     #update vector
     Threads.@threads for j in edge_indices(mesh)
-        inner_loop!(hh,j,u,mesh,θ,Flux, alg)
+        inner_loop!(hh,j,u,mesh,slopeLimiter,Flux, alg)
     end
 end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCU5Algorithm, ::Type{Val{false}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     #update vector
     for j in edge_indices(mesh)
-        inner_loop!(hh,j,u,mesh,θ,Flux, alg)
+        inner_loop!(hh,j,u,mesh,slopeLimiter,Flux, alg)
     end
 end
 
-function inner_loop!(hh,j,u,∇u,mesh,θ,Flux, DiffMat, alg::FVDRCU5Algorithm)
+function inner_loop!(hh,j,u,∇u,mesh,slopeLimiter,Flux, DiffMat, alg::FVDRCU5Algorithm)
     # A fifth-order piecewise polynomial reconstruction
     @inbounds ulll=cellval_at_left(j-2,u,mesh)
     @inbounds ull=cellval_at_left(j-1,u,mesh)
@@ -96,21 +96,21 @@ function inner_loop!(hh,j,u,∇u,mesh,θ,Flux, DiffMat, alg::FVDRCU5Algorithm)
 end
 
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCU5Algorithm, ::Type{Val{true}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, M, Val{true})
+    ∇u = compute_slopes(u, mesh, slopeLimiter, M, Val{true})
     #update vector
     Threads.@threads for j in edge_indices(mesh)
-        inner_loop!(hh,j,u,∇u,mesh,θ,Flux, DiffMat, alg)
+        inner_loop!(hh,j,u,∇u,mesh,slopeLimiter,Flux, DiffMat, alg)
     end
 end
 
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCU5Algorithm, ::Type{Val{false}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, M, Val{true})
+    ∇u = compute_slopes(u, mesh, slopeLimiter, M, Val{true})
     #update vector
     for j in edge_indices(mesh)
-        inner_loop!(hh,j,u,∇u,mesh,θ,Flux, DiffMat, alg)
+        inner_loop!(hh,j,u,∇u,mesh,slopeLimiter,Flux, DiffMat, alg)
     end
 end

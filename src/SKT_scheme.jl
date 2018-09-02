@@ -3,12 +3,12 @@
 # Kurganov, Tadmor. New High Resolution Central Schemes for Non Linear Conservation
 # Laws and Convection-Difussion Equations. Journal of Comp Physics 160, pp 241-282. 2000
 
-struct FVSKTAlgorithm <: AbstractFVAlgorithm
-  θ :: Float64
+struct FVSKTAlgorithm{ltype <: AbstractSlopeLimiter} <: AbstractFVAlgorithm
+  slopeLimiter :: ltype
 end
 
-function FVSKTAlgorithm(;θ=1.0)
-  FVSKTAlgorithm(θ)
+function FVSKTAlgorithm(;slopeLimiter=GeneralizedMinmodLimiter())
+  FVSKTAlgorithm(slopeLimiter)
 end
 
 function inner_loop!(hh,j,u,∇u,mesh,Flux, alg::FVSKTAlgorithm)
@@ -27,10 +27,10 @@ compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{true}}
 Numerical flux of Kurkanov Tadmor scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{true}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, M, Val{true})
+    ∇u = compute_slopes(u, mesh, slopeLimiter, M, Val{true})
 
     Threads.@threads for j in edge_indices(mesh)
         inner_loop!(hh,j,u,∇u,mesh,Flux, alg)
@@ -38,10 +38,10 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{V
 end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{false}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, M, Val{false})
+    ∇u = compute_slopes(u, mesh, slopeLimiter, M, Val{false})
 
     for j in edge_indices(mesh)
         inner_loop!(hh,j,u,∇u,mesh,Flux, alg)
@@ -60,10 +60,10 @@ function inner_loop!(hh,j,u,∇u,mesh,Flux, DiffMat, alg::FVSKTAlgorithm)
 end
 
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{true}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, M, Val{true})
+    ∇u = compute_slopes(u, mesh, slopeLimiter, M, Val{true})
 
     Threads.@threads for j in edge_indices(mesh)
         inner_loop!(hh,j,u,∇u,mesh,Flux, DiffMat, alg)
@@ -71,10 +71,10 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVSKTAlgorithm
 end
 
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVSKTAlgorithm, ::Type{Val{false}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, M, Val{false})
+    ∇u = compute_slopes(u, mesh, slopeLimiter, M, Val{false})
 
     for j in edge_indices(mesh)
         inner_loop!(hh,j,u,∇u,mesh,Flux, DiffMat, alg)

@@ -38,6 +38,9 @@ module ConservationLawsDiffEq
   # Reconstructions
   abstract type AbstractReconstruction end
 
+  # Limiters
+  abstract type AbstractSlopeLimiter end
+
   #Interface functions
   include("spatial_mesh.jl")
   include("ConservationLawsProblems.jl")
@@ -90,6 +93,9 @@ module ConservationLawsDiffEq
   export FVOOCTable, get_conv_order_table, mesh_norm, get_LP_error, get_num_LP_error
   export advection_num_flux, rusanov_euler_num_flux, glf_num_flux
   export legendre_basis, PolynomialBasis
-  export DGLimiter, Linear_MUSCL_Limiter, WENO_Limiter
   export ENO_Reconstruction, WENO_Reconstruction, MWENO_Reconstruction
+
+  #Limiter
+  export DGLimiter, Linear_MUSCL_Limiter, WENO_Limiter
+  export GeneralizedMinmodLimiter, OsherLimiter, MinmodLimiter, SuperbeeLimiter
 end

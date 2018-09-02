@@ -3,12 +3,12 @@
 # Kurganov A., Lin C., On the reduction of Numerical Dissipation in Central-Upwind
 # Schemes, Commun. Comput. Phys. Vol 2. No. 1, pp 141-163, Feb 2007.
 
-struct FVDRCUAlgorithm <: AbstractFVAlgorithm
-  θ :: Float64
+struct FVDRCUAlgorithm{ltype <: AbstractSlopeLimiter} <: AbstractFVAlgorithm
+  slopeLimiter :: ltype
 end
 
-function FVDRCUAlgorithm(;θ=1.0)
-  FVDRCUAlgorithm(θ)
+function FVDRCUAlgorithm(;slopeLimiter=GeneralizedMinmodLimiter())
+  FVDRCUAlgorithm(slopeLimiter)
 end
 
 function inner_loop!(hh,j,u,∇u,mesh,Flux, alg::FVDRCUAlgorithm)
@@ -37,10 +37,10 @@ compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{Val{true}
 Numerical flux of Second-Order dissipation reduced upwind central scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{Val{true}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, M, Val{true})
+    ∇u = compute_slopes(u, mesh, slopeLimiter, M, Val{true})
 
     # Local speeds of propagation (Assuming convex flux)
     # A second-order piecewise linear interpolant is used
@@ -50,10 +50,10 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{
 end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{Val{false}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, M, Val{false})
+    ∇u = compute_slopes(u, mesh, slopeLimiter, M, Val{false})
 
     # Local speeds of propagation (Assuming convex flux)
     # A second-order piecewise linear interpolant is used
@@ -87,10 +87,10 @@ function inner_loop!(hh,j,u,∇u,mesh,Flux, DiffMat, alg::FVDRCUAlgorithm)
 end
 
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{Val{true}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, M, Val{true})
+    ∇u = compute_slopes(u, mesh, slopeLimiter, M, Val{true})
 
     Threads.@threads for j in edge_indices(mesh)
         inner_loop!(hh,j,u,∇u,mesh,Flux, DiffMat, alg)
@@ -98,10 +98,10 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCUAlgorith
 end
 
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVDRCUAlgorithm, ::Type{Val{false}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, M, Val{false})
+    ∇u = compute_slopes(u, mesh, slopeLimiter, M, Val{false})
 
     for j in edge_indices(mesh)
         inner_loop!(hh,j,u,∇u,mesh,Flux, DiffMat, alg)

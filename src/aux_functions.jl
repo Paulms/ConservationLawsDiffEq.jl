@@ -17,11 +17,11 @@ function num_integrate(f,a,b;order=5, method = gausslegendre)
     return tmp
 end
 
-function inner_slopes_loop!(∇u,j,u,mesh,θ,M)
+function inner_slopes_loop!(∇u,j,u,mesh,slopeLimiter::AbstractSlopeLimiter,M)
     ul = cellval_at_left(j,u,mesh)
     ur = cellval_at_right(j+1,u,mesh)
     @inbounds for i = 1:M
-      ∇u[j,i] = minmod(θ*(u[j,i]-ul[i]),(ur[i]-ul[i])/2,θ*(ur[i]-u[j,i]))
+      ∇u[j,i] = slopeLimiter(u[j,i]-ul[i], ur[i]-u[j,i])
     end
 end
 
@@ -36,18 +36,18 @@ function compute_slopes(u, mesh, θ, M, ::Type{Val{true}})
     `mesh` problem mesh
     `Type{Val}` bool to choose threaded version
 """
-function compute_slopes(u::AbstractArray, mesh::AbstractFVMesh1D, θ, M::Int, ::Type{Val{true}})
+function compute_slopes(u::AbstractArray, mesh::AbstractFVMesh1D, slopeLimiter::AbstractSlopeLimiter, M::Int, ::Type{Val{true}})
     ∇u = similar(u)
     Threads.@threads for j in cell_indices(mesh)
-        inner_slopes_loop!(∇u,j,u,mesh,θ,M)
+        inner_slopes_loop!(∇u,j,u,mesh,slopeLimiter,M)
     end
     ∇u
 end
 
-function compute_slopes(u::AbstractArray, mesh::AbstractFVMesh1D, θ, M::Int, ::Type{Val{false}})
+function compute_slopes(u::AbstractArray, mesh::AbstractFVMesh1D, slopeLimiter::AbstractSlopeLimiter, M::Int, ::Type{Val{false}})
     ∇u = similar(u)
     for j in cell_indices(mesh)
-        inner_slopes_loop!(∇u,j,u,mesh,θ,M)
+        inner_slopes_loop!(∇u,j,u,mesh,slopeLimiter,M)
     end
     ∇u
 end

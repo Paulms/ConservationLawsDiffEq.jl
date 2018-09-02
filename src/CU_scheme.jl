@@ -4,12 +4,12 @@
 # for hyperbolic Conservation Laws and Hamilton-Jacobi Equations. SIAM. Sci Comput,
 # Vol 23, No 3m pp 707-740. 2001
 
-struct FVCUAlgorithm <: AbstractFVAlgorithm
-  θ :: Float64      #TODO: This must be in minmod definition not here
+struct FVCUAlgorithm{ltype <: AbstractSlopeLimiter} <: AbstractFVAlgorithm
+  slopeLimiter :: ltype
 end
 
-function FVCUAlgorithm(;θ=1.0)
-  FVCUAlgorithm(θ)
+function FVCUAlgorithm(;slopeLimiter=GeneralizedMinmodLimiter())
+  FVCUAlgorithm(slopeLimiter)
 end
 
 function inner_loop!(hh,j,u,∇u,mesh,Flux,alg::FVCUAlgorithm)
@@ -34,10 +34,10 @@ compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCUAlgorithm, ::Type{Val{true}})
 Numerical flux of Second-Order upwind central scheme in 1D
 """
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCUAlgorithm, ::Type{Val{true}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, M, Val{true})
+    ∇u = compute_slopes(u, mesh, slopeLimiter, M, Val{true})
 
     # Local speeds of propagation (Assuming convex flux)
     # A second-order piecewise linear interpolant is used
@@ -47,10 +47,10 @@ function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCUAlgorithm, ::Type{Va
 end
 
 function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVCUAlgorithm, ::Type{Val{false}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, M, Val{false})
+    ∇u = compute_slopes(u, mesh, slopeLimiter, M, Val{false})
 
     # Local speeds of propagation (Assuming convex flux)
     # A second-order piecewise linear interpolant is used
@@ -80,10 +80,10 @@ function inner_loop!(hh,j,u,∇u,mesh,Flux,DiffMat, alg::FVCUAlgorithm)
 end
 
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVCUAlgorithm, ::Type{Val{true}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, M, Val{true})
+    ∇u = compute_slopes(u, mesh, slopeLimiter, M, Val{true})
 
     Threads.@threads for j in edge_indices(mesh)
         inner_loop!(hh,j,u,∇u,mesh,Flux,DiffMat, alg)
@@ -91,10 +91,10 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVCUAlgorithm,
 end
 
 function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::FVCUAlgorithm, ::Type{Val{false}})
-    θ = alg.θ
+    slopeLimiter = alg.slopeLimiter
     #update vector
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, θ, M, Val{false})
+    ∇u = compute_slopes(u, mesh, slopeLimiter, M, Val{false})
 
     for j in edge_indices(mesh)
         inner_loop!(hh,j,u,∇u,mesh,Flux,DiffMat, alg)

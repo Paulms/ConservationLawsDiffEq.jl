@@ -1,3 +1,7 @@
+# Slope Limiters
+# note that r = (u - ul)/(ur - u)
+# and we set a = u - ul, b = ur - u to define the limiters
+
 function minmod(a,b,c)
   if (a > 0 && b > 0 && c > 0)
     min(a,b,c)
@@ -8,10 +12,28 @@ function minmod(a,b,c)
   end
 end
 
+struct GeneralizedMinmodLimiter <: AbstractSlopeLimiter
+    θ::Float64
+end
+
+GeneralizedMinmodLimiter(;θ=1.0) = GeneralizedMinmodLimiter(θ)
+(limiter::GeneralizedMinmodLimiter)(a,b) =minmod(limiter.θ*a,0.5*(a+b),limiter.θ*b)
+
 function minmod(a,b)
   0.5*(sign(a)+sign(b))*min(abs(a),abs(b))
 end
 
+struct MinmodLimiter <: AbstractSlopeLimiter end
+(::MinmodLimiter)(a,b) = minmod(a,b)
+
+struct OsherLimiter <: AbstractSlopeLimiter
+    β::Float64
+end
+OsherLimiter(;β=1.0) = OsherLimiter(β)
+(limiter::OsherLimiter)(a,b) = max(zero(a),min(a,limiter.β*b))
+
+struct SuperbeeLimiter <: AbstractSlopeLimiter end
+(::SuperbeeLimiter)(a,b) = max(zero(a),min(2*a,b),min(a,2*b))
 
 "Apply slope limiter πᴺ to u assuming u an Nth polynomial"
 mutable struct DGLimiter{pType}

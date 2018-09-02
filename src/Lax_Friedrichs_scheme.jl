@@ -150,7 +150,7 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::COMP_GLF_Diff_
     # Flux splitting
     fminus, fplus = glf_splitting(u, alg.α, Flux, N, Val{false})
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, 1.0, M, Val{false})
+    ∇u = compute_slopes(u, mesh, GeneralizedMinmodLimiter(), M, Val{false})
     #Compute numerical fluxes
     for j = 0:N
         inner_loop!(hh, fminus, fplus, M,mesh, j,k,u,∇u, DiffMat, alg)
@@ -168,7 +168,7 @@ function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::COMP_GLF_Diff_
     # Flux splitting
     fminus, fplus = glf_splitting(u, alg.α, Flux, N, Val{true})
     # 1. slopes
-    ∇u = compute_slopes(u, mesh, 1.0, M, Val{true})
+    ∇u = compute_slopes(u, mesh, GeneralizedMinmodLimiter(), M, Val{true})
     #Compute numerical fluxes
     Threads.@threads for j = 0:N
         inner_loop!(hh, fminus, fplus, M,mesh, j,k,u,∇u, DiffMat, alg)

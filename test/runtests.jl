@@ -6,4 +6,5 @@ using Test
     @time include("test4.jl")
     @time include("test5.jl")
     @time include("test_aux.jl")
+    @time include("test_limiter.jl")
 end
