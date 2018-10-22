@@ -8,7 +8,7 @@ module ConservationLawsDiffEq
   using Logging
   using TreeViews
   using Markdown
-
+  using DelimitedFiles
 
   @reexport using OrdinaryDiffEq
 
