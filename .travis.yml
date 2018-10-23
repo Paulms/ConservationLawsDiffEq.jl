@@ -10,6 +10,7 @@ julia:
 matrix:
   allow_failures:
     - julia: nightly
+    - julia: 0.7
 notifications:
   email: false
 # uncomment the following lines to override the default test script
