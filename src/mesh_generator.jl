@@ -43,6 +43,8 @@ end
 # Line 1D
 ###########################
 # Line
+line_mesh(::Type{LineCell}, nel::Int, left::Number=-1.0, right::Number=1.0) =
+    line_mesh(LineCell, (nel,), Tensors.Vec{1}((left,)), Tensors.Vec{1}((right,)))
 """
     line_mesh(celltype::Cell, nel::NTuple, [left::Vec, right::Vec)
 Return a `mesh` for a line in 1 dimension. `celltype` defined the type of cell,
