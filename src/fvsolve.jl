@@ -68,8 +68,8 @@ function solve(
       if dt != nothing
           warn("dt value will be ignored since CFL condition is given")
       end
-      cb = getCFLCallback(f_sd)
-      dt = update_dt!(u0, f_sd)
+      cb = getCFLCallback(f_sd, CFL)
+      dt = update_dt!(u0, f_sd, CFL)
       setupCallback = true
   end
   #In any other case left ODE solver handle dt parameters
@@ -91,8 +91,6 @@ function solve(
   return _build_solution(sol, prob)
 end
 
-function _build_solution(sol::ODESolution{T,N,uType,uType2,DType,tType,
-  rateType,P,A,IType}, prob::AbstractConservationLawProblem{A1,A2,MeshType}) where {T,N,uType,uType2,DType,tType,
-                              rateType,P,A,IType,A1,A2,MeshType}
-  FVSolution{T,N,uType,tType,typeof(prob),MeshType,IType}(sol.u,sol.t,prob,sol.dense,0,sol.interp,sol.retcode)
+function _build_solution(sol::AbstractODESolution{T,N}, prob::AbstractConservationLawProblem{A1,MeshType}) where {T,N,A1,MeshType}
+  FVSolution{T,N,typeof(sol.u),typeof(sol.t),typeof(prob),MeshType,typeof(sol.interp)}(sol.u,sol.t,prob,sol.dense,0,sol.interp,sol.retcode)
 end

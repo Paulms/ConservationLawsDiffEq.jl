@@ -24,3 +24,21 @@ end
 function fluxρ(uj,f::fvflux) where {T}
         maximum(abs,eigvals(f.Dflux(uj)))
 end
+
+function update_dt(alg::AbstractFVAlgorithm,u,Flux,
+    CFL,mesh)
+  maxρ = zero(eltype(u))
+  dx = cell_volume(mesh, 1)
+  for i in cell_indices(mesh)
+    maxρ = max(maxρ, fluxρ(value_at_cell(u,i,mesh), Flux))
+  end
+  CFL/(1/dx*maxρ)
+end
+
+function maxfluxρ(u, Flux, mesh)
+    maxρ = zero(eltype(u))
+    for i in cell_indices(mesh)
+      maxρ = max(maxρ, fluxρ(value_at_cell(u,i,mesh), Flux))
+    end
+    maxρ
+end

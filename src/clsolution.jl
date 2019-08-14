@@ -1,4 +1,6 @@
 
+abstract type AbstractFVSolution{T,N} <: AbstractTimeseriesSolution{T,N} end
+
 struct FVSolution{T,N,uType,tType,ProbType,MeshType,IType} <: AbstractFVSolution{T,N}
   u::uType
   t::tType

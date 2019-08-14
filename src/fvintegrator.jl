@@ -43,11 +43,6 @@ function compute_du!(du, fluxes, mesh, noscalar::Bool, ::Type{Val{false}})
     end
 end
 
-"""
-    (fv::FVIntegrator)(t, u, du)
-
-Apply a finite volume semidiscretization.
-"""
 function (fv::FVIntegrator)(du::AbstractArray{T}, u::AbstractArray{T}, p, t) where {T}
   mesh = fv.mesh; alg = fv.alg; Flux = fv.Flux; numvars = fv.numvars
   fluxes = fv.fluxes; dt = fv.dt; use_threads = fv.use_threads
@@ -58,11 +53,6 @@ function (fv::FVIntegrator)(du::AbstractArray{T}, u::AbstractArray{T}, p, t) whe
   nothing
 end
 
-"""
-    (fv::FVDiffIntegrator)(t, u, du)
-
-Apply a finite volume semidiscretization.
-"""
 function (fv::FVDiffIntegrator)(du::AbstractArray{T}, u::AbstractArray{T}, p, t) where {T}
   mesh = fv.mesh; alg = fv.alg; Flux = fv.Flux; M = fv.numvars
   fluxes = fv.fluxes; DiffMat = fv.DiffMat; dt = fv.dt; use_threads = fv.use_threads

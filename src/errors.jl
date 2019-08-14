@@ -1,15 +1,14 @@
 #Compute approximate errors at tend with analytical solution
-function mesh_norm(u, mesh::Uniform1DFVMesh, p)
-    mesh_norm(u, mesh.Δx, p)
-end
-function mesh_norm(u, dx::Real, p)
-    @assert p > 0.0 "p must be a positive number"
-    if p == Inf
-        maximum(abs.(u))
-    else
-        (sum(abs,(u).^p)*dx)^(1/p)
-    end
-end
+# function mesh_norm(u, mesh, p)
+#     @assert p > 0.0 "p must be a positive number"
+#     if p == Inf
+#         maximum(abs.(u))
+#     else
+#         for i in 1:getncells(mesh)
+#
+#         (sum(abs,(u).^p)*dx)^(1/p)
+#     end
+# end
 
 function dg_norm(u, basis::PolynomialBasis, p)
     @assert p > 0.0 "p must be a positive number"

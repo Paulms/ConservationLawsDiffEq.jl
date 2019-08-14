@@ -1,11 +1,12 @@
 module ConservationLawsDiffEq
-  using DiffEqCallbacks
+  import DiffEqCallbacks
   using LinearAlgebra
   using SpecialFunctions
   using SparseArrays
   using Logging
   using TreeViews
   using DelimitedFiles
+  import Tensors
 
   import ForwardDiff, Interpolations, IterativeSolvers
   using RecipesBase, LaTeXStrings
@@ -14,7 +15,7 @@ module ConservationLawsDiffEq
   using StaticArrays
 
   # Interfaces
-  import DiffEqBase: solve, LinSolveFactorize, LinearInterpolation, AbstractTimeseriesSolution
+  import DiffEqBase: solve, DiscreteCallback, LinSolveFactorize, LinearInterpolation, AbstractTimeseriesSolution, AbstractODESolution, ODESolution, ODEProblem
   import Base: show
   import Markdown
 
@@ -31,13 +32,13 @@ module ConservationLawsDiffEq
   include("mesh.jl")
   include("mesh_generator.jl")
   include("fvmesh.jl")
-  include("fvflux.jl")
   include("fvintegrator.jl")
   include("fvalgorithmsAPI.jl")
+  include("fvflux.jl")
   include("timecallbacks.jl")
   include("fvutils.jl")
-  include("fvsolve.jl")
   include("clproblem.jl")
+  include("fvsolve.jl")
   include("clsolution.jl")
 
   #Algoritms
@@ -58,7 +59,7 @@ module ConservationLawsDiffEq
   # include("limiters.jl")
 
   # Other
-  include("errors.jl")
+  #include("errors.jl")
   include("plotRecipe.jl")
 
   #Exports
@@ -97,9 +98,9 @@ module ConservationLawsDiffEq
   # export FVDRCU5Algorithm
 
   # scheme utils
-  export get_total_u, get_relative_L1_error, get_L1_error, approx_L1_error, approx_relative, L1_error
+  #export get_total_u, get_relative_L1_error, get_L1_error, approx_L1_error, approx_relative, L1_error
   export num_integrate
-  export FVOOCTable, get_conv_order_table, mesh_norm, get_LP_error, get_num_LP_error
+  #export FVOOCTable, get_conv_order_table, mesh_norm, get_LP_error, get_num_LP_error
   # export advection_num_flux, rusanov_euler_num_flux, glf_num_flux
   # export legendre_basis, PolynomialBasis
   # export ENO_Reconstruction, WENO_Reconstruction, MWENO_Reconstruction

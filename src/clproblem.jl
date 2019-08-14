@@ -1,4 +1,4 @@
-abstract type AbstractConservationLawProblem{isscalar,MeshType}
+abstract type AbstractConservationLawProblem{isscalar,MeshType} end
 
 struct ConservationLawsProblem{isscalar,MeshType,F5,F,DF,T,BC} <: AbstractConservationLawProblem{isscalar,MeshType}
  f0::F5
@@ -21,7 +21,7 @@ struct ConservationLawsWithDiffusionProblem{isscalar,MeshType,F5,F,DF,T,BC,F6} <
  DiffMat::F6
 end
 
-isscalar(prob::AbstractConservationLawProblem{iss}) = iss
+isscalar(prob::AbstractConservationLawProblem{iss}) where {iss} = iss
 
 function ConservationLawsProblem(f,f0,mesh,bcs; tspan = [0.0,1.0], Df = nothing)
  if eltype(tspan) <: Int
@@ -29,16 +29,16 @@ function ConservationLawsProblem(f,f0,mesh,bcs; tspan = [0.0,1.0], Df = nothing)
  end
  numvars = size(f0(getnodecoords(mesh, 1)[1]),1)
  isscalar = !(numvars > 1)
- ConservationLawsProblem{isscalar,typeof(mesh),typeof(f0),typeof(f),typeof(jac),typeof(tspan),typeof(bcs),typeof(numvars)}(f0,f,Df,tspan,bcs,numvars,mesh)
+ ConservationLawsProblem{isscalar,typeof(mesh),typeof(f0),typeof(f),typeof(Df),typeof(tspan),typeof(bcs)}(f0,f,Df,tspan,bcs,numvars,mesh)
 end
 
-function ConservationLawsWithDiffusionProblem(f,BB,f0,mesh,bcs; tspan = [0.0,1.0],Df = nothing)
+function ConservationLawsWithDiffusionProblem(f,BB,f0,mesh,bcs; tspan = (0.0,1.0),Df = nothing)
   if typeof(tend) <: Int
     @warn("Integer time passed. It could result in unpredictable behaviour consider using a rational time")
   end
  numvars = size(f0(getnodecoords(mesh, 1)[1]),1)
  isscalar = !(numvars > 1)
- ConservationLawsWithDiffusionProblem{isscalar,typeof(mesh),typeof(f0),typeof(ff),typeof(jac),typeof(tspan),typeof(bcs),typeof(numvars),typeof(BB)}(f0,ff,Df,tspan,bcs,numvars,mesh,BB)
+ ConservationLawsWithDiffusionProblem{isscalar,typeof(mesh),typeof(f0),typeof(ff),typeof(Df),typeof(tspan),typeof(bcs),typeof(BB)}(f0,ff,Df,tspan,bcs,numvars,mesh,BB)
 end
 
 ### Displays
@@ -49,8 +49,8 @@ function Base.show(io::IO, A::AbstractConservationLawProblem)
   print(io,"timespan: ")
   show(io,A.tspan)
   println(io)
-  print(io,"CFL: ")
-  show(io, A.CFL)
+  print(io,"Boundary conditions: ")
+  show(io, A.bcs)
   println(io)
   print(io,"number of vars: ")
   show(io, A.numvars)

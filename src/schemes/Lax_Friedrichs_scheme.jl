@@ -12,11 +12,12 @@ mutable struct GlobalLaxFriedrichsAlgorithm{T} <: AbstractFVAlgorithm
   α :: T
 end
 
-function update_dt(alg::GlobalLaxFriedrichsAlgorithm{T1},u::AbstractArray{T2,2},Flux,
-    CFL,mesh::Uniform1DFVMesh) where {T1,T2}
-  alg.α = alg.αf(u,Flux)
+function update_dt(alg::GlobalLaxFriedrichsAlgorithm{T1},u,Flux,
+    CFL,mesh) where {T1}
+  alg.α = alg.αf(u, Flux, mesh)
   @assert (abs(alg.α) > eps(T1))
-  CFL*mesh.Δx/alg.α
+  dx = cell_volume(mesh, 1)
+  CFL*dx/alg.α
 end
 
 function GlobalLaxFriedrichsAlgorithm(;αf = nothing)
@@ -33,11 +34,12 @@ mutable struct COMP_GLF_Diff_Algorithm{T, cType, oType} <: AbstractFVAlgorithm
   order :: oType
 end
 
-function update_dt(alg::COMP_GLF_Diff_Algorithm{T0,T1,T2},u::AbstractArray{T3,2},Flux,
-    DiffMat,CFL,mesh::Uniform1DFVMesh) where {T0,T1,T2,T3}
-  alg.α = alg.αf(u,Flux)
+function update_dt(alg::COMP_GLF_Diff_Algorithm{T0,T1,T2},u,Flux,
+    DiffMat,CFL,mesh) where {T0,T1,T2}
+  alg.α = alg.αf(u,Flux, mesh)
   @assert (abs(alg.α) > eps(T0))
-  CFL*mesh.Δx/alg.α
+  dx = cell_volume(mesh, 1)
+  CFL*dx/alg.α
 end
 
 function COMP_GLF_Diff_Algorithm(;αf = nothing, rec_scheme = WENO_Reconstruction(5))
@@ -47,79 +49,45 @@ function COMP_GLF_Diff_Algorithm(;αf = nothing, rec_scheme = WENO_Reconstructio
     COMP_GLF_Diff_Algorithm(αf,0.0,rec_scheme,5)
 end
 
-function inner_loop!(hh,j,u,dx,dt,mesh,Flux, alg::LaxFriedrichsAlgorithm)
+function update_flux_value(uold,node_idx,dt,dx,mesh,Flux,alg::LaxFriedrichsAlgorithm)
     # Local speeds of propagation
-    @inbounds ul=cellval_at_left(j,u,mesh)
-    @inbounds ur=cellval_at_right(j,u,mesh)
+    @inbounds ul=cellval_at_left(node_idx,uold,mesh)
+    @inbounds ur=cellval_at_right(node_idx,uold,mesh)
     # Numerical Fluxes
-    @inbounds hh[j,:] = 0.5*(Flux(ul)+Flux(ur))-dx/(2*dt)*(ur-ul)
-end
-
-"""
-compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxFriedrichsAlgorithm, ::Type{Val{true}})
-Numerical flux of lax friedrichs algorithm in 1D
-"""
-function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxFriedrichsAlgorithm, ::Type{Val{true}})
-    dx = mesh.Δx
-    #update vector
-    Threads.@threads for j in edge_indices(mesh)
-        inner_loop!(hh,j,u,dx,dt,mesh,Flux, alg)
-    end
-end
-
-function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LaxFriedrichsAlgorithm, ::Type{Val{false}})
-    dx = mesh.Δx
-    #update vector
-    for j in edge_indices(mesh)
-        inner_loop!(hh,j,u,dx,dt,mesh,Flux, alg)
-    end
+    return 0.5*(Flux(ul)+Flux(ur))-dx/(2*dt)*(ur-ul)
 end
 
 """
 compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsAlgorithm, ::Type{Val{true}})
 Numerical flux of local lax friedrichs algorithm in 1D
 """
-function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsAlgorithm, ::Type{Val{false}})
+function compute_fluxes!(fluxes, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsAlgorithm, nonscalar::Bool,::Type{Val{false}})
     dx = mesh.Δx
     ul=cellval_at_left(1,u,mesh)
     αl = fluxρ(ul, Flux)
     #update vector
-    for j in edge_indices(mesh)
+    for j in node_indices(mesh)
         # Local speeds of propagation
         @inbounds ul=cellval_at_left(j,u,mesh)
         @inbounds ur=cellval_at_right(j,u,mesh)
         αr = fluxρ(ur, Flux)
         αk = max(αl, αr)
         # Numerical Fluxes
-        @inbounds hh[j,:] = 0.5*(Flux(ul)+Flux(ur))-αk*(ur-ul)
+        if noscalar
+            fluxes[:,j] .= 0.5*(Flux(ul)+Flux(ur))-αk*(ur-ul)
+        else
+            fluxes[j] = 0.5*(Flux(ul)+Flux(ur))-αk*(ur-ul)
+        end
         αl = αr
     end
 end
 
-function inner_loop!(hh,j,u,mesh,Flux, alg::GlobalLaxFriedrichsAlgorithm)
+function update_flux_value(uold,node_idx,dt,dx,mesh,Flux, alg::GlobalLaxFriedrichsAlgorithm)
     # Local speeds of propagation
-    @inbounds ul=cellval_at_left(j,u,mesh)
-    @inbounds ur=cellval_at_right(j,u,mesh)
+    @inbounds ul=cellval_at_left(node_idx,uold,mesh)
+    @inbounds ur=cellval_at_right(node_idx,uold,mesh)
     # update numerical flux
-    @inbounds hh[j,:] = 0.5*(Flux(ul)+Flux(ur))-alg.α*(ur-ul)
-end
-
-"""
-compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::GlobalLaxFriedrichsAlgorithm, ::Type{Val{true}})
-Numerical flux of Global Lax-Friedrichs Scheme in 1D
-"""
-function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::GlobalLaxFriedrichsAlgorithm, ::Type{Val{true}})
-    #update vector
-    Threads.@threads for j in edge_indices(mesh)
-        inner_loop!(hh,j,u,mesh,Flux, alg)
-    end
-end
-
-function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::GlobalLaxFriedrichsAlgorithm, ::Type{Val{false}})
-    #update vector
-    Threads.@threads for j in edge_indices(mesh)
-        inner_loop!(hh,j,u,mesh,Flux, alg)
-    end
+    return 0.5*(Flux(ul)+Flux(ur))-alg.α*(ur-ul)
 end
 
 # Component Wise Global Lax-Friedrichs Scheme

@@ -138,3 +138,8 @@ function cell_diameter(mesh::PolytopalMesh{dim,T}, cell_idx::Int) where {dim,T}
     end
     h
 end
+
+function cell_centers(mesh::PolytopalMesh{1})
+    xn = get_nodes_matrix(mesh)
+    return [xn[i] + 0.5*(xn[i+1]-xn[i]) for i in 1:getncells(mesh)]
+end

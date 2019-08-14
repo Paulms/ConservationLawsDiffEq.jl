@@ -40,7 +40,6 @@ end
 @inline cell_volume(fvmesh::AbstractFVMesh, cell_idx::Int) = cell_volume(fvmesh.mesh, cell_idx)
 @inline _get_cell_idx(fvmesh::fvmesh1D{GeneralProblem}, idx) = (:,idx)
 @inline _get_cell_idx(fvmesh::fvmesh1D{ScalarProblem}, idx) = (idx)
-
 @inline value_at_cell(u, j,fvmesh::fvmesh1D{ScalarProblem}) = u[j]
 @inline value_at_cell(u, j,fvmesh::fvmesh1D{GeneralProblem}) = u[:,j]
 
