@@ -1,5 +1,5 @@
 module ConservationLawsDiffEq
-  import DiffEqCallbacks
+  using DiffEqCallbacks
   using LinearAlgebra
   using SpecialFunctions
   using SparseArrays
