@@ -79,6 +79,7 @@ function getcoords(mesh, node_idx::Int)
 Return a Tensor.Vec with the coordinates of node with index `node_idx`
 """
 @inline getnodecoords(mesh::PolytopalMesh, node_idx::Int) = mesh.nodes[node_idx].x
+@inline getnodecoords(mesh::PolytopalMesh{1}, node_idx::Int) = mesh.nodes[node_idx].x[]
 
 """
     getnodescoords(mesh::PolytopalMesh, cell_idx)

@@ -40,6 +40,8 @@ end
 @inline cell_volume(fvmesh::AbstractFVMesh, cell_idx::Int) = cell_volume(fvmesh.mesh, cell_idx)
 @inline _get_cell_idx(fvmesh::fvmesh1D{GeneralProblem}, idx) = (:,idx)
 @inline _get_cell_idx(fvmesh::fvmesh1D{ScalarProblem}, idx) = (idx)
+isscalar(fvmesh::fvmesh1D{ScalarProblem}) = true
+isscalar(fvmesh::fvmesh1D{GeneralProblem}) = false
 @inline value_at_cell(u, j,fvmesh::fvmesh1D{ScalarProblem}) = u[j]
 @inline value_at_cell(u, j,fvmesh::fvmesh1D{GeneralProblem}) = u[:,j]
 
@@ -49,7 +51,7 @@ end
    cell values of variable `A` to the left of `node` in `mesh`.
 """
 function cellval_at_left(node::Int, A, fvmesh::fvmesh1D) where {T}
-    idx = _get_cell_idx(fvmesh, node-1)
+    idx = isscalar(fvmesh) ? (node-1) : (:,node-1)
     checkbounds(Bool, A, idx...) && return A[idx...]
     return A[_get_cell_idx(fvmesh, cellidx_at_left(node, getncells(fvmesh.mesh), fvmesh.left_boundary))...]
 end
@@ -59,10 +61,10 @@ end
 
 cell values of variable `A` to the right of `node` in `mesh`.
 """
-function cellval_at_right(node::Int, A, mesh::fvmesh1D) where {T}
-    idx = _get_cell_idx(mesh,node)
+function cellval_at_right(node::Int, A, fvmesh::fvmesh1D) where {T}
+    idx = isscalar(fvmesh) ? (node) : (:,node)
     checkbounds(Bool, A, idx...) && return A[idx...]
-    return A[_get_cell_idx(mesh, cellidx_at_right(node, getncells(mesh.mesh), mesh.right_boundary))...]
+    return A[_get_cell_idx(fvmesh, cellidx_at_right(node, getncells(fvmesh.mesh), fvmesh.right_boundary))...]
 end
 
 """

@@ -9,7 +9,7 @@ end
 
 getncells(mesh::Uniform1DFVMesh{N}) where {N} = N
 getnnodes(mesh::Uniform1DFVMesh{N}) where {N} = N+1
-getnodecoords(mesh::Uniform1DFVMesh, node_idx::Int) = (mesh.cell_faces[node_idx],)
+getnodecoords(mesh::Uniform1DFVMesh, node_idx::Int) = mesh.cell_faces[node_idx]
 getdimension(mesh::Uniform1DFVMesh) = 1
 
 Base.summary(::Uniform1DFVMesh{N}) where {N} = string("FV 1D Mesh of ",N," cells")

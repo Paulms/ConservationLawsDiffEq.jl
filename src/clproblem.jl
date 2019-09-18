@@ -27,7 +27,7 @@ function ConservationLawsProblem(f,f0,mesh,bcs; tspan = [0.0,1.0], Df = nothing)
  if eltype(tspan) <: Int
      @warn("Integer time passed. It could result in unpredictable behaviour consider using a rational time")
  end
- numvars = size(f0(getnodecoords(mesh, 1)[1]),1)
+ numvars = size(f0(getnodecoords(mesh, 1)),1)
  isscalar = !(numvars > 1)
  ConservationLawsProblem{isscalar,typeof(mesh),typeof(f0),typeof(f),typeof(Df),typeof(tspan),typeof(bcs)}(f0,f,Df,tspan,bcs,numvars,mesh)
 end

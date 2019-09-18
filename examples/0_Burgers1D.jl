@@ -44,3 +44,8 @@ plot!(sol5,lab="Comp WENO5 h")
 plot!(sol6,lab="Comp MWENO5 h")
 plot!(sol7,lab="Spec MWENO5 h")
 plot!(sol8, label="DG k=3")
+
+Juno.Profile.clear()
+Juno.@profile solve(prob, LaxFriedrichsAlgorithm();TimeIntegrator = SSPRK22(), CFL = CFL, progress=true, save_everystep = false);
+Juno.@profile solve(prob, LaxFriedrichsAlgorithm();TimeIntegrator = SSPRK22(), CFL = CFL, progress=true, save_everystep = false);
+Juno.profiler()
