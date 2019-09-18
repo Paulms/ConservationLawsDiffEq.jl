@@ -31,11 +31,6 @@ function update_dt!(u::AbstractArray{T,2},fv::FVDiffIntegrator) where {T}
   fv.dt
 end
 
-"""
-    (fv::FVIntegrator)(t, u, du)
-
-Apply a finite volume semidiscretization.
-"""
 function (fv::FVIntegrator)(du::AbstractArray{T,2}, u::AbstractArray{T,2}, p, t) where {T}
   mesh = fv.mesh; alg = fv.alg; Flux = fv.Flux; M = fv.M;
   fluxes = fv.fluxes; dt = fv.dt; use_threads = fv.use_threads
@@ -48,11 +43,6 @@ function (fv::FVIntegrator)(du::AbstractArray{T,2}, u::AbstractArray{T,2}, p, t)
   nothing
 end
 
-"""
-    (fv::FVDiffIntegrator)(t, u, du)
-
-Apply a finite volume semidiscretization.
-"""
 function (fv::FVDiffIntegrator)(du::AbstractArray{T,2}, u::AbstractArray{T,2}, p, t) where {T}
   mesh = fv.mesh; alg = fv.alg; Flux = fv.Flux; M = fv.M
   fluxes = fv.fluxes; DiffMat = fv.DiffMat; dt = fv.dt; use_threads = fv.use_threads
