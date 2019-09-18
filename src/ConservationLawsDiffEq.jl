@@ -40,6 +40,7 @@ module ConservationLawsDiffEq
   include("clproblem.jl")
   include("fvsolve.jl")
   include("clsolution.jl")
+  include("uniform1Dmesh.jl")
 
   #Algoritms
   # include("ENO_WENO.jl")
@@ -83,6 +84,7 @@ module ConservationLawsDiffEq
   export PolytopalMesh, getdimension
   export getnodeset, getnodecoords
   export cell_volume, cell_centroid, cell_diameter
+  export Uniform1DFVMesh
 
   # Schemes
   # export FVTecnoAlgorithm, FVESJPAlgorithm

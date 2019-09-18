@@ -13,7 +13,8 @@ f(u) = u^2/2
 f0(x) = sin(2*π*x)
 
 function get_problem(N)
-  mesh = line_mesh(N, 0.0, 1.0)
+  mesh = Uniform1DFVMesh(N, 0.0, 1.0)
+  #mesh = line_mesh(N, 0.0, 1.0)
   ConservationLawsProblem(f,f0,mesh,[Periodic()]; tspan = (0.0,Tend), Df = Jf)
 end
 #Run
