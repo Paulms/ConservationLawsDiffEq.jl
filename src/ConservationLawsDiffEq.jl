@@ -1,5 +1,5 @@
 module ConservationLawsDiffEq
-  using DiffEqPDEBase,DiffEqBase
+  using DiffEqBase
   using DiffEqCallbacks
   using Reexport
   using LinearAlgebra
