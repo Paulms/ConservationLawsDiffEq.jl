@@ -27,7 +27,7 @@ Tensors = "48a634ad-e948-5137-8d70-aa71f2a747f4"
 TreeViews = "a2a6695c-b41b-5b7d-aed9-dbfdeacea5d7"
 
 [compat]
-DiffEqBase = "5.20"
+DiffEqBase = "6.4"
 DiffEqCallbacks = "2.9"
 DiffEqPDEBase = "0.4"
 FastGaussQuadrature = "0.4"
