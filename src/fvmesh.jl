@@ -38,10 +38,6 @@ end
 @inline cell_indices(fvmesh::AbstractFVMesh) = 1:getncells(fvmesh.mesh)
 @inline node_indices(fvmesh::AbstractFVMesh) = 1:getnnodes(fvmesh.mesh)
 @inline cell_volume(fvmesh::AbstractFVMesh, cell_idx::Int) = cell_volume(fvmesh.mesh, cell_idx)
-@inline _get_cell_idx(fvmesh::fvmesh1D{GeneralProblem}, idx) = (:,idx)
-@inline _get_cell_idx(fvmesh::fvmesh1D{ScalarProblem}, idx) = (idx)
-isscalar(fvmesh::fvmesh1D{ScalarProblem}) = true
-isscalar(fvmesh::fvmesh1D{GeneralProblem}) = false
 @inline value_at_cell(u, j,fvmesh::fvmesh1D{ScalarProblem}) = u[j]
 @inline value_at_cell(u, j,fvmesh::fvmesh1D{GeneralProblem}) = u[:,j]
 
@@ -50,10 +46,14 @@ isscalar(fvmesh::fvmesh1D{GeneralProblem}) = false
 
    cell values of variable `A` to the left of `node` in `mesh`.
 """
-function cellval_at_left(node::Int, A, fvmesh::fvmesh1D) where {T}
-    idx = isscalar(fvmesh) ? (node-1) : (:,node-1)
-    checkbounds(Bool, A, idx...) && return A[idx...]
-    return A[_get_cell_idx(fvmesh, cellidx_at_left(node, getncells(fvmesh.mesh), fvmesh.left_boundary))...]
+function cellval_at_left(node::Int, A, fvmesh::fvmesh1D{ScalarProblem})
+    checkbounds(Bool, A, node-1) && return A[node-1]
+    return A[cellidx_at_left(node, getncells(fvmesh.mesh), fvmesh.left_boundary)]
+end
+
+function cellval_at_left(node::Int, A, fvmesh::fvmesh1D{GeneralProblem})
+    checkbounds(Bool, A, (:,node-1)...) && return A[:,node-1]
+    return A[:,cellidx_at_left(node, getncells(fvmesh.mesh), fvmesh.left_boundary)]
 end
 
 """
@@ -61,10 +61,14 @@ end
 
 cell values of variable `A` to the right of `node` in `mesh`.
 """
-function cellval_at_right(node::Int, A, fvmesh::fvmesh1D) where {T}
-    idx = isscalar(fvmesh) ? (node) : (:,node)
-    checkbounds(Bool, A, idx...) && return A[idx...]
-    return A[_get_cell_idx(fvmesh, cellidx_at_right(node, getncells(fvmesh.mesh), fvmesh.right_boundary))...]
+function cellval_at_right(node::Int, A, fvmesh::fvmesh1D{ScalarProblem})
+    checkbounds(Bool, A, node) && return A[node]
+    return A[cellidx_at_right(node, getncells(fvmesh.mesh), fvmesh.right_boundary)]
+end
+
+function cellval_at_right(node::Int, A, fvmesh::fvmesh1D{GeneralProblem})
+    checkbounds(Bool, A, (:,node)...) && return A[:,node]
+    return A[:,cellidx_at_right(node, getncells(fvmesh.mesh), fvmesh.right_boundary)]
 end
 
 """
@@ -179,11 +183,17 @@ struct ZeroFlux
 end
 ZeroFlux(;side=:Both) = ZeroFlux(side)
 
-function apply_lbc_in_fluxes!(fluxes, fvmesh, ::ZeroFlux)
-    fluxes[get_cell_idx(fvmesh, 1)...] .= zero(eltype(fluxes))
+function apply_lbc_in_fluxes!(fluxes, fvmesh::fvmesh1D{GeneralProblem}, ::ZeroFlux)
+    fluxes[:,1] .= zero(eltype(fluxes))
 end
-function apply_rbc_in_fluxes!(fluxes, fvmesh, ::ZeroFlux)
-    fluxes[get_cell_idx(fvmesh, getnnodes(fvmesh.mesh))...] .= zero(eltype(fluxes))
+function apply_lbc_in_fluxes!(fluxes, fvmesh::fvmesh1D{ScalarProblem}, ::ZeroFlux)
+    fluxes[1] = zero(eltype(fluxes))
+end
+function apply_rbc_in_fluxes!(fluxes, fvmesh::fvmesh1D{GeneralProblem}, ::ZeroFlux)
+    fluxes[:, getnnodes(fvmesh.mesh)] .= zero(eltype(fluxes))
+end
+function apply_rbc_in_fluxes!(fluxes, fvmesh::fvmesh1D{ScalarProblem}, ::ZeroFlux)
+    fluxes[getnnodes(fvmesh.mesh)] = zero(eltype(fluxes))
 end
 
 
@@ -208,9 +218,17 @@ end
 cellidx_at_left(node::Int, n::Int, ::Union{ZeroFlux,Dirichlet}) = min(n,max(1,node-1))
 cellidx_at_right(node::Int, n::Int, ::Union{ZeroFlux,Dirichlet}) =  min(n,max(1,node))
 
-function apply_lbc_in_du!(du, fvmesh, ::ZeroFlux)
-    du[get_cell_idx(fvmesh, 1)...] .= zero(eltype(fluxes))
+function apply_lbc_in_du!(du, fvmesh::fvmesh1D{GeneralProblem}, ::ZeroFlux)
+    du[:,1] .= zero(eltype(du))
 end
-function apply_rbc_in_du!(fluxes, fvmesh, ::ZeroFlux)
-    du[get_cell_idx(fvmesh, getnnodes(fvmesh.mesh))...] .= zero(eltype(fluxes))
+function apply_lbc_in_du!(du, fvmesh::fvmesh1D{ScalarProblem}, ::ZeroFlux)
+    du[1] = zero(eltype(du))
+end
+
+function apply_rbc_in_du!(du, fvmesh::fvmesh1D{GeneralProblem}, ::ZeroFlux)
+    du[:,getnnodes(fvmesh.mesh)] .= zero(eltype(du))
+end
+
+function apply_rbc_in_du!(du, fvmesh::fvmesh1D{ScalarProblem}, ::ZeroFlux)
+    du[getnnodes(fvmesh.mesh)] = zero(eltype(du))
 end

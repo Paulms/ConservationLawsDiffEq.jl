@@ -1,51 +1,42 @@
-# 1D Burgers Equation
-# u_t+(0.5*u²)_{x}=0
+# Example 0: Solve 1D Burgers Equation
+# u(x,t)_t+(0.5*u²(x,t))_{x}=0
+# u(0,x) = f0(x)
 
 using ConservationLawsDiffEq
 using OrdinaryDiffEq
 using LinearAlgebra
 
 const CFL = 0.5
-const Tend = 1.0
+# First define the problem data (Jacobian is optional but useful)
+Jf(u) = u           #Jacobian
+f(u) = u^2/2        #Flux function
+f0(x) = sin(2*π*x)  #Initial data distribution
 
-Jf(u) = u
-f(u) = u^2/2
-f0(x) = sin(2*π*x)
+# Now discretizate the domain
+mesh = Uniform1DFVMesh(10, [0.0, 1.0])
 
-function get_problem(N)
-  mesh = Uniform1DFVMesh(N, 0.0, 1.0)
-  #mesh = line_mesh(N, 0.0, 1.0)
-  ConservationLawsProblem(f,f0,mesh,[Periodic()]; tspan = (0.0,Tend), Df = Jf)
-end
-#Run
-@time prob = get_problem(200)
-@time sol = solve(prob, FVSKTAlgorithm();TimeIntegrator = SSPRK22(), CFL = CFL,progress=false, use_threads = false, save_everystep = false)
-@time sol1 = fast_solve(prob, FVSKTAlgorithm();TimeIntegrator = SSPRK22(), CFL = CFL,progress=true)
-@time sol2 = solve(prob, LaxFriedrichsAlgorithm();TimeIntegrator = SSPRK22(), CFL = CFL, progress=true, save_everystep = false)
-@time sol3 = solve(prob, LocalLaxFriedrichsAlgorithm();TimeIntegrator = SSPRK22(), CFL = CFL,progress=true, save_everystep = false)
-@time sol4 = solve(prob, GlobalLaxFriedrichsAlgorithm();TimeIntegrator = SSPRK22(), CFL = CFL,progress=true, save_everystep = false)
-#@time sol5 = solve(prob, LaxWendroff2sAlgorithm();progress=true, save_everystep = false)
-@time sol5 = solve(prob, FVCompWENOAlgorithm();CFL = CFL,progress=true, TimeAlgorithm = SSPRK33())
-@time sol6 = solve(prob, FVCompMWENOAlgorithm();progress=true, TimeAlgorithm = SSPRK33(),CFL = CFL)
-@time sol7 = solve(prob, FVSpecMWENOAlgorithm();TimeIntegrator = SSPRK22(), CFL = CFL,progress=true, save_everystep = false)
+# Now get a explicit semidiscretization (discrete in space) du_h(t)/dt = f_h(u_h(t))
+f_h = getSemiDiscretization(f,LaxFriedrichsScheme(),mesh,[Periodic()]; Df = Jf, use_threads = false,numvars = 1)
 
-basis=legendre_basis(3)
-limiter! = DGLimiter(prob, basis, Linear_MUSCL_Limiter())
-@time sol8 = solve(prob, DiscontinuousGalerkinScheme(basis, glf_num_flux); TimeIntegrator = SSPRK22(limiter!))
+#Compute discrete initial data
+u0 = getInitialState(mesh,f0,use_threads = true)
 
-#Plot
+#Setup ODE problem for a time interval = [0.0,1.0]
+ode_prob = ODEProblem(f_h,u0,(0.0,1.0))
+
+#Setup callback in order to fix CFL constant value
+cb = getCFLCallback(f_h, CFL)
+
+#Estimate an initial dt
+dt = update_dt!(u0, f_h, CFL)
+
+#Solve problem using OrdinaryDiffEq
+sol = solve(ode_prob,SSPRK22(); dt = dt, callback = cb)
+
+#Plot solution
+#Wrap solution so we can plot using dispatch
+u_h = fv_solution(sol, mesh)
+
 using Plots
-plot(sol,tidx = 1,lab="uo",line=(:dot,2))
-plot!(sol,lab="KT u")
-plot!(sol2,lab="L-F h")
-plot!(sol3,lab="LLF h")
-plot!(sol4,lab="GLF h")
-plot!(sol5,lab="Comp WENO5 h")
-plot!(sol6,lab="Comp MWENO5 h")
-plot!(sol7,lab="Spec MWENO5 h")
-plot!(sol8, label="DG k=3")
-
-Juno.Profile.clear()
-Juno.@profile solve(prob, LaxFriedrichsAlgorithm();TimeIntegrator = SSPRK22(), CFL = CFL, progress=true, save_everystep = false);
-Juno.@profile solve(prob, LaxFriedrichsAlgorithm();TimeIntegrator = SSPRK22(), CFL = CFL, progress=true, save_everystep = false);
-Juno.profiler()
+plot(u_h,tidx = 1,lab="uo",line=(:dot,2)) #Plot inital data
+plot!(u_h,lab="LF")                       #Plot LaxFriedrichsScheme solution

@@ -15,7 +15,7 @@ module ConservationLawsDiffEq
   using StaticArrays
 
   # Interfaces
-  import DiffEqBase: solve, DiscreteCallback, LinSolveFactorize, LinearInterpolation, AbstractTimeseriesSolution, AbstractODESolution, ODESolution, ODEProblem
+  import DiffEqBase: DiscreteCallback, LinSolveFactorize, LinearInterpolation,AbstractODESolution
   import Base: show
   import Markdown
 
@@ -33,11 +33,10 @@ module ConservationLawsDiffEq
   include("mesh_generator.jl")
   include("fvmesh.jl")
   include("fvintegrator.jl")
-  include("fvalgorithmsAPI.jl")
+  include("fvSchemesAPI.jl")
   include("fvflux.jl")
   include("timecallbacks.jl")
   include("fvutils.jl")
-  include("clproblem.jl")
   include("fvsolve.jl")
   include("clsolution.jl")
   include("uniform1Dmesh.jl")
@@ -75,7 +74,7 @@ module ConservationLawsDiffEq
   export update_dt!
   export Periodic, ZeroFlux, Dirichlet
   export save_csv
-  export ConservationLawsProblem, ConservationLawsWithDiffusionProblem
+  export fv_solution
 
   # mesh related functions
   export line_mesh, rectangle_mesh
@@ -87,17 +86,17 @@ module ConservationLawsDiffEq
   export Uniform1DFVMesh
 
   # Schemes
-  # export FVTecnoAlgorithm, FVESJPAlgorithm
-  # export FVCompWENOAlgorithm, FVCompMWENOAlgorithm, FVSpecMWENOAlgorithm
-  # export RKTable, LI_IMEX_RK_Algorithm
-  export LaxFriedrichsAlgorithm
-  # export LaxWendroff2sAlgorithm, LaxWendroffAlgorithm
-  # export LocalLaxFriedrichsAlgorithm, GlobalLaxFriedrichsAlgorithm
+  # export FVTecnoScheme, FVESJPScheme
+  # export FVCompWENOScheme, FVCompMWENOScheme, FVSpecMWENOScheme
+  # export RKTable, LI_IMEX_RK_Scheme
+  export LaxFriedrichsScheme
+  # export LaxWendroff2sScheme, LaxWendroffScheme
+  # export LocalLaxFriedrichsScheme, GlobalLaxFriedrichsScheme
   # export DiscontinuousGalerkinScheme
-  # export COMP_GLF_Diff_Algorithm
+  # export COMP_GLF_Diff_Scheme
   # export minmod
-  # export FVCUAlgorithm, FVDRCUAlgorithm, FVSKTAlgorithm
-  # export FVDRCU5Algorithm
+  # export FVCUScheme, FVDRCUScheme, FVSKTScheme
+  # export FVDRCU5Scheme
 
   # scheme utils
   #export get_total_u, get_relative_L1_error, get_L1_error, approx_L1_error, approx_relative, L1_error

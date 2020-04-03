@@ -1,14 +1,14 @@
-@recipe function f(sol::AbstractFVSolution; tidx = size(sol.t,1), vars=nothing)
+@recipe function f(sol::AbstractFVSolution; tidx = size(gettimes(sol),1), vars=nothing)
     seriestype  :=  :path
     xguide --> "x"
     yguide --> "u"
     labels = String[]
-    for i in 1:size(sol.u[tidx],2)
+    for i in 1:size(getvalues(sol)[tidx],2)
       push!(labels,"u$i")
     end
-    yvector = sol.u[tidx]
+    yvector = getvalues(sol)[tidx]
     if vars != nothing
-      yvector = sol.u[tidx][:,vars]
+      yvector = getvalues(sol)[tidx][:,vars]
       labels = labels[vars]
     end
     if typeof(labels) <: String
@@ -16,7 +16,7 @@
     else
       label --> reshape(labels,1,length(labels))
     end
-    cell_centers(sol.prob.mesh), yvector
+    cell_centers(getmesh(sol)), yvector
 end
 
 # @recipe function f(sol::DGSolution; tidx = size(sol.t,1), vars=nothing)

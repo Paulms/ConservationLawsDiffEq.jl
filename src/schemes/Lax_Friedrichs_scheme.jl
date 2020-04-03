@@ -3,16 +3,16 @@
 # R. Leveque. Finite Volume Methods for Hyperbolic Problems.Cambridge University
 # Press. New York 2002
 
-struct LaxFriedrichsAlgorithm <: AbstractFVAlgorithm end
+struct LaxFriedrichsScheme <: AbstractFVAlgorithm end
 
-struct LocalLaxFriedrichsAlgorithm <: AbstractFVAlgorithm end
+struct LocalLaxFriedrichsScheme <: AbstractFVAlgorithm end
 
-mutable struct GlobalLaxFriedrichsAlgorithm{T} <: AbstractFVAlgorithm
+mutable struct GlobalLaxFriedrichsScheme{T} <: AbstractFVAlgorithm
   αf :: Function #viscosity coefficient
   α :: T
 end
 
-function update_dt(alg::GlobalLaxFriedrichsAlgorithm{T1},u,Flux,
+function update_dt(alg::GlobalLaxFriedrichsScheme{T1},u,Flux,
     CFL,mesh) where {T1}
   alg.α = alg.αf(u, Flux, mesh)
   @assert (abs(alg.α) > eps(T1))
@@ -20,11 +20,11 @@ function update_dt(alg::GlobalLaxFriedrichsAlgorithm{T1},u,Flux,
   CFL*dx/alg.α
 end
 
-function GlobalLaxFriedrichsAlgorithm(;αf = nothing)
+function GlobalLaxFriedrichsScheme(;αf = nothing)
     if αf == nothing
         αf = maxfluxρ
     end
-    GlobalLaxFriedrichsAlgorithm(αf,0.0)
+    GlobalLaxFriedrichsScheme(αf,0.0)
 end
 
 mutable struct COMP_GLF_Diff_Algorithm{T, cType, oType} <: AbstractFVAlgorithm
@@ -49,7 +49,7 @@ function COMP_GLF_Diff_Algorithm(;αf = nothing, rec_scheme = WENO_Reconstructio
     COMP_GLF_Diff_Algorithm(αf,0.0,rec_scheme,5)
 end
 
-function update_flux_value(uold,node_idx,dt,dx,mesh,Flux,alg::LaxFriedrichsAlgorithm)
+function update_flux_value(uold,node_idx,dt,dx,mesh,Flux,alg::LaxFriedrichsScheme)
     # Local speeds of propagation
     @inbounds ul=cellval_at_left(node_idx,uold,mesh)
     @inbounds ur=cellval_at_right(node_idx,uold,mesh)
@@ -58,10 +58,10 @@ function update_flux_value(uold,node_idx,dt,dx,mesh,Flux,alg::LaxFriedrichsAlgor
 end
 
 """
-compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsAlgorithm, ::Type{Val{true}})
+compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsScheme, ::Type{Val{true}})
 Numerical flux of local lax friedrichs algorithm in 1D
 """
-function compute_fluxes!(fluxes, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsAlgorithm, nonscalar::Bool,::Type{Val{false}})
+function compute_fluxes!(fluxes, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsScheme, nonscalar::Bool,::Type{Val{false}})
     dx = mesh.Δx
     ul=cellval_at_left(1,u,mesh)
     αl = fluxρ(ul, Flux)
@@ -73,7 +73,7 @@ function compute_fluxes!(fluxes, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsAl
         αr = fluxρ(ur, Flux)
         αk = max(αl, αr)
         # Numerical Fluxes
-        if noscalar
+        if nonscalar
             fluxes[:,j] .= 0.5*(Flux(ul)+Flux(ur))-αk*(ur-ul)
         else
             fluxes[j] = 0.5*(Flux(ul)+Flux(ur))-αk*(ur-ul)
@@ -82,7 +82,7 @@ function compute_fluxes!(fluxes, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsAl
     end
 end
 
-function update_flux_value(uold,node_idx,dt,dx,mesh,Flux, alg::GlobalLaxFriedrichsAlgorithm)
+function update_flux_value(uold,node_idx,dt,dx,mesh,Flux, alg::GlobalLaxFriedrichsScheme)
     # Local speeds of propagation
     @inbounds ul=cellval_at_left(node_idx,uold,mesh)
     @inbounds ur=cellval_at_right(node_idx,uold,mesh)

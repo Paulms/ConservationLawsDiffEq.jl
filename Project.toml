@@ -23,6 +23,9 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Tensors = "48a634ad-e948-5137-8d70-aa71f2a747f4"
 TreeViews = "a2a6695c-b41b-5b7d-aed9-dbfdeacea5d7"
 
+[compat]
+julia = "≥ 1.2.0"
+
 [extras]
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

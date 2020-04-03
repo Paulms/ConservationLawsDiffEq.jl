@@ -25,7 +25,7 @@ function Base.show(io::IO, A::Uniform1DFVMesh)
   print(io,"cell centers: ")
   show(io, A.cell_centers)
   println(io)
-  print(io,"cell faces: ")
+  print(io,"cell facets: ")
   show(io, A.cell_faces)
 end
 
@@ -35,15 +35,18 @@ function TreeViews.treelabel(io::IO,x::Uniform1DFVMesh,
   show(io,mime,Text(Base.summary(x)))
 end
 
-function Uniform1DFVMesh(N::Int,xinit,xend)
+function Uniform1DFVMesh(N::Int,bounds::Vector{T}) where {T}
+    xend = bounds[end]
+    xinit = bounds[1]
     L = xend - xinit
     dx = L/N
     xx = [i*dx+dx/2+xinit for i in 0:(N-1)]
     faces = [xinit + dx*i for i in 0:N]
-    Uniform1DFVMesh{N,typeof(xinit)}(dx,xx,faces)
+    Uniform1DFVMesh{N,T}(dx,xx,faces)
 end
 
 @inline cell_volume(mesh::Uniform1DFVMesh) = mesh.Δx
 @inline cell_volume(mesh::Uniform1DFVMesh,cell::Int) = mesh.Δx
 cell_volumes(mesh::Uniform1DFVMesh) = mesh.Δx * ones(mesh.N)
 get_nodes_matrix(mesh::Uniform1DFVMesh) = mesh.cell_faces
+cell_centers(mesh::Uniform1DFVMesh) = mesh.cell_centers
