@@ -19,14 +19,11 @@ module ConservationLawsDiffEq
   import Base: show
   import Markdown
 
-  #DG definitions
-  #abstract type AbstractDGLimiter end
-
   # Reconstructions
-  #abstract type AbstractReconstruction end
+  abstract type AbstractReconstruction end
 
   # Limiters
-  #abstract type AbstractSlopeLimiter end
+  abstract type AbstractSlopeLimiter end
 
   #Interface functions
   include("mesh.jl")
@@ -42,24 +39,17 @@ module ConservationLawsDiffEq
   include("uniform1Dmesh.jl")
 
   #Algoritms
-  # include("ENO_WENO.jl")
+  include("ENO_WENO.jl")
   # include("Tecno_scheme.jl")
-  # include("ESJP_scheme.jl")
-  # include("WENO_Scheme.jl")
-  # include("LI_IMEXRK_Schemes.jl")
-  include("schemes/Lax_Friedrichs_scheme.jl")
-  # include("Lax_Wendroff2s_scheme.jl")
-  # include("CU_scheme.jl")
-  # include("DRCU_scheme.jl")
-  # include("DRCU5_scheme.jl")
-  # include("SKT_scheme.jl")
-  # include("DG_Basis.jl")
-  # include("DiscontinuousGalerkin_scheme.jl")
-  # include("NumericalFluxes.jl")
-  # include("limiters.jl")
+    include("schemes/WENO_Scheme.jl")
+    include("schemes/Lax_Friedrichs_scheme.jl")
+  include("schemes/Lax_Wendroff2s_scheme.jl")
+  include("schemes/CU_scheme.jl")
+  include("schemes/SKT_scheme.jl")
+    include("limiters.jl")
 
   # Other
-  #include("errors.jl")
+  include("errors.jl")
   include("plotRecipe.jl")
 
   #Exports
@@ -67,8 +57,7 @@ module ConservationLawsDiffEq
   export update_flux_value
 
   # User API
-  export solve
-  export getSemiDiscretization
+    export getSemiDiscretization
   export getInitialState
   export get_adaptative_callback, getCFLCallback
   export update_dt!
@@ -86,27 +75,18 @@ module ConservationLawsDiffEq
   export Uniform1DFVMesh
 
   # Schemes
-  # export FVTecnoScheme, FVESJPScheme
-  # export FVCompWENOScheme, FVCompMWENOScheme, FVSpecMWENOScheme
-  # export RKTable, LI_IMEX_RK_Scheme
+  # export FVTecnoScheme
+  export FVCompWENOScheme, FVCompMWENOScheme, FVSpecMWENOScheme
   export LaxFriedrichsScheme
-  # export LaxWendroff2sScheme, LaxWendroffScheme
-  # export LocalLaxFriedrichsScheme, GlobalLaxFriedrichsScheme
-  # export DiscontinuousGalerkinScheme
-  # export COMP_GLF_Diff_Scheme
-  # export minmod
-  # export FVCUScheme, FVDRCUScheme, FVSKTScheme
-  # export FVDRCU5Scheme
+  export LaxWendroff2sScheme, LaxWendroffScheme
+  export LocalLaxFriedrichsScheme, GlobalLaxFriedrichsScheme
+  export FVCUScheme, FVDRCUScheme
+  export FVSKTScheme
+  export FVDRCU5Scheme
 
   # scheme utils
-  #export get_total_u, get_relative_L1_error, get_L1_error, approx_L1_error, approx_relative, L1_error
+  export get_total_u, get_relative_L1_error, get_L1_error#, approx_L1_error, approx_relative, L1_error
   export num_integrate
   #export FVOOCTable, get_conv_order_table, mesh_norm, get_LP_error, get_num_LP_error
-  # export advection_num_flux, rusanov_euler_num_flux, glf_num_flux
-  # export legendre_basis, PolynomialBasis
-  # export ENO_Reconstruction, WENO_Reconstruction, MWENO_Reconstruction
-
-  #Limiter
-  # export DGLimiter, Linear_MUSCL_Limiter, WENO_Limiter
-  # export GeneralizedMinmodLimiter, OsherLimiter, MinmodLimiter, SuperbeeLimiter
+  export GeneralizedMinmodLimiter, OsherLimiter, MinmodLimiter, SuperbeeLimiter
 end

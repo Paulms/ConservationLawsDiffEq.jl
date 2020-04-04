@@ -10,7 +10,8 @@ struct ScalarProblem <: AbstractFVProbType end
 # |---|---|---|......|---|---|
 # 1   2   3   4 ... N-1  N  N+1
 
-struct fvmesh1D{PType <: AbstractFVProbType, MType, LBType,RBType} <: AbstractFVMesh
+# Wrapper type used to manage boundary conditions
+struct FVMesh1D{PType <: AbstractFVProbType, MType, LBType,RBType} <: AbstractFVMesh
   mesh::MType
   left_boundary::LBType
   right_boundary::RBType
@@ -29,7 +30,7 @@ function mesh_setup(mesh, dbcs::Vector{T}, PType::AbstractFVProbType) where {T<:
             right_bd = bdc
         end
     end
-    return fvmesh1D{typeof(PType), typeof(mesh), typeof(left_bd), typeof(right_bd)}(mesh, left_bd, right_bd)
+    return FVMesh1D{typeof(PType), typeof(mesh), typeof(left_bd), typeof(right_bd)}(mesh, left_bd, right_bd)
   else
     error("No methods available for mesh of dimension ", dim)
   end
@@ -38,20 +39,20 @@ end
 @inline cell_indices(fvmesh::AbstractFVMesh) = 1:getncells(fvmesh.mesh)
 @inline node_indices(fvmesh::AbstractFVMesh) = 1:getnnodes(fvmesh.mesh)
 @inline cell_volume(fvmesh::AbstractFVMesh, cell_idx::Int) = cell_volume(fvmesh.mesh, cell_idx)
-@inline value_at_cell(u, j,fvmesh::fvmesh1D{ScalarProblem}) = u[j]
-@inline value_at_cell(u, j,fvmesh::fvmesh1D{GeneralProblem}) = u[:,j]
+@inline value_at_cell(u, j,fvmesh::FVMesh1D{ScalarProblem}) = u[j]
+@inline value_at_cell(u, j,fvmesh::FVMesh1D{GeneralProblem}) = u[:,j]
 
 """
     cellval_at_left(node::Int, A::AbstractArray{T,2}, mesh::AbstractFVMesh1D) where {T}
 
    cell values of variable `A` to the left of `node` in `mesh`.
 """
-function cellval_at_left(node::Int, A, fvmesh::fvmesh1D{ScalarProblem})
+function cellval_at_left(node::Int, A, fvmesh::FVMesh1D{ScalarProblem})
     checkbounds(Bool, A, node-1) && return A[node-1]
     return A[cellidx_at_left(node, getncells(fvmesh.mesh), fvmesh.left_boundary)]
 end
 
-function cellval_at_left(node::Int, A, fvmesh::fvmesh1D{GeneralProblem})
+function cellval_at_left(node::Int, A, fvmesh::FVMesh1D{GeneralProblem})
     checkbounds(Bool, A, (:,node-1)...) && return A[:,node-1]
     return A[:,cellidx_at_left(node, getncells(fvmesh.mesh), fvmesh.left_boundary)]
 end
@@ -61,12 +62,12 @@ end
 
 cell values of variable `A` to the right of `node` in `mesh`.
 """
-function cellval_at_right(node::Int, A, fvmesh::fvmesh1D{ScalarProblem})
+function cellval_at_right(node::Int, A, fvmesh::FVMesh1D{ScalarProblem})
     checkbounds(Bool, A, node) && return A[node]
     return A[cellidx_at_right(node, getncells(fvmesh.mesh), fvmesh.right_boundary)]
 end
 
-function cellval_at_right(node::Int, A, fvmesh::fvmesh1D{GeneralProblem})
+function cellval_at_right(node::Int, A, fvmesh::FVMesh1D{GeneralProblem})
     checkbounds(Bool, A, (:,node)...) && return A[:,node]
     return A[:,cellidx_at_right(node, getncells(fvmesh.mesh), fvmesh.right_boundary)]
 end
@@ -75,7 +76,7 @@ end
     get_cellvals(A::AbstractArray{T,2}, idx..., mesh::AbstractFVMesh1D) where {T}
    cell values of variable `A` on cells `idx` of `mesh`.
 """
-function get_cellvals(A, fvmesh::fvmesh1D{GeneralProblem}, idx...) where {T}
+function get_cellvals(A, fvmesh::FVMesh1D{GeneralProblem}, idx...) where {T}
     checkbounds(Bool, A, idx...) && return A[idx...]
     if (minimum(idx[2]) < 1)
         return A[idx[1],getIndex(idx[2], size(A,2), fvmesh.left_boundary)]
@@ -86,7 +87,7 @@ function get_cellvals(A, fvmesh::fvmesh1D{GeneralProblem}, idx...) where {T}
     end
 end
 
-function get_cellvals(A, fvmesh::fvmesh1D{ScalarProblem}, idx...) where {T}
+function get_cellvals(A, fvmesh::FVMesh1D{ScalarProblem}, idx...) where {T}
     checkbounds(Bool, A, idx...) && return A[idx...]
     if (minimum(idx[1]) < 1)
         return A[getIndex(idx[1], size(A,1), fvmesh.left_boundary)]
@@ -102,7 +103,7 @@ end
 
 The index of the node to the left of `cell` in `mesh`.
 """
-function left_node_idx(cell::Int, fvmesh::fvmesh1D)
+function left_node_idx(cell::Int, fvmesh::FVMesh1D)
     @boundscheck begin
         @assert (1 <= cell <= getncells(fvmesh.mesh))
     end
@@ -114,20 +115,20 @@ end
 
 The index of the node to the right of `cell` in `mesh`.
 """
-function right_node_idx(cell::Int, fvmesh::fvmesh1D)
+function right_node_idx(cell::Int, fvmesh::FVMesh1D)
     @boundscheck begin
         @assert (1 <= cell <= getncells(fvmesh.mesh))
     end
     cell+1
 end
 
-function left_cell_idx(node::Int, fvmesh::fvmesh1D)
+function left_cell_idx(node::Int, fvmesh::FVMesh1D)
     @boundscheck begin
         @assert (1 <= node <= getnnodes(fvmesh.mesh))
     end
     cellidx_at_left(node, getncells(fvmesh.mesh), fvmesh.left_boundary)
 end
-function right_cell_idx(node::Int, fvmesh::fvmesh1D)
+function right_cell_idx(node::Int, fvmesh::FVMesh1D)
     @boundscheck begin
         @assert (1 <= node <= getnnodes(fvmesh.mesh))
     end
@@ -178,21 +179,21 @@ cellidx_at_right(node::Int, n::Int, ::Periodic) =  mod1(node, n)
 ################################
 # Zero flux boundary conditions
 ###############################
-struct ZeroFlux
+struct ZeroFlux <: AbstractFVBoundaryCondition
     side::Symbol
 end
 ZeroFlux(;side=:Both) = ZeroFlux(side)
 
-function apply_lbc_in_fluxes!(fluxes, fvmesh::fvmesh1D{GeneralProblem}, ::ZeroFlux)
+function apply_lbc_in_fluxes!(fluxes, fvmesh::FVMesh1D{GeneralProblem}, ::ZeroFlux)
     fluxes[:,1] .= zero(eltype(fluxes))
 end
-function apply_lbc_in_fluxes!(fluxes, fvmesh::fvmesh1D{ScalarProblem}, ::ZeroFlux)
+function apply_lbc_in_fluxes!(fluxes, fvmesh::FVMesh1D{ScalarProblem}, ::ZeroFlux)
     fluxes[1] = zero(eltype(fluxes))
 end
-function apply_rbc_in_fluxes!(fluxes, fvmesh::fvmesh1D{GeneralProblem}, ::ZeroFlux)
+function apply_rbc_in_fluxes!(fluxes, fvmesh::FVMesh1D{GeneralProblem}, ::ZeroFlux)
     fluxes[:, getnnodes(fvmesh.mesh)] .= zero(eltype(fluxes))
 end
-function apply_rbc_in_fluxes!(fluxes, fvmesh::fvmesh1D{ScalarProblem}, ::ZeroFlux)
+function apply_rbc_in_fluxes!(fluxes, fvmesh::FVMesh1D{ScalarProblem}, ::ZeroFlux)
     fluxes[getnnodes(fvmesh.mesh)] = zero(eltype(fluxes))
 end
 
@@ -200,7 +201,7 @@ end
 ################################
 # Dirichlet boundary conditions
 ###############################
-struct Dirichlet
+struct Dirichlet <: AbstractFVBoundaryCondition
     side::Symbol
 end
 Dirichlet(;side=:Both) = Dirichlet(side)
@@ -218,17 +219,17 @@ end
 cellidx_at_left(node::Int, n::Int, ::Union{ZeroFlux,Dirichlet}) = min(n,max(1,node-1))
 cellidx_at_right(node::Int, n::Int, ::Union{ZeroFlux,Dirichlet}) =  min(n,max(1,node))
 
-function apply_lbc_in_du!(du, fvmesh::fvmesh1D{GeneralProblem}, ::ZeroFlux)
+function apply_lbc_in_du!(du, fvmesh::FVMesh1D{GeneralProblem}, ::ZeroFlux)
     du[:,1] .= zero(eltype(du))
 end
-function apply_lbc_in_du!(du, fvmesh::fvmesh1D{ScalarProblem}, ::ZeroFlux)
+function apply_lbc_in_du!(du, fvmesh::FVMesh1D{ScalarProblem}, ::ZeroFlux)
     du[1] = zero(eltype(du))
 end
 
-function apply_rbc_in_du!(du, fvmesh::fvmesh1D{GeneralProblem}, ::ZeroFlux)
+function apply_rbc_in_du!(du, fvmesh::FVMesh1D{GeneralProblem}, ::ZeroFlux)
     du[:,getnnodes(fvmesh.mesh)] .= zero(eltype(du))
 end
 
-function apply_rbc_in_du!(du, fvmesh::fvmesh1D{ScalarProblem}, ::ZeroFlux)
+function apply_rbc_in_du!(du, fvmesh::FVMesh1D{ScalarProblem}, ::ZeroFlux)
     du[getnnodes(fvmesh.mesh)] = zero(eltype(du))
 end

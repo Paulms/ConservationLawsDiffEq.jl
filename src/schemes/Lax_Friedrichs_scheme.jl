@@ -61,8 +61,8 @@ end
 compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsScheme, ::Type{Val{true}})
 Numerical flux of local lax friedrichs algorithm in 1D
 """
-function compute_fluxes!(fluxes, Flux, u, mesh, dt, M, alg::LocalLaxFriedrichsScheme, nonscalar::Bool,::Type{Val{false}})
-    dx = mesh.Δx
+function compute_fluxes!(fluxes, Flux, u, mesh, dt, alg::LocalLaxFriedrichsScheme, nonscalar::Bool,::Type{Val{false}})
+    dx = cell_volume(mesh, 1)
     ul=cellval_at_left(1,u,mesh)
     αl = fluxρ(ul, Flux)
     #update vector
@@ -88,57 +88,4 @@ function update_flux_value(uold,node_idx,dt,dx,mesh,Flux, alg::GlobalLaxFriedric
     @inbounds ur=cellval_at_right(node_idx,uold,mesh)
     # update numerical flux
     return 0.5*(Flux(ul)+Flux(ur))-alg.α*(ur-ul)
-end
-
-# Component Wise Global Lax-Friedrichs Scheme
-# Based on:
-# Raimund Bürger , Rosa Donat , Pep Mulet , Carlos A. Vega,
-# On the implementation of WENO schemes for a class of polydisperse sedimentation
-# models, Journal of Computational Physics, v.230 n.6, p.2322-2344,
-# March, 2011  [doi>10.1016/j.jcp.2010.12.019]
-
-function inner_loop!(hh, fminus, fplus, M,mesh, j,k,u,∇u, DiffMat, alg::COMP_GLF_Diff_Algorithm)
-    @inbounds for i = 1:M
-      fm = get_cellvals(fminus,mesh,(j-k+1:j+k+1,i)...)
-      fp = get_cellvals(fplus,mesh,(j-k:j+k,i)...)
-      hh[j+1,i] = sum(reconstruct(fm, fp, alg.rec_scheme))
-    end
-    @inbounds ul=cellval_at_left(j+1,u,mesh)
-    @inbounds ur=cellval_at_right(j+1,u,mesh)
-    @inbounds hh[j+1,:] = hh[j+1,:] - 0.5*(DiffMat(ur)+DiffMat(ul))*cellval_at_left(j+1,∇u,mesh)/mesh.Δx
-end
-"""
-compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::COMP_GLF_Diff_Algorithm, ::Type{Val{false}})
-Numerical flux of Component Wise Global Lax-Friedrichs Diffusive Scheme in 1D
-"""
-function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::COMP_GLF_Diff_Algorithm, ::Type{Val{false}})
-    N = numcells(mesh)
-    order = alg.order
-    k = Int((order + 1)/2)-1
-    # Flux splitting
-    fminus, fplus = glf_splitting(u, alg.α, Flux, N, Val{false})
-    # 1. slopes
-    ∇u = compute_slopes(u, mesh, GeneralizedMinmodLimiter(), M, Val{false})
-    #Compute numerical fluxes
-    for j = 0:N
-        inner_loop!(hh, fminus, fplus, M,mesh, j,k,u,∇u, DiffMat, alg)
-    end
-end
-
-"""
-compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::COMP_GLF_Diff_Algorithm, ::Type{Val{true}})
-Numerical flux of Component Wise Global Lax-Friedrichs Diffusive Scheme in 1D. Parallel
-"""
-function compute_Dfluxes!(hh, Flux, DiffMat, u, mesh, dt, M, alg::COMP_GLF_Diff_Algorithm, ::Type{Val{true}})
-    N = numcells(mesh)
-    order = alg.order
-    k = Int((order + 1)/2)-1
-    # Flux splitting
-    fminus, fplus = glf_splitting(u, alg.α, Flux, N, Val{true})
-    # 1. slopes
-    ∇u = compute_slopes(u, mesh, GeneralizedMinmodLimiter(), M, Val{true})
-    #Compute numerical fluxes
-    Threads.@threads for j = 0:N
-        inner_loop!(hh, fminus, fplus, M,mesh, j,k,u,∇u, DiffMat, alg)
-    end
 end

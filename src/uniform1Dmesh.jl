@@ -50,3 +50,4 @@ end
 cell_volumes(mesh::Uniform1DFVMesh) = mesh.Δx * ones(mesh.N)
 get_nodes_matrix(mesh::Uniform1DFVMesh) = mesh.cell_faces
 cell_centers(mesh::Uniform1DFVMesh) = mesh.cell_centers
+cell_facets(mesh::Uniform1DFVMesh) = mesh.cell_faces

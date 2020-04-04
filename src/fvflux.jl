@@ -21,7 +21,7 @@ end
 
 @inline evalJacobian(f::fvflux, uj) = f.Dflux(uj)
 
-function fluxρ(uj,f::fvflux) where {T}
+function fluxρ(uj,f::fvflux)
         maximum(abs,eigvals(f.Dflux(uj)))
 end
 
