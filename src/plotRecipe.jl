@@ -3,12 +3,17 @@
     xguide --> "x"
     yguide --> "u"
     labels = String[]
-    for i in 1:size(getvalues(sol)[tidx],2)
-      push!(labels,"u$i")
+    nvars = getnvars(sol)
+    if nvars == 1
+      push!(labels,"u")
+    else
+      for i in 1:nvars
+        push!(labels,"u$i")
+      end
     end
     yvector = getvalues(sol)[tidx]
-    if vars != nothing
-      yvector = getvalues(sol)[tidx][:,vars]
+    if vars != nothing && nvars > 1
+      yvector = getvalues(sol)[tidx][vars,:]
       labels = labels[vars]
     end
     if typeof(labels) <: String

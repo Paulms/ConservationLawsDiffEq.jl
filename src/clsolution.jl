@@ -1,9 +1,13 @@
 
 abstract type AbstractFVSolution{T,N} end
 
-struct FVSolution{T,N,mType} <: AbstractFVSolution{T,N}
+struct FVSolution{T,N,mType,M} <: AbstractFVSolution{T,N}
   ode_sol::AbstractODESolution{T,N}
   mesh::mType
+end
+
+function FVSolution(ode_sol::AbstractODESolution{T,N}, mesh::M, vars::Int) where {T,N,M}
+  FVSolution{T,N,M,vars}(ode_sol, mesh)
 end
 
 function Base.show(io::IO, A::FVSolution)
@@ -14,6 +18,7 @@ end
 getvalues(sol::FVSolution) = sol.ode_sol.u
 gettimes(sol::FVSolution) = sol.ode_sol.t
 getmesh(sol::FVSolution) = sol.mesh
+getnvars(sol::FVSolution{T,N,m,M}) where {T,N,m,M} = M
 
 function save_csv(sol::FVSolution, file_name::String; idx = -1)
   if !endswith(file_name,".csv")

@@ -36,6 +36,6 @@ function getSemiDiscretization(f,alg::AbstractFVAlgorithm,
     FVIntegrator(alg,internal_mesh,Flux,numvars, fluxes, dt, use_threads)
 end
 
-function fv_solution(sol::AbstractODESolution{T,N}, mesh) where {T,N}
-    FVSolution{T,N,typeof(mesh)}(sol, mesh)
+function fv_solution(sol::AbstractODESolution{T,N}, mesh; vars::Int = 1) where {T,N}
+    FVSolution{T,N,typeof(mesh), vars}(sol, mesh)
   end

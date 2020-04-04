@@ -1,21 +1,18 @@
 module ConservationLawsDiffEq
   using DiffEqCallbacks
   using LinearAlgebra
-  using SpecialFunctions
   using SparseArrays
-  using Logging
   using TreeViews
   using DelimitedFiles
   import Tensors
 
-  import ForwardDiff, Interpolations, IterativeSolvers
+  import ForwardDiff
   using RecipesBase, LaTeXStrings
   import FastGaussQuadrature
-  using Polynomials
   using StaticArrays
 
   # Interfaces
-  import DiffEqBase: DiscreteCallback, LinSolveFactorize, LinearInterpolation,AbstractODESolution
+  import DiffEqBase: DiscreteCallback,AbstractODESolution
   import Base: show
   import Markdown
 

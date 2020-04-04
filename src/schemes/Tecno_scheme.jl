@@ -3,21 +3,21 @@
 # stable essentially nonoscillatory schemes for systems of conservation laws.
 # 2012. SIAM. vol. 50. No 2. pp. 544-573
 
-struct FVTecnoAlgorithm <: AbstractFVAlgorithm
+struct FVTecnoScheme <: AbstractFVAlgorithm
   order :: Int
   Nflux :: Function #Entropy stable 2 point flux
   ve    :: Function #Entropy variable
 end
 
-function FVTecnoAlgorithm(Nflux;order=2, ve = u -> u)
-  FVTecnoAlgorithm(order, Nflux, ve)
+function FVTecnoScheme(Nflux;order=2, ve = u -> u)
+  FVTecnoScheme(order, Nflux, ve)
 end
 
 """
-compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVTecnoAlgorithm, ::Type{Val{false}})
+compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVTecnoScheme, ::Type{Val{false}})
 Numerical flux of Tecno Scheme in 1D
 """
-function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVTecnoAlgorithm, ::Type{Val{false}})
+function compute_fluxes!(hh, Flux, u, mesh, dt, M, alg::FVTecnoScheme, ::Type{Val{false}})
     order = alg.order; Nflux = alg.Nflux; ve = alg.ve
     N = numcells(mesh)
     dx = mesh.Δx
