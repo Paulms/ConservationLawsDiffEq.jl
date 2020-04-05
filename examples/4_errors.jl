@@ -1,5 +1,6 @@
 using ConservationLawsDiffEq
 import OrdinaryDiffEq: solve, Euler
+using OrdinaryDiffEq
 using LinearAlgebra
 u_exact(x,t) = sin(4*pi*(x-t))
 # Define the flux and flux Jacobian

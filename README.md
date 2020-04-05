@@ -33,14 +33,20 @@ The semidiscretization is obtained by using:
 
 `getSemiDiscretization(f,scheme,mesh,[boundary_conditions]; Df, use_threads,numvars)`
 
-where `f` is the flux function defined as a julia function
-`scheme` is the explicit finite volumes scheme used to discretize the flux (see next section)
-`mesh` a valid finite volumes mesh
-`boundary_conditions` a set of boundary conditions among: `Dirichlet()`, `ZeroFlux()` and `Periodic()`
+where `f` is the flux function defined as a julia function.
+
+`scheme` is the explicit finite volumes scheme used to discretize the flux (see next section).
+
+`mesh` a valid finite volumes mesh.
+
+`boundary_conditions` a set of boundary conditions among: `Dirichlet()`, `ZeroFlux()` and `Periodic()`.
 *Note:* Dirichlet boundary values are defined by initial condition.
-`Df` and optional Jacobian of the flux function
-`use_threads`: `true` or `false` 
-`numvars` number of variables of the Conservation Laws system
+
+`Df`: is an optional Jacobian of the flux function.
+
+`use_threads`: `true` or `false`.
+
+`numvars`: number of variables of the Conservation Laws system.
 
 
 ### Schemes
@@ -61,19 +67,19 @@ The explicit numerical schemes in space currently available are the following:
 
 #### High-Resolution Central Schemes
 
-(`FVSKTScheme()`)
+(`FVSKTScheme(;slopeLimiter=GeneralizedMinmodLimiter())`)
 
 Kurganov, Tadmor, *New High-Resolution Central Schemes for Nonlinear Conservation Laws and Convection–Diffusion Equations*, Journal of Computational Physics, Vol 160, issue 1, 1 May 2000, Pages 241-282
 
 #### Second-Order upwind central scheme
 
-(`FVCUScheme`)
+(`FVCUScheme(;slopeLimiter=GeneralizedMinmodLimiter())`)
 
 * Kurganov A., Noelle S., Petrova G., Semidiscrete Central-Upwind schemes for hyperbolic Conservation Laws and Hamilton-Jacobi Equations. SIAM. Sci Comput, Vol 23, No 3m pp 707-740. 2001
 
 #### Dissipation Reduced Central upwind Scheme:
 
-Second-Order (`FVDRCUScheme`), fifth-order (`FVDRCU5Scheme`)
+Second-Order (`FVDRCUScheme(;slopeLimiter=GeneralizedMinmodLimiter())`), fifth-order (`FVDRCU5Scheme(;slopeLimiter=GeneralizedMinmodLimiter())`)
 
 * Kurganov A., Lin C., On the reduction of Numerical Dissipation in Central-Upwind # Schemes, Commun. Comput. Phys. Vol 2. No. 1, pp 141-163, Feb 2007.
 
@@ -89,9 +95,6 @@ Second-Order (`FVDRCUScheme`), fifth-order (`FVDRCU5Scheme`)
 
 * A. Henrick, T. Aslam, J. Powers, *Mapped weighted essentially non-oscillatory schemes: Achiving optimal order near critical points*. Journal of Computational Physics. Vol 207. 2005. Pages 542-567
 
-#### Component Wise Global Lax-Friedrichs Scheme
-
-(`COMP_GLF_Diff_Scheme()`)
 
 #### Characteristic Wise WENO (Spectral) Scheme
 
