@@ -20,6 +20,9 @@ TreeViews = "a2a6695c-b41b-5b7d-aed9-dbfdeacea5d7"
 
 [compat]
 FastGaussQuadrature = "0.4"
+StaticArrays = "0.12"
+LaTeXStrings = "1.1"
+TreeViews = "0.3"
 julia = "≥ 1.2.0"
 
 [extras]
