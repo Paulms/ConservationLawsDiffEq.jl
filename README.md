@@ -104,6 +104,8 @@ Second-Order (`FVDRCUScheme(;slopeLimiter=GeneralizedMinmodLimiter())`), fifth-o
 
 *Note:* OrdinaryDiffEq callbacks can be used in order to fix a CFL constant value, or recover the `dt` from adaptative ODE methods in the cases when the finite volumes scheme needs its value (`getCFLCallback` and `get_adaptative_callback` methods, see examples for more information about its use)
 
+*Note:* Limiters available: `GeneralizedMinmodLimiter(;θ=1.0)`, `MinmodLimiter()`, `OsherLimiter(;β=1.0)`, `SuperbeeLimiter()`.
+
 ## Example
 Scalar Burgers equation:
 
