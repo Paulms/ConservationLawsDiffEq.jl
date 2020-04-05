@@ -20,6 +20,13 @@ TreeViews = "a2a6695c-b41b-5b7d-aed9-dbfdeacea5d7"
 
 [compat]
 RecipesBase = "0.8"
+DiffEqCallbacks = "2.12"
+Tensors = "1.4"
+ForwardDiff = "0.10"
+FastGaussQuadrature = "0.4"
+StaticArrays = "0.12"
+LaTeXStrings = "1.1"
+TreeViews = "0.3"
 julia = "≥ 1.2.0"
 
 [extras]
