@@ -20,6 +20,7 @@ TreeViews = "a2a6695c-b41b-5b7d-aed9-dbfdeacea5d7"
 
 [compat]
 LaTeXStrings = "1.1"
+TreeViews = "0.3"
 julia = "≥ 1.2.0"
 
 [extras]
