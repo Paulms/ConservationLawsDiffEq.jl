@@ -19,13 +19,13 @@ Tensors = "48a634ad-e948-5137-8d70-aa71f2a747f4"
 TreeViews = "a2a6695c-b41b-5b7d-aed9-dbfdeacea5d7"
 
 [compat]
-RecipesBase = "0.8"
 DiffEqCallbacks = "2.12"
-Tensors = "1.4"
-ForwardDiff = "0.10"
 FastGaussQuadrature = "0.4"
-StaticArrays = "0.12"
+ForwardDiff = "0.10"
 LaTeXStrings = "1.1"
+RecipesBase = "0.8, 1.0"
+StaticArrays = "0.12"
+Tensors = "1.4"
 TreeViews = "0.3"
 julia = "≥ 1.2.0"
 
