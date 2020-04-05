@@ -39,7 +39,8 @@ end
 function glf_splitting(u, α, Flux, nonscalar, ::Type{Val{true}})
   # Lax Friedrichs flux splitting
   fminus = similar(u); fplus = similar(u)
-  Threads.@threads for j = 1:size(u,2)
+  N = nonscalar ? size(u,2) : size(u,1)
+  Threads.@threads for j = 1:N
       glf_splt_inner_loop!(fminus, fplus, j, u, α, Flux, nonscalar)
   end
   fminus, fplus

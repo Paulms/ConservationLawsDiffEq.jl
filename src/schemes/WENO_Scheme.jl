@@ -109,7 +109,7 @@ function compute_fluxes!(fluxes, Flux, u, mesh, dt, alg::FVCompWENOSchemes, nons
     Threads.@threads for j in node_indices(mesh)
       if nonscalar
         for i in 1:size(fluxes,1)
-          fluxes[i,j] .= update_flux_value(j-1,k,fminus,fplus,mesh,alg,i)
+          fluxes[i,j] = update_flux_value(j-1,k,fminus,fplus,mesh,alg,i)
         end
       else
           fluxes[j] = update_flux_value(j-1,k,fminus,fplus,mesh,alg)
@@ -132,7 +132,7 @@ function compute_fluxes!(fluxes, Flux, u, mesh, dt, alg::FVCompWENOSchemes, nons
   for j in node_indices(mesh)
     if nonscalar
       for i in 1:size(fluxes,1)
-        fluxes[i,j] .= update_flux_value(j-1,k,fminus,fplus,mesh,alg,i)
+        fluxes[i,j] = update_flux_value(j-1,k,fminus,fplus,mesh,alg,i)
       end
     else
         fluxes[j] = update_flux_value(j-1,k,fminus,fplus,mesh,alg)
@@ -153,59 +153,59 @@ function compute_fluxes!(fluxes, Flux, u, mesh, dt, alg::FVSpecMWENOScheme, nons
     order = alg.order; rec_scheme = alg.rec_scheme
     k = Int((order + 1)/2)-1
     if nonscalar
-      M = size(u,2)
-      save_case = fill(0.0,N+1,M)
-      αj = fill(0.0,N+1,M)
-      RMats = Vector{typeof(eigvecs(Flux(Val{:jac},u[1,:])))}(undef,0)
+      M = size(u,1)
+      save_case = fill(0.0,M,N+1)
+      αj = fill(0.0,M,N+1)
+      RMats = Vector{typeof(eigvecs(Flux.Dflux(u[:,1])))}(undef,0)
       LMats = Vector{eltype(RMats)}(undef,0)
       gk = fill!(similar(u), zero(eltype(u)))
       for j in node_indices(mesh)
         @inbounds ul = cellval_at_left(j,u,mesh)
         @inbounds ur = cellval_at_right(j,u,mesh)
-        MatJf = Flux(Val{:jac},0.5*(ul+ur))
+        MatJf = Flux.Dflux(0.5*(ul+ur))
         Rj = eigvecs(MatJf);  Lj = inv(Rj)
         push!(RMats,Rj); push!(LMats,Lj)
-        λl = eigvals(Flux(Val{:jac},ul)); λr = eigvals(Flux(Val{:jac},ur))
-        αj[j,:] = maximum(abs,[λl λr],dims=2)
+        λl = eigvals(Flux.Dflux(ul)); λr = eigvals(Flux.Dflux(ur))
+        αj[:,j] = maximum(abs,[λl λr],dims=2)
         if j < N+1
-          gk[j,:] = Flux(u[j,:])
+          gk[:,j] = Flux(u[:,j])
         end
         for i in 1:M
           if λl[i]*λr[i] <= 0
-            save_case[j,i] = 1
+            save_case[i,j] = 1
           else
             if λl[i] > 0 && λr[i] > 0
-              save_case[j,i] = 2
+              save_case[i,j] = 2
             else
-              save_case[j,i] = 3
+              save_case[i,j] = 3
             end
           end
         end
       end
     #WEno Reconstrucion
-    gklloc = fill(0.0,k*2+1,M);gkrloc = fill(0.0,k*2+1,M)
-    gmloc = fill(0.0,k*2+1,M);gploc = fill(0.0,k*2+1,M)
+    gklloc = fill(0.0,M,k*2+1);gkrloc = fill(0.0,M,k*2+1)
+    gmloc = fill(0.0,M,k*2+1);gploc = fill(0.0,M,k*2+1)
     for j = 0:N
       for (ll,l) in enumerate((j-k):(j+k))
-        gkl = get_cellvals(gk,mesh,(l+1,:)...)
-        gkr = get_cellvals(gk,mesh,(l,:)...)
-        ul = get_cellvals(u,mesh,(l+1,:)...)
-        ur = get_cellvals(u,mesh,(l,:)...)
-        gklloc[ll,:] = LMats[j+1]*gkl
-        gkrloc[ll,:] =  LMats[j+1]*gkr
-        gmloc[ll,:] = 0.5*LMats[j+1]*(gkl-αj[j+1,:].*ul)
-        gploc[ll,:] = 0.5*LMats[j+1]*(gkr+αj[j+1,:].*ur)
+        gkl = get_cellvals(gk,mesh,(:,l+1)...)
+        gkr = get_cellvals(gk,mesh,(:,l)...)
+        ul = get_cellvals(u,mesh,(:,l+1)...)
+        ur = get_cellvals(u,mesh,(:,l)...)
+        gklloc[:,ll] = LMats[j+1]*gkl
+        gkrloc[:,ll] =  LMats[j+1]*gkr
+        gmloc[:,ll] = 0.5*LMats[j+1]*(gkl-αj[:,j+1].*ul)
+        gploc[:,ll] = 0.5*LMats[j+1]*(gkr+αj[:,j+1].*ur)
       end
       for i = 1:M
-        if save_case[j+1,i] == 1
-          fluxes[j+1,i] = sum(reconstruct(gmloc[:,i],gploc[:,i], rec_scheme))
-        elseif save_case[j+1,i] == 2
-          fluxes[j+1,i] = reconstruct(gklloc[:,i],gkrloc[:,i],rec_scheme)[2]
+        if save_case[i,j+1] == 1
+          fluxes[i,j+1] = sum(reconstruct(gmloc[i,:],gploc[i,:], rec_scheme))
+        elseif save_case[i,j+1] == 2
+          fluxes[i,j+1] = reconstruct(gklloc[i,:],gkrloc[i,:],rec_scheme)[2]
         else
-          fluxes[j+1,i] = reconstruct(gklloc[:,i],gkrloc[:,i],rec_scheme)[1]
+          fluxes[i,j+1] = reconstruct(gklloc[i,:],gkrloc[i,:],rec_scheme)[1]
         end
       end
-      fluxes[j+1,:] = RMats[j+1]*fluxes[j+1,:]
+      fluxes[:,j+1] = RMats[j+1]*fluxes[:,j+1]
     end
   else
     save_case = fill(0.0,N+1)

@@ -47,18 +47,18 @@ function get_problem(alg::CL.AbstractFVAlgorithm, use_threads, mesh, Tend,CFL)
   return ode_prob, cb, dt
 end
 
-function test_scheme(alg, maxerror, threaded_mode=true)
+function test_Scheme(alg, maxerror, threaded_mode=true)
+  println("Testing ",split("$alg","(")[1],": ")
   prob,cb,dt = get_problem(alg, false, mesh, Tend,CFL)
   @time sol = solve(prob,SSPRK22(); dt = dt, callback = cb, save_everystep = false)
   @test get_L1_error(sol_ana, fv_solution(sol,mesh)) < maxerror
   if threaded_mode
+    println("in threaded mode: ")
     prob,cb,dt = get_problem(alg, true, mesh, Tend,CFL)
     @time sol1 = solve(prob,SSPRK22(); dt = dt, callback = cb, save_everystep = false)
     @test get_L1_error(sol_ana, fv_solution(sol1,mesh)) ≈ get_L1_error(sol_ana, fv_solution(sol,mesh))
   end
 end
-
-
 
 # Test Schemes relative error
 test_Scheme(FVSKTScheme(), 0.048)

@@ -32,7 +32,8 @@ function compute_fluxes!(fluxes, Flux, u, mesh, dt, alg::FVSKTScheme, noscalar::
     # 1. slopes
     ∇u = compute_slopes(u, mesh, slopeLimiter, noscalar, Val{true})
 
-    Threads.@threads for j in node_indices(mesh)
+    #update vector
+    for j in node_indices(mesh)
         if noscalar
             fluxes[:,j] .= update_flux_value(u,∇u,j,mesh,Flux,alg)
         else

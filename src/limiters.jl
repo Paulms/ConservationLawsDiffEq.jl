@@ -66,8 +66,8 @@ function inner_slopes_loop!(∇u,j,u,mesh,slopeLimiter::AbstractSlopeLimiter,non
   ul = cellval_at_left(j,u,mesh)
   ur = cellval_at_right(j+1,u,mesh)
   if nonscalar
-    @inbounds for i = 1:size(u,2)
-      ∇u[j,i] = slopeLimiter(u[j,i]-ul[i], ur[i]-u[j,i])
+    @inbounds for i = 1:size(u,1)
+      ∇u[i,j] = slopeLimiter(u[i,j]-ul[i], ur[i]-u[i,j])
     end
   else
     ∇u[j] = slopeLimiter(u[j]-ul, ur-u[j])

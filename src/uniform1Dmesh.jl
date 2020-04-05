@@ -22,11 +22,7 @@ function Base.show(io::IO, A::Uniform1DFVMesh)
   print(io,"Δx: ")
   show(io, A.Δx)
   println(io)
-  print(io,"cell centers: ")
-  show(io, A.cell_centers)
-  println(io)
-  print(io,"cell facets: ")
-  show(io, A.cell_faces)
+  println(io,"Interval: [",A.cell_faces[1],",",A.cell_faces[end],"]")
 end
 
 TreeViews.hastreeview(x::Uniform1DFVMesh) = true

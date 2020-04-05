@@ -1,44 +1,73 @@
 # One dimensional wave equation
 using ConservationLawsDiffEq
+using OrdinaryDiffEq
+const CL = ConservationLawsDiffEq
 
 const CFL = 0.45
 const Tend = 1.0
 const cc = 1.0
 
 Jf(u::AbstractVector) = [0.0 cc;cc 0.0]
-f(u::Vector) = [0.0 cc;cc 0.0]*u
-f0(x) = sin(4*π*x)
+f(u::AbstractVector) = [0.0 cc;cc 0.0]*u
+f0(x) = [sin(4*π*x),0.0]
 
 Nflux(ϕl::AbstractVector, ϕr::AbstractVector) = 0.5*(f(ϕl)+f(ϕr))
-exact_sol(x::AbstractVector, t::Float64) = hcat(0.5*(sin.(4*π*(-t+x))+sin.(4*π*(t+x))),
-0.5*(sin.(4*π*(-t+x))-sin.(4*π*(t+x))))
+exact_sol(x, t::Float64) = [0.5*(sin(4*π*(-t+x))+sin(4*π*(t+x))),
+0.5*(sin(4*π*(-t+x))-sin(4*π*(t+x)))]
 
-function get_problem(N)
-  mesh = Uniform1DFVMesh(N,-1.0,1.0,:PERIODIC, :PERIODIC)
-  ConservationLawsProblem(f0,f,CFL,Tend,mesh;jac = Jf)
+# Now discretizate the domain
+mesh = Uniform1DFVMesh(50, [-1.0, 1.0])
+
+function get_problem(alg, mesh)
+  #Compute discrete initial data
+  u0 = getInitialState(mesh,f0,use_threads = true)
+
+  # Now get a explicit semidiscretization (discrete in space) du_h(t)/dt = f_h(u_h(t))
+  f_h = getSemiDiscretization(f,alg,mesh,[Periodic()]; Df = Jf, use_threads = false,numvars = 2)
+
+  #Setup ODE problem for a time interval = [0.0,1.0]
+  ode_prob = ODEProblem(f_h,u0,(0.0,Tend))
+
+  #Setup callback in order to fix CFL constant value
+  cb = getCFLCallback(f_h, CFL)
+
+  #Estimate an initial dt
+  dt = update_dt!(u0, f_h, CFL)
+  return ode_prob, cb, dt
 end
-#Compile
-prob = get_problem(10)
-#Run
-prob = get_problem(500)
 
-@time sol = solve(prob, FVSKTAlgorithm();progress=true)
-@time sol2 = solve(prob, FVTecnoAlgorithm(Nflux;order=3);progress=true)
-@time sol3 = solve(prob, FVCompWENOAlgorithm();progress=true)
-@time sol4 = solve(prob, FVCompMWENOAlgorithm();progress=true)
-@time sol5 = solve(prob, FVSpecMWENOAlgorithm();progress=true)
+ode_prob, cb, dt = get_problem(FVSKTScheme(), mesh)
+sol = solve(ode_prob,SSPRK22(); dt = dt, callback = cb)
 
-get_L1_error(sol, exact_sol; nvar = 1) #3.3281897e-3
-get_L1_error(sol2, exact_sol; nvar = 1) #1.58081746e-4
-get_L1_error(sol3, exact_sol; nvar = 1) #1.08984086e-5
-get_L1_error(sol4, exact_sol; nvar = 1) #1.11552929e-5
-get_L1_error(sol5, exact_sol; nvar = 1) #1.11552929e-5
+ode_prob, cb, dt = get_problem(FVTecnoScheme(Nflux;order=3), mesh)
+sol2 = solve(ode_prob,SSPRK22(); dt = dt, callback = cb)
+
+ode_prob, cb, dt = get_problem(FVCompWENOScheme(), mesh)
+sol3 = solve(ode_prob,SSPRK22(); dt = dt, callback = cb)
+
+ode_prob, cb, dt = get_problem(FVCompMWENOScheme(), mesh)
+sol4 = solve(ode_prob,SSPRK22(); dt = dt, callback = cb)
+
+ode_prob, cb, dt = get_problem(FVSpecMWENOScheme(), mesh)
+sol5 = solve(ode_prob,SSPRK22(); dt = dt, callback = cb)
+
+#Estimate errors
+u1_h = fv_solution(sol, mesh; vars = 2)
+u2_h = fv_solution(sol2, mesh; vars = 2)
+u3_h = fv_solution(sol3, mesh; vars = 2)
+u4_h = fv_solution(sol4, mesh; vars = 2)
+u5_h = fv_solution(sol5, mesh; vars = 2)
+get_L1_error(exact_sol,u1_h)
+get_L1_error(exact_sol,u2_h)
+get_L1_error(exact_sol,u3_h)
+get_L1_error(exact_sol,u4_h)
+get_L1_error(exact_sol,u5_h)
+
 #Plot
-using Plots;pyplot();
-plot(sol, tidx=1, vars=1, lab="yo",line=(:dot,2))
-plot!(sol, vars=1, lab="KT y",line = (:dot,2))
-plot!(sol2, vars=1,lab="Tecno y",line=(:dot,3))
-plot!(sol3, vars=1,lab="Comp WENO y",line=(:dot,3))
-plot!(sol4, vars=1,lab="Comp MWENO y",line=(:dot,3))
-plot!(sol5, vars=1,lab="Spec MWENO y",line=(:dot,3))
-plot!(cell_centers(sol.prob.mesh), exact_sol(cell_centers(sol.prob.mesh),Tend)[:,1],lab="Ref y")
+using Plots
+plot(u1_h, vars=1, lab="KT y",line = (:dot,2))
+plot!(u2_h, vars=1,lab="Tecno y",line=(:dot,3))
+plot!(u3_h, vars=1,lab="Comp WENO y",line=(:dot,3))
+plot!(u4_h, vars=1,lab="Comp MWENO y",line=(:dot,3))
+plot!(u5_h, vars=1,lab="Spec MWENO y",line=(:dot,3))
+plot!(CL.cell_centers(mesh), [exact_sol(x,Tend)[1] for x in CL.cell_centers(mesh)],lab="Ref y")

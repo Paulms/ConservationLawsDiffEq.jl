@@ -37,13 +37,13 @@ module ConservationLawsDiffEq
 
   #Algoritms
   include("ENO_WENO.jl")
-  # include("Tecno_scheme.jl")
-    include("schemes/WENO_Scheme.jl")
-    include("schemes/Lax_Friedrichs_scheme.jl")
+  include("schemes/Tecno_scheme.jl")
+  include("schemes/WENO_Scheme.jl")
+  include("schemes/Lax_Friedrichs_scheme.jl")
   include("schemes/Lax_Wendroff2s_scheme.jl")
   include("schemes/CU_scheme.jl")
   include("schemes/SKT_scheme.jl")
-    include("limiters.jl")
+  include("limiters.jl")
 
   # Other
   include("errors.jl")
@@ -72,7 +72,7 @@ module ConservationLawsDiffEq
   export Uniform1DFVMesh
 
   # Schemes
-  # export FVTecnoScheme
+  export FVTecnoScheme
   export FVCompWENOScheme, FVCompMWENOScheme, FVSpecMWENOScheme
   export LaxFriedrichsScheme
   export LaxWendroff2sScheme, LaxWendroffScheme
@@ -82,8 +82,8 @@ module ConservationLawsDiffEq
   export FVDRCU5Scheme
 
   # scheme utils
-  export get_total_u, get_relative_L1_error, get_L1_error#, approx_L1_error, approx_relative, L1_error
+  export get_total_u, get_relative_L1_error, get_L1_error, approx_L1_error
   export num_integrate
-  #export FVOOCTable, get_conv_order_table, mesh_norm, get_LP_error, get_num_LP_error
+  export get_conv_order_table, mesh_norm, get_LP_error, get_num_LP_error
   export GeneralizedMinmodLimiter, OsherLimiter, MinmodLimiter, SuperbeeLimiter
 end

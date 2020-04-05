@@ -219,17 +219,17 @@ end
 cellidx_at_left(node::Int, n::Int, ::Union{ZeroFlux,Dirichlet}) = min(n,max(1,node-1))
 cellidx_at_right(node::Int, n::Int, ::Union{ZeroFlux,Dirichlet}) =  min(n,max(1,node))
 
-function apply_lbc_in_du!(du, fvmesh::FVMesh1D{GeneralProblem}, ::ZeroFlux)
+function apply_lbc_in_du!(du, fvmesh::FVMesh1D{GeneralProblem}, ::Dirichlet)
     du[:,1] .= zero(eltype(du))
 end
-function apply_lbc_in_du!(du, fvmesh::FVMesh1D{ScalarProblem}, ::ZeroFlux)
+function apply_lbc_in_du!(du, fvmesh::FVMesh1D{ScalarProblem}, ::Dirichlet)
     du[1] = zero(eltype(du))
 end
 
-function apply_rbc_in_du!(du, fvmesh::FVMesh1D{GeneralProblem}, ::ZeroFlux)
-    du[:,getnnodes(fvmesh.mesh)] .= zero(eltype(du))
+function apply_rbc_in_du!(du, fvmesh::FVMesh1D{GeneralProblem}, ::Dirichlet)
+    du[:,getncells(fvmesh.mesh)] .= zero(eltype(du))
 end
 
-function apply_rbc_in_du!(du, fvmesh::FVMesh1D{ScalarProblem}, ::ZeroFlux)
-    du[getnnodes(fvmesh.mesh)] = zero(eltype(du))
+function apply_rbc_in_du!(du, fvmesh::FVMesh1D{ScalarProblem}, ::Dirichlet)
+    du[getncells(fvmesh.mesh)] = zero(eltype(du))
 end

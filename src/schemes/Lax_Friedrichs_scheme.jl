@@ -27,28 +27,6 @@ function GlobalLaxFriedrichsScheme(;αf = nothing)
     GlobalLaxFriedrichsScheme(αf,0.0)
 end
 
-mutable struct COMP_GLF_Diff_Algorithm{T, cType, oType} <: AbstractFVAlgorithm
-  αf :: Function #viscosity coefficient
-  α :: T
-  rec_scheme :: cType
-  order :: oType
-end
-
-function update_dt(alg::COMP_GLF_Diff_Algorithm{T0,T1,T2},u,Flux,
-    DiffMat,CFL,mesh) where {T0,T1,T2}
-  alg.α = alg.αf(u,Flux, mesh)
-  @assert (abs(alg.α) > eps(T0))
-  dx = cell_volume(mesh, 1)
-  CFL*dx/alg.α
-end
-
-function COMP_GLF_Diff_Algorithm(;αf = nothing, rec_scheme = WENO_Reconstruction(5))
-    if αf == nothing
-        αf = maxfluxρ
-    end
-    COMP_GLF_Diff_Algorithm(αf,0.0,rec_scheme,5)
-end
-
 function update_flux_value(uold,node_idx,dt,dx,mesh,Flux,alg::LaxFriedrichsScheme)
     # Local speeds of propagation
     @inbounds ul=cellval_at_left(node_idx,uold,mesh)

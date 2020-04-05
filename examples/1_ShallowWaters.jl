@@ -15,14 +15,14 @@ end
 f(u::AbstractVector) = [u[2];u[2]^2/u[1]+0.5*gr*u[1]^2]
 f0(x) = x < 0.0 ? [2.0,0.0] : [1.0,0.0]
 
-# function Nflux(ϕl::AbstractVector, ϕr::AbstractVector)
-#   hl = ϕl[1]; hr = ϕr[1]
-#   ul = ϕl[2]/ϕl[1]; ur = ϕr[2]/ϕr[1];
-#   hm = 0.5*(hl+hr)
-#   um = 0.5*(ul+ur)
-#   return([hm*um;hm*um^2+0.5*gr*(0.5*(hl^2+hr^2))])
-# end
-#ve(u::AbstractVector) = [gr*u[1]-0.5*(u[2]/u[1])^2;u[2]/u[1]]
+function Nflux(ϕl::AbstractVector, ϕr::AbstractVector)
+  hl = ϕl[1]; hr = ϕr[1]
+  ul = ϕl[2]/ϕl[1]; ur = ϕr[2]/ϕr[1];
+  hm = 0.5*(hl+hr)
+  um = 0.5*(ul+ur)
+  return([hm*um;hm*um^2+0.5*gr*(0.5*(hl^2+hr^2))])
+end
+ve(u::AbstractVector) = [gr*u[1]-0.5*(u[2]/u[1])^2;u[2]/u[1]]
 
 
 # Now discretizate the domain
@@ -50,13 +50,8 @@ end
 ode_prob, cb, dt = get_problem(FVSKTScheme(), mesh)
 sol = solve(ode_prob,SSPRK22(); dt = dt, callback = cb)
 
-#ode_prob, cb, dt = get_problem(FVTecnoScheme(Nflux;ve = ve, order=3), mesh)
-#sol2 = solve(ode_prob,SSPRK22(); dt = dt, callback = cb)
-
 #Plot
 using Plots
 u_h = fv_solution(sol, mesh; vars = 2)
 plot(u_h, tidx=1, vars=1, lab="ho",line=(:dot,2))
 plot!(u_h, vars=1,lab="KT h")
-#u2_h = fv_solution(sol2, mesh)
-#plot!(u2_h, vars=1,lab="Tecno h")
