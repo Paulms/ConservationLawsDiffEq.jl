@@ -1,5 +1,6 @@
 #Lax shock tube
 using ConservationLawsDiffEq
+using OrdinaryDiffEq
 
 #Euler Equations
 const CFL = 0.5
@@ -65,22 +66,38 @@ function ve(u::Vector)
   return [(γ-s)/(γ-1)-ρ*v^2/(2*p);ρ*v/p;-ρ/p]
 end
 
-function get_problem(N)
-    mesh = Uniform1DFVMesh(N,-1.0,1.0,:ZERO_FLUX, :ZERO_FLUX)
-    ConservationLawsProblem(f0,f,CFL,Tend,mesh;jac = Jf)
+# Now discretizate the domain
+mesh = Uniform1DFVMesh(20, [-1.0, 1.0])
+
+function get_problem(alg, mesh)
+  #Compute discrete initial data
+  u0 = getInitialState(mesh,f0,use_threads = true)
+
+  # Now get a explicit semidiscretization (discrete in space) du_h(t)/dt = f_h(u_h(t))
+  f_h = getSemiDiscretization(f,alg,mesh,[ZeroFlux()]; Df = Jf, use_threads = false,numvars = 3)
+
+  #Setup ODE problem for a time interval = [0.0,1.0]
+  ode_prob = ODEProblem(f_h,u0,(0.0,Tend))
+
+  #Setup callback in order to fix CFL constant value
+  cb = getCFLCallback(f_h, CFL)
+
+  #Estimate an initial dt
+  dt = update_dt!(u0, f_h, CFL)
+  return ode_prob, cb, dt
 end
-prob = get_problem(20)
 
-basis=legendre_basis(3)
-limiter! = DGLimiter(prob, basis, Linear_MUSCL_Limiter())
-@time sol1 = solve(prob, DiscontinuousGalerkinScheme(basis, rusanov_euler_num_flux); TimeIntegrator = SSPRK22(limiter!))
+ode_prob, cb, dt = get_problem(FVSKTScheme(), mesh)
+sol = solve(ode_prob,SSPRK22(); dt = dt, callback = cb)
 
-@time sol = solve(prob, FVSKTAlgorithm();progress=true)
-#@time sol2 = solve(prob, FVTecnoAlgorithm(Nflux;ve = ve, order=3);progress=true)
+ode_prob, cb, dt = get_problem(FVCompWENOScheme(), mesh)
+sol2 = solve(ode_prob,SSPRK22(); dt = dt, callback = cb)
+
+u1_h = fv_solution(sol, mesh; vars = 3)
+u2_h = fv_solution(sol2, mesh; vars = 3)
 
 #Plot
 using Plots
-plot(sol, tidx=1, vars=1, lab="ρ_0",line=(:dot,2))
-plot!(sol, vars=1, lab="KT ρ",line = (:dot,2))
-plot!(sol1, vars=1, lab="DG K = 3 ρ",line = (:dot,2))
-plot!(sol2, vars=1,lab="Tecno ρ",line=(:dot,3))
+plot(u1_h, tidx=1, vars=1, lab="ρ_0",line=(:dot,2))
+plot!(u1_h, vars=1, lab="KT ρ",line = (:dot,2))
+plot!(u2_h, vars=1, lab="CompWENO5 ρ",line = (:dot,2))

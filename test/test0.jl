@@ -1,92 +1,84 @@
-# 1D Burgers Equation
-# u_t+(0.5*u²)_{x}=0
+# Test 0: Solve 1D Burgers Equation
+# u(x,t)_t+(0.5*u²(x,t))_{x}=0
+# u(0,x) = f0(x)
 
 @testset "1D Scalar Algorithms" begin
 
 using ConservationLawsDiffEq
 using LinearAlgebra
+using OrdinaryDiffEq
+
 include("burgers.jl")
+CL = ConservationLawsDiffEq
 
 CFL = 0.5
 Tend = 1.0
 ul = 1.0
 ur = 0.0
 x0 = 0.0
-xl = -3.0
-xr = 3.0
 
 prob1 = RiemannProblem(Burgers(), ul, ur, x0, 0.0)
 sol_ana  = get_solution(prob1)
 
-Jf(u::AbstractVector) = Diagonal(u)
-f(u::AbstractVector) = u.^2/2
+# First define the problem data (Jacobian is optional but useful)
+Jf(u) = u           #Jacobian
+f(u) = u^2/2        #Flux function
 
 f0(x) = (x < x0) ? ul : ur
 
-function get_problem(N)
-  mesh = Uniform1DFVMesh(N,xl,xr,:DIRICHLET, :DIRICHLET)
-  ConservationLawsProblem(f0,f,CFL,Tend,mesh;jac = Jf)
+# Now discretizate the domain
+mesh = Uniform1DFVMesh(50, [-3.0, 3.0])
+
+function get_problem(alg::CL.AbstractFVAlgorithm, use_threads, mesh, Tend,CFL)
+  # Now get a explicit semidiscretization (discrete in space) du_h(t)/dt = f_h(u_h(t))
+  f_h = getSemiDiscretization(f,alg,mesh,[Dirichlet(;side=:Both)]; Df = Jf, use_threads = use_threads,numvars = 1)
+
+  #Compute discrete initial data
+  u0 = getInitialState(mesh,f0,use_threads = true)
+
+  #Setup ODE problem for a time interval = [0.0,1.0]
+  ode_prob = ODEProblem(f_h,u0,(0.0,Tend))
+
+  #Setup callback in order to fix CFL constant value
+  cb = getCFLCallback(f_h, CFL)
+
+  #Estimate an initial dt
+  dt = update_dt!(u0, f_h, CFL)
+  return ode_prob, cb, dt
 end
 
-prob = get_problem(50)
-@time sol = solve(prob, FVSKTAlgorithm(); use_threads = false, save_everystep = true)
-@test get_L1_error(sol_ana, sol) < 0.048
+function test_Scheme(alg, maxerror, threaded_mode=true)
+  println("Testing ",split("$alg","(")[1],": ")
+  prob,cb,dt = get_problem(alg, false, mesh, Tend,CFL)
+  @time sol = solve(prob,SSPRK22(); dt = dt, callback = cb, save_everystep = false)
+  @test get_L1_error(sol_ana, fv_solution(sol,mesh)) < maxerror
+  if threaded_mode
+    println("in threaded mode: ")
+    prob,cb,dt = get_problem(alg, true, mesh, Tend,CFL)
+    @time sol1 = solve(prob,SSPRK22(); dt = dt, callback = cb, save_everystep = false)
+    @test get_L1_error(sol_ana, fv_solution(sol1,mesh)) ≈ get_L1_error(sol_ana, fv_solution(sol,mesh))
+  end
+end
+
+# Test Schemes relative error
+test_Scheme(FVSKTScheme(), 0.048)
+test_Scheme(LaxFriedrichsScheme(), 0.24)
+test_Scheme(LocalLaxFriedrichsScheme(), 0.17, false)
+test_Scheme(GlobalLaxFriedrichsScheme(), 0.24)
+test_Scheme(LaxWendroffScheme(), 0.043)
+test_Scheme(LaxWendroff2sScheme(), 0.088)
+test_Scheme(FVCompWENOScheme(), 0.045)
+test_Scheme(FVCompMWENOScheme(), 0.041)
+test_Scheme(FVSpecMWENOScheme(), 0.028, false)
+test_Scheme(FVCUScheme(), 0.039)
+test_Scheme(FVDRCUScheme(), 0.039)
+test_Scheme(FVDRCU5Scheme(), 0.053)
+
+# Test dt and CFL callback
+prob,cb,dt = get_problem(FVSKTScheme(), false, mesh, Tend,CFL)
+@time sol = solve(prob,SSPRK22(); dt = dt, callback = cb, save_everystep = true)
 @test sol.t == [0.0,0.05999999999999994,0.11999999999999988,0.17999999999999983,0.23999999999999977,
                 0.2999999999999997,0.35999999999999965,0.4199999999999996,0.47999999999999954,
                 0.5399999999999995,0.5999999999999994,0.6599999999999994,0.7199999999999993,
                 0.7799999999999992,0.8399999999999992,0.8999999999999991,0.9599999999999991,1.0]
-@time sol1 = solve(prob, FVSKTAlgorithm(); use_threads = true, save_everystep = false)
-@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
-println("Comparision with custom solve solution")
-@time sol2 = fast_solve(prob, FVSKTAlgorithm();use_threads = false, save_everystep = true)
-@test get_L1_error(sol_ana, sol2) ≈ get_L1_error(sol_ana, sol)
-@test sol2.t == sol.t
-@time sol3 = fast_solve(prob, FVSKTAlgorithm();use_threads = true, save_everystep = false)
-@test get_L1_error(sol_ana, sol3) ≈ get_L1_error(sol_ana, sol)
-println("Testing errors in the rest of schemes")
-@time sol = solve(prob, LaxFriedrichsAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.24
-@time sol1 = solve(prob, LaxFriedrichsAlgorithm();use_threads = true, save_everystep = false)
-@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
-@time sol = solve(prob, LocalLaxFriedrichsAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.17
-println("No threaded version of LLF")
-@time sol = solve(prob, GlobalLaxFriedrichsAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.24
-@time sol1 = solve(prob, GlobalLaxFriedrichsAlgorithm();use_threads = true, save_everystep = false)
-@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
-#@time sol5 = solve(prob, LaxWendroff2sAlgorithm();progress=true, save_everystep = false)
-@time sol = solve(prob, FVCompWENOAlgorithm();use_threads = false, TimeIntegrator = SSPRK33(), save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.041
-@time sol1 = solve(prob, FVCompWENOAlgorithm();use_threads = true, TimeIntegrator = SSPRK33(), save_everystep = false)
-@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
-@time sol = solve(prob, FVCompMWENOAlgorithm();use_threads = false, TimeIntegrator = SSPRK33(), save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.037
-@time sol1 = solve(prob, FVCompMWENOAlgorithm();use_threads = true, TimeIntegrator = SSPRK33(), save_everystep = false)
-@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
-@time sol = solve(prob, FVSpecMWENOAlgorithm();use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.028
-println("No threaded version of FVSpecMWENOAlgorithm")
-@time sol = solve(prob, FVCUAlgorithm(); use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.039
-@time sol1 = solve(prob, FVCUAlgorithm(); use_threads = true, save_everystep = false)
-@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
-@time sol = solve(prob, FVDRCUAlgorithm(); use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.039
-@time sol1 = solve(prob, FVDRCUAlgorithm(); use_threads = true, save_everystep = false)
-@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
-@time sol = solve(prob, FVDRCU5Algorithm(); use_threads = false, save_everystep = true)
-@test get_L1_error(sol_ana, sol) < 0.053
-@time sol1 = solve(prob, FVDRCU5Algorithm(); use_threads = true, save_everystep = false)
-@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
-@time sol = solve(prob, LaxWendroffAlgorithm(); use_threads = false, save_everystep = false)
-@test get_L1_error(sol_ana, sol) < 0.043
-@time sol1 = solve(prob, LaxWendroffAlgorithm(); use_threads = true, save_everystep = false)
-@test get_L1_error(sol_ana, sol1) ≈ get_L1_error(sol_ana, sol)
-basis=legendre_basis(3)
-limiter! = DGLimiter(prob, basis, Linear_MUSCL_Limiter())
-@time sol = solve(prob, DiscontinuousGalerkinScheme(basis, glf_num_flux); TimeIntegrator = SSPRK22(limiter!))
-@test get_L1_error(sol_ana, sol) < 1.28
-println("No threaded version of DG Scheme")
-
 end
