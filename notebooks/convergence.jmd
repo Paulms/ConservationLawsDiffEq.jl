@@ -10,15 +10,15 @@ $$
 u_t + a u_x = 0
 $$
  
- with initial conditions:
+with initial conditions:
 
- $$
+$$
  u(x,0) = \sin(4 \pi x)
- $$
+$$
 
- The exact solution of the problem is: $u(x,t) = \sin(4 \pi (x-t))$
+The exact solution of the problem is: $u(x,t) = \sin(4 \pi (x-t))$
 
- Let's plot the exact solution at time = 2 (note that the exact solution returns back to the initial condition at time $t = k$ for all positive integer $k$).
+Let's plot the exact solution at time = 2 (note that the exact solution returns back to the initial condition at time $t = k$ for all positive integer $k$).
 
 ```julia
 using Plots
@@ -46,7 +46,7 @@ function get_problem(N, scheme; Tend = 2.0, CFL = 0.5)
 
   mesh = Uniform1DFVMesh(N, [0.0, 1.0])
 
-  f_h = getSemiDiscretization(f,scheme,mesh,[Periodic()]; Df = Jf, use_threads = false,numvars = 1)
+  f_h = getSemiDiscretization(f,scheme,mesh,[Periodic()]; Df = Jf, use_threads = true,numvars = 1)
 
   #Compute discrete initial data
   u0 = getInitialState(mesh,f0,use_threads = true)
@@ -66,14 +66,14 @@ end
 Now we approximate the solution using a first order Lax-Friedrichs scheme.
 
 ```julia
-ode_prob, mesh, cb, dt = get_problem(50, LaxFriedrichsScheme)
-sol = solve(ode_prob,SSPRK22(); dt = dt, callback = cb)
+ode_prob, mesh, cb, dt = get_problem(100, LaxFriedrichsScheme());
+sol = solve(ode_prob,SSPRK22(); dt = dt, callback = cb);
 ```
 
 Let's compare the numerical solution against the exact solution:
 
 ```julia
-u_h = fv_solution(sol, mesh; vars = 1)
+u_h = fv_solution(sol, mesh; vars = 1);
 plot(0:0.01:1, [u_exact(x,10.0) for x in 0:0.01:1])
 plot!(u_h, lab="u LF")
 ```
@@ -83,7 +83,7 @@ Finite volume schemes like the Gudonov, Lax-Friedrichs and Engquist-Osher are qu
 An explanation for the large errors is provided in the experimental order of convergence. The observed order of convergence is close to one. This implies that the convergence is slow and errors are reduced very slowly.
 
 ```julia
-mesh_ncells = [40,80,160,320,640]
+mesh_ncells = [40,80,160,320]
 t1 = get_conv_order_table(LaxFriedrichsScheme(),solve, get_problem, u_exact, mesh_ncells, Euler())
 
 using PrettyTables 
@@ -101,34 +101,34 @@ $$ \theta_{\Delta y} = \frac {\log(e_{\Delta x}) - \log(e_{\Delta y})}{\log(\Del
 Now, we test a second order numerical scheme: Lax-Wendroff scheme.
 
 ```julia
-ode_prob, mesh, cb, dt = get_problem(50, LaxWendroffScheme)
-sol2 = solve(ode_prob,SSPRK22(); dt = dt, callback = cb)
+ode_prob, mesh, cb, dt = get_problem(100, LaxWendroffScheme());
+sol2 = solve(ode_prob,SSPRK22(); dt = dt, callback = cb);
 ```
 
 and plot the approximation against the exact solution:
 
 ```julia
-u2_h = fv_solution(sol2, mesh; vars = 1)
+u2_h = fv_solution(sol2, mesh; vars = 1);
 plot(0:0.01:1, [u_exact(x,10.0) for x in 0:0.01:1])
 plot!(u2_h, lab="u LW")
 ```
 
 The approximation seems to be closer to the exact solution than before.
 
-In fact the convergence rate for the LaxWendroffScheme is faster, as can be seen when we compute the order of convergence
+In fact the convergence rate for the LaxWendroffScheme is faster (in fact we expect order two), as can be seen when we compute the order of convergence:
 
 ```julia
-mesh_ncells = [40,80,160,320,640]
+mesh_ncells = [40,80,160,320]
 t2 = get_conv_order_table(LaxWendroffScheme(),solve, get_problem, u_exact, mesh_ncells, Euler())
-
 header = ["M","e_tot","order"]
 pretty_table(t2.data, header)
 ```
+
 ## Remarks
 
-    Note that we are using the method of lines to solve each problem. The time integration algorithm is a first order Euler, but we only compute order of convergence in space not in time. 
+Note that we are using the method of lines to solve each problem. The time integration algorithm is a first order Euler, but we only compute order of convergence in space not in time. 
 
-    We fixed the CFL to 0.5, and enforce that passing the callback `getCFLCallback` to de ODE Solver. Important properties like convergence or TVD can be guaranteed only if an appropriate CFL condition is met.
+We fixed the CFL to 0.5, and enforce that passing the callback `getCFLCallback` to de ODE Solver. Important properties like convergence or TVD can be guaranteed only if an appropriate CFL condition is met.
 
 ## References
 
