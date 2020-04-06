@@ -90,28 +90,10 @@ end
 # # end
 
 ## Order of convergence Tables
-struct FVOOCTable{htype, etype, otype,ntype}
-  h::htype
-  errors::etype
-  orders::otype
+struct FVOOCTable{T,ntype}
+  data::Matrix{T}
   alg_name::ntype
 end
-
-
-function getMDOCCTable(f::FVOOCTable)
-    ooctable = [["M",L"e_{tot}^{M}",L"\theta_{M}"]]
-    for i in 1:size(f.h,1)
-        push!(ooctable,[string(f.h[i]), string(f.errors[i]), string(f.orders[i])])
-    end
-    t = Markdown.Table(ooctable, [:l, :c, :c])
-    m = Markdown.MD(t)
-    return m
-end
-
-display(x::FVOOCTable) = display(getMDOCCTable(x))
-
-show(io::IO, ::MIME"text/html", x::FVOOCTable) =
-    println(io, Markdown.html(getMDOCCTable(x)))
 
 scheme_short_name(alg::AbstractFVAlgorithm) =  string(typeof(alg))
 
@@ -127,24 +109,24 @@ function get_conv_order_table(alg,solve, get_problem, u_exact::Function, mesh_nc
     errors = fill(zero(Float64),size(mesh_ncells,1),2)
     @assert size(mesh_ncells,1) > 2 "mesh_sizes must have at least two elements"
     for (i,N) in enumerate(mesh_ncells)
-        prob,mesh,cb,dt = get_problem(N)
+        prob,mesh,cb,dt = get_problem(N, alg)
         sol_ode = solve(prob, TimeIntegrator;dt = dt, callback = cb, kwargs...);
         sol = fv_solution(sol_ode, mesh)
         errors[i,1] = relative ? get_relative_L1_error(u_exact, sol) : get_L1_error(u_exact, sol)
     end
     @. errors[2:end,2] = -log(errors[1:(end-1),1]/errors[2:end,1])/log(mesh_ncells[1:(end-1)]/mesh_ncells[2:end]);
-    return FVOOCTable(mesh_ncells,errors[:,1],errors[:,2],scheme_short_name(alg))
+    return FVOOCTable([mesh_ncells errors[:,1] errors[:,2]],scheme_short_name(alg))
 end
 
 function get_conv_order_table(alg,solve, get_problem, u_exact::AbstractFVSolution, mesh_ncells, TimeIntegrator; relative::Bool = true, kwargs...)
     errors = fill(zero(Float64),size(mesh_ncells,1),2)
     @assert size(mesh_ncells,1) > 2 "mesh_sizes must have at least two elements"
     for (i,N) in enumerate(mesh_ncells)
-        prob,mesh,cb,dt = get_problem(N)
+        prob,mesh,cb,dt = get_problem(N, alg)
         sol_ode = solve(prob, TimeIntegrator;dt = dt, callback = cb, kwargs...);
         sol = fv_solution(sol_ode, mesh)
         errors[i,1] = relative ? approx_relative_L1_error(u_exact, sol) : approx_L1_error(u_exact, sol)
     end
     @. errors[2:end,2] = -log(errors[1:(end-1),1]/errors[2:end,1])/log(mesh_ncells[1:(end-1)]/mesh_ncells[2:end]);
-    return FVOOCTable(mesh_ncells,errors[:,1],errors[:,2],scheme_short_name(alg))
+    return FVOOCTable([mesh_ncells errors[:,1] errors[:,2]],scheme_short_name(alg))
 end

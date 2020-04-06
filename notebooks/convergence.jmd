@@ -1,0 +1,138 @@
+---
+title : Order of convergence of FV schemes
+author : Paul Méndez
+date : 6th April 2020
+---
+
+Consider the linear transport equation:
+
+$$
+u_t + a u_x = 0
+$$
+ 
+ with initial conditions:
+
+ $$
+ u(x,0) = \sin(4 \pi x)
+ $$
+
+ The exact solution of the problem is: $u(x,t) = \sin(4 \pi (x-t))$
+
+ Let's plot the exact solution at time = 2 (note that the exact solution returns back to the initial condition at time $t = k$ for all positive integer $k$).
+
+```julia
+using Plots
+u_exact(x,t) = sin(4*pi*(x-t))
+plot(0:0.01:1, [u_exact(x,10.0) for x in 0:0.01:1])
+```
+
+ Now for the numerical solution, first we setup the problem:
+
+```julia
+using ConservationLawsDiffEq
+using OrdinaryDiffEq
+using LinearAlgebra
+
+ # Define the flux and flux Jacobian
+Jf(u) = 1
+f(u) = u
+
+# Initial condition (using integral cell averages)
+f0(x) = sin(4*pi*x)
+
+#Setup problem for a given N (number of cells/control volumenes on a uniform mesh)
+#and given final time (Tend) with periodic boundary conditions
+function get_problem(N, scheme; Tend = 2.0, CFL = 0.5)
+
+  mesh = Uniform1DFVMesh(N, [0.0, 1.0])
+
+  f_h = getSemiDiscretization(f,scheme,mesh,[Periodic()]; Df = Jf, use_threads = false,numvars = 1)
+
+  #Compute discrete initial data
+  u0 = getInitialState(mesh,f0,use_threads = true)
+
+  #Setup ODE problem for a time interval = [0.0,1.0]
+  ode_prob = ODEProblem(f_h,u0,(0.0,Tend))
+
+  #Setup callback in order to fix CFL constant value
+  cb = getCFLCallback(f_h, CFL)
+
+  #Estimate an initial dt
+  dt = update_dt!(u0, f_h, CFL)
+  return ode_prob,mesh,cb, dt
+end
+```
+
+Now we approximate the solution using a first order Lax-Friedrichs scheme.
+
+```julia
+ode_prob, mesh, cb, dt = get_problem(50, LaxFriedrichsScheme)
+sol = solve(ode_prob,SSPRK22(); dt = dt, callback = cb)
+```
+
+Let's compare the numerical solution against the exact solution:
+
+```julia
+u_h = fv_solution(sol, mesh; vars = 1)
+plot(0:0.01:1, [u_exact(x,10.0) for x in 0:0.01:1])
+plot!(u_h, lab="u LF")
+```
+
+Finite volume schemes like the Gudonov, Lax-Friedrichs and Engquist-Osher are quite stable with no spurious oscillations or other numerical artifacts. However, the approximation may lead to large errors, particulary at coarse meshes.
+
+An explanation for the large errors is provided in the experimental order of convergence. The observed order of convergence is close to one. This implies that the convergence is slow and errors are reduced very slowly.
+
+```julia
+mesh_ncells = [40,80,160,320,640]
+t1 = get_conv_order_table(LaxFriedrichsScheme(),solve, get_problem, u_exact, mesh_ncells, Euler())
+
+using PrettyTables 
+header = ["M","e_tot","order"]
+pretty_table(t1.data, header)
+```
+
+The table shows the relative error in $L^1$ on a sequence of meshes. The percentage relative error is defined by
+
+$$ e_{\Delta x} = 100 \times \frac{\Vert u_{\Delta x} - u_{\mathrm{ref}}\Vert_{L^1}}{\Vert u_{\mathrm{ref}} \Vert_{L^1}} $$
+
+where $u_{\Delta x}$ is the approximate solution computed on a mesh with cell size $\Delta x$ and $u_{\mathrm{ref}}$ is a reference solution to the continuous problem. We also shown the experimental order of convergence,
+$$ \theta_{\Delta y} = \frac {\log(e_{\Delta x}) - \log(e_{\Delta y})}{\log(\Delta x) - \log(\Delta y)} $$
+
+Now, we test a second order numerical scheme: Lax-Wendroff scheme.
+
+```julia
+ode_prob, mesh, cb, dt = get_problem(50, LaxWendroffScheme)
+sol2 = solve(ode_prob,SSPRK22(); dt = dt, callback = cb)
+```
+
+and plot the approximation against the exact solution:
+
+```julia
+u2_h = fv_solution(sol2, mesh; vars = 1)
+plot(0:0.01:1, [u_exact(x,10.0) for x in 0:0.01:1])
+plot!(u2_h, lab="u LW")
+```
+
+The approximation seems to be closer to the exact solution than before.
+
+In fact the convergence rate for the LaxWendroffScheme is faster, as can be seen when we compute the order of convergence
+
+```julia
+mesh_ncells = [40,80,160,320,640]
+t2 = get_conv_order_table(LaxWendroffScheme(),solve, get_problem, u_exact, mesh_ncells, Euler())
+
+header = ["M","e_tot","order"]
+pretty_table(t2.data, header)
+```
+## Remarks
+
+    Note that we are using the method of lines to solve each problem. The time integration algorithm is a first order Euler, but we only compute order of convergence in space not in time. 
+
+    We fixed the CFL to 0.5, and enforce that passing the callback `getCFLCallback` to de ODE Solver. Important properties like convergence or TVD can be guaranteed only if an appropriate CFL condition is met.
+
+## References
+
+* Siddartha Misha, Numerical Methods for conservation laws and related equations, [https://www2.math.ethz.ch/education/bachelor/lectures/fs2013/math/nhdgl/numcl_notes_HOMEPAGE.pdf]
+
+
+
