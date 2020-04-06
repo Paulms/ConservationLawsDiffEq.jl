@@ -16,7 +16,7 @@ $$
  u(x,0) = \sin(4 \pi x)
 $$
 
-The exact solution of the problem is: $u(x,t) = \sin(4 \pi (x-t))$
+If we take $a=1$ The exact solution of the problem is: $u(x,t) = \sin(4 \pi (x-t))$
 
 Let's plot the exact solution at time = 2 (note that the exact solution returns back to the initial condition at time $t = k$ for all positive integer $k$).
 
@@ -93,10 +93,15 @@ pretty_table(t1.data, header)
 
 The table shows the relative error in $L^1$ on a sequence of meshes. The percentage relative error is defined by
 
-$$ e_{\Delta x} = 100 \times \frac{\Vert u_{\Delta x} - u_{\mathrm{ref}}\Vert_{L^1}}{\Vert u_{\mathrm{ref}} \Vert_{L^1}} $$
+$$
+ e_{\Delta x} = 100 \times \frac{\Vert u_{\Delta x} - u_{\mathrm{ref}}\Vert_{L^1}}{\Vert u_{\mathrm{ref}} \Vert_{L^1}} 
+$$
 
 where $u_{\Delta x}$ is the approximate solution computed on a mesh with cell size $\Delta x$ and $u_{\mathrm{ref}}$ is a reference solution to the continuous problem. We also shown the experimental order of convergence,
-$$ \theta_{\Delta y} = \frac {\log(e_{\Delta x}) - \log(e_{\Delta y})}{\log(\Delta x) - \log(\Delta y)} $$
+
+$$
+ \theta_{\Delta y} = \frac {\log(e_{\Delta x}) - \log(e_{\Delta y})}{\log(\Delta x) - \log(\Delta y)} 
+$$
 
 Now, we test a second order numerical scheme: Lax-Wendroff scheme.
 
@@ -115,7 +120,7 @@ plot!(u2_h, lab="u LW")
 
 The approximation seems to be closer to the exact solution than before.
 
-In fact the convergence rate for the LaxWendroffScheme is faster (in fact we expect order two), as can be seen when we compute the order of convergence:
+In fact the convergence rate for the LaxWendroffScheme is faster (we expect order two), as can be seen when we compute the order of convergence:
 
 ```julia
 mesh_ncells = [40,80,160,320]
