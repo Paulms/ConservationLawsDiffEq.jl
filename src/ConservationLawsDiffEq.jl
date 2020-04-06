@@ -7,14 +7,12 @@ module ConservationLawsDiffEq
   import Tensors
 
   import ForwardDiff
-  using RecipesBase, LaTeXStrings
+  using RecipesBase
   import FastGaussQuadrature
   using StaticArrays
 
   # Interfaces
   import DiffEqBase: DiscreteCallback,AbstractODESolution
-  import Base: show
-  import Markdown
 
   # Reconstructions
   abstract type AbstractReconstruction end
