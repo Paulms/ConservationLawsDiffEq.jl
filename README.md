@@ -6,11 +6,11 @@
 [![Coverage Status](https://coveralls.io/repos/Paulms/ConservationLawsDiffEq.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/Paulms/ConservationLawsDiffEq.jl?branch=master)
 [![codecov.io](http://codecov.io/github/Paulms/ConservationLawsDiffEq.jl/coverage.svg?branch=master)](http://codecov.io/github/Paulms/ConservationLawsDiffEq.jl?branch=master)
 
-Collection of explicit numerical schemes for solving systems of Conservations Laws (finite volume methods), using method of Lines and a ODE Solver.
+Collection of explicit numerical schemes for solving systems of Conservations Laws (finite volume methods), using method of Lines and an ODE Solver.
 
-Each scheme return a semidiscretization (discretization in space) that represents a ODE system. Time integration is performed then using [OrdinaryDiffEq](https://github.com/JuliaDiffEq/OrdinaryDiffEq.jl).
+Each scheme returns a semidiscretization (discretization in space) that represents a ODE system. Time integration is performed then using [OrdinaryDiffEq](https://github.com/JuliaDiffEq/OrdinaryDiffEq.jl).
 
-The general conservation law problem is represented by the following PDE,
+The general conservation laws problem is represented by the following PDE,
 
 <a href="https://www.codecogs.com/eqnedit.php?latex=\frac{\partial}{\partial&space;t}u&space;&plus;&space;\nabla&space;\cdot&space;f(u)=&space;0,\quad&space;\forall&space;(x,t)\in&space;\mathbb{R}^{n}\times\mathbb{R}_{&plus;}&space;\\&space;u(x,0)&space;=&space;u_{0}(x)\quad&space;\forall&space;x&space;\in&space;\mathbb{R}^{n}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\frac{\partial}{\partial&space;t}u&space;&plus;&space;\nabla&space;\cdot&space;f(u)=&space;0,\quad&space;\forall&space;(x,t)\in&space;\mathbb{R}^{n}\times\mathbb{R}&space;\\&space;u(x,0)&space;=&space;u_{0}(x)\quad&space;\forall&space;x&space;\in&space;\mathbb{R}^{n}" title="\frac{\partial}{\partial t}u + \nabla \cdot f(u)= 0,\quad \forall (x,t)\in \mathbb{R}^{n}\times\mathbb{R} \\ u(x,0) = u_{0}(x)\quad \forall x \in \mathbb{R}^{n}" /></a>
 
@@ -22,7 +22,7 @@ Where the numerical flux <a href="https://www.codecogs.com/eqnedit.php?latex=F_{
 
 ## Features
 ### Mesh:
-At the momento only Cartesian 1D uniform mesh available, using `Uniform1DFVMesh(N,[a,b])` command. Where
+At the moment only a Cartesian 1D uniform mesh is available, using `Uniform1DFVMesh(N,[a,b])` command. Where
 
 `N` = Number of cells
 
@@ -40,7 +40,7 @@ where `f` is the flux function defined as a julia function.
 `mesh` a valid finite volumes mesh.
 
 `boundary_conditions` a set of boundary conditions among: `Dirichlet()`, `ZeroFlux()` and `Periodic()`.
-*Note:* Dirichlet boundary values are defined by initial condition.
+*Note:* Dirichlet boundary values are defined by the initial condition.
 
 `Df`: is an optional Jacobian of the flux function.
 
